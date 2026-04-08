@@ -1,0 +1,27 @@
+{
+  "name": "motioncoder",
+  "version": "1.0.0",
+  "description": "Motor de coreografías 3D mediante código",
+  "main": "main-electron.js",
+  "scripts": {
+    "prestart": "node generar-lista.js",
+    "start": "electron .",
+    "prebuild": "node generar-lista.js",
+    "build": "electron-builder --win",
+    "subir": "node generar-lista.js && git add . && git commit -m \"Actualización de bailes\" && git push"
+  },
+  "author": "Urki Aristu",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.motioncoder.app",
+    "productName": "MotionCoder",
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icons/icon.ico"
+    }
+  }
+}
