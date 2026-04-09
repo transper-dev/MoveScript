@@ -112,7 +112,7 @@ const SB = {
       url = fileOrUrl;
     } else {
       if (navigator.onLine) {
-        url = `https://raw.githubusercontent.com/aristu138167/MotionCoder/refs/heads/master/assets/${fileOrUrl}.bvh`;
+        url = `https://raw.githubusercontent.com/transper-dev/MoveScript/refs/heads/main/assets/${fileOrUrl}.bvh`;
       } else {
         url = `./assets/${fileOrUrl}.bvh`;
       }
@@ -234,14 +234,14 @@ const SB = {
           const comprobacionLocal = await fetch(urlDefinitiva, { method: 'HEAD' });
           if (!comprobacionLocal.ok) {
             if (navigator.onLine) {
-              urlDefinitiva = `https://cdn.jsdelivr.net/gh/aristu138167/MotionCoder@master/assets/${fileOrUrl}.bvh`;
+              urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/${fileOrUrl}.bvh`;
             } else {
               throw new Error("Archivo no encontrado en local y no hay internet.");
             }
           }
         } catch (e) {
           if (navigator.onLine) {
-            urlDefinitiva = `https://cdn.jsdelivr.net/gh/aristu138167/MotionCoder@master/assets/${fileOrUrl}.bvh`;
+            urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/${fileOrUrl}.bvh`;
           }
         }
       }

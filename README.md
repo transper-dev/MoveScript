@@ -18,7 +18,7 @@ The easiest way to start creating. Just open your browser and go to the live env
 
 ### 2. Desktop Version (Windows .exe)
 For the best performance, offline use, and the ability to load your own local `.bvh` files instantly by dragging them into your folder:
-1. Go to the [Releases page](https://github.com/aristu138167/MoveScript/releases) of this repository.
+1. Go to the [Releases page](https://github.com/transper-dev/MoveScript/releases) of this repository.
 2. Download the latest `MoveScript Setup.exe`.
 3. Install it and start coding!
 
@@ -30,7 +30,7 @@ If you want to modify the source code, add new features, or compile your own ver
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/aristu138167/MoveScript.git](https://github.com/aristu138167/MoveScript.git)
+git clone [https://github.com/transper-dev/MoveScript.git](https://github.com/transper-dev/MoveScript.git)
 cd MoveScript
 
 # 2. Install dependencies
