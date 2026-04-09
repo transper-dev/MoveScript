@@ -30,7 +30,7 @@ If you want to modify the source code, add new features, or compile your own ver
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/transper-dev/MoveScript.git](https://github.com/transper-dev/MoveScript.git)
+git clone https://github.com/transper-dev/MoveScript.git
 cd MoveScript
 
 # 2. Install dependencies
@@ -52,9 +52,9 @@ Instead of writing verbose standard Three.js code, this environment uses a decla
 ```javascript
 // Example: Group manipulation and specific dummy targeting
 [bvh("monster_walk")]
->[dummy(9,1)]
+>[dummy()]
 >[color("red", "blue")]
->[dummy(2).color("green").bvh("serious_walk")];
+>[bones(3).color("green").bvh("serious_walk")];
 ```
 ## Editor Controls (UI)
 The editor is designed for a seamless live performance experience, keeping the interface minimal and out of the way:
@@ -81,18 +81,19 @@ These standard functions set up the global 3D scene (usually placed at the top o
 The core of the choreography is built using structural blocks:
 * **`[bvh("name")]`**: The starting point. Loads a `.bvh` file from the assets folder and spawns the base dancer.
 * **`>` (The Pipe Operator)**: Passes the current state into the next set of rules or transformations.
-* **`[dummy(bones, joints)]`**: Defines the geometric resolution of the dancer. The first number sets the level of detail for the bones, and the second for the joints.
-* **`[dummy(value)]`**: If you only provide one number, it applies the same geometric resolution to both the bones and the joints equally (e.g., `[dummy(5)]`).
+* **`[dummy()]`**: Activates the basic geometric humanoid dancer with standard proportions.
 
 ### Properties & Modifiers
 These modifiers can be applied globally to an entire group (e.g., `>[color("red")]`) or chained to a specific target (e.g., `>[dummy(2).scale(2)]`):
-* **`color(color1, color2...)`**: Applies colors to the skeletons and trails. If multiple colors are provided to a group, it creates a gradient distribution.
+* **`color(color1, [color2])`**: Applies colors to the skeletons and trails. If add a second color it creates a gradient distribution.
 * **`pos(x, y, z)`**: Moves the dancer or group across the 3D space.
 * **`rotX(rad)`, `rotY(rad)`, `rotZ(rad)`**: Rotates the elements on a specific axis.
 * **`scale(s)`**: Changes the overall size of the geometries.
 * **`speed(v)`**: Playback speed multiplier (1 is normal, 2 is double, 0.5 is slow motion).
 * **`trail(length)`**: Configures the ghost trail length (e.g., `trail(40)`). Use `0` to disable.
 * **`skeleton(boolean)`**: Shows or hides the solid bones (`true`/`false`).
+* **`bones(width, [length])`**:): Modifies the geometry of the bones. The first number sets the thickness, and the optional second number sets the length multiplier.
+* **`joints(size)`**: Defines the size of the spherical joints connecting the bones.
 
 ## Standard Three.js Support
 Under the hood, the environment still has full access to the standard `THREE` namespace. You can always mix generative BVH animations with custom geometries, custom shaders, and traditional lighting if your artwork requires it.
