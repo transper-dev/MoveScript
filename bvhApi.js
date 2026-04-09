@@ -818,10 +818,13 @@ window.CHAIN = (...nodes) => {
 function applyPropsToHandle(handle, props) {
   if (props.x !== undefined) handle.pos(props.x, props.y ?? 0, props.z ?? 0);
 
-  // SE APLICA EXACTAMENTE LO QUE EL ALUMNO PIDIÓ
   if (props.calledDummy) handle.dummy();
   if (props.calledBones) handle.bones(props.boneWidth, props.boneLength);
   if (props.calledJoints) handle.joints(props.jointSize);
+  
+  if (props.calledBones || props.calledJoints) {
+    handle._useDummy = true;
+  }
 
   if (props.color1 !== undefined) handle.color(props.color1, props.color2);
   if (props.rotX !== undefined) handle.rotX(props.rotX);
