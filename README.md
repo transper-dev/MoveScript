@@ -10,15 +10,15 @@ From that moment on, their own body becomes the raw material for the artwork. Th
 
 ## How to Use (Getting Started)
 
-You don't need to be a programmer to start using MotionCoder. You have two simple ways to access the environment:
+You don't need to be a programmer to start using MoveScript. You have two simple ways to access the environment:
 
 ### 1. Web Version (Instant Access)
 The easiest way to start creating. Just open your browser and go to the live environment (no installation required):
-**[Play MotionCoder on the Web](https://motioncoder.netlify.app/)**
+**[Play MoveScript on the Web](https://movescript.netlify.app/)**
 
 ### 2. Desktop Version (Windows .exe)
 For the best performance, offline use, and the ability to load your own local `.bvh` files instantly by dragging them into your folder:
-1. Go to the [Releases page](https://github.com/transper-dev/MoveScript/releases) of this repository.
+1. Go to the [Releases page](https://github.com/aristu138167/MoveScript/releases) of this repository.
 2. Download the latest `MoveScript Setup.exe`.
 3. Install it and start coding!
 
@@ -30,7 +30,7 @@ If you want to modify the source code, add new features, or compile your own ver
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/transper-dev/MoveScript.git](https://github.com/transper-dev/MoveScript.git)
+git clone [https://github.com/aristu138167/MoveScript.git](https://github.com/aristu138167/MoveScript.git)
 cd MoveScript
 
 # 2. Install dependencies
@@ -67,7 +67,7 @@ The editor is designed for a seamless live performance experience, keeping the i
 * **BVH Drawer (Bottom Menu):** Click the bottom handle to reveal an auto-generated, scrollable carousel of all your available `.bvh` motion capture files. Clicking any animation automatically injects it into your code and plays it instantly.
 ## API Reference (The Language)
 
-MotionCoder uses a custom, highly declarative syntax. Instead of assigning variables or writing loops, you define a base animation and "pipe" transformations to it using brackets `[]` and arrows `>`.
+MoveScript uses a custom, highly declarative syntax. Instead of assigning variables or writing loops, you define a base animation and "pipe" transformations to it using brackets `[]` and arrows `>`.
 
 ### Environment Functions
 These standard functions set up the global 3D scene (usually placed at the top of your code):

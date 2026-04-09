@@ -6,7 +6,7 @@ function createWindow() {
         width: 1280,
         height: 720,
         title: "Motion Coder",
-        icon: path.join(__dirname, 'assets/icons/icon.png'),
+        icon: path.join(__dirname, 'icons/icon.png'),
         autoHideMenuBar: true,
         webPreferences: {
             nodeIntegration: true,

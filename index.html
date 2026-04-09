@@ -5,8 +5,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <title>MotionCoder</title>
-  <link rel="icon" type="image/png" href="./assets/icons/icon.png">
+  <title>MoveScript</title>
+  <link rel="icon" type="image/png" href="./icons/icon.png">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
@@ -460,14 +460,14 @@
           un maniquí estándar</span></div>
 
       <div class="help-category">Modificadores</div>
-      <div class="help-item" data-insert='.bvh("oscar")'><span class="help-cmd">.bvh("nombre")</span><span
+      <div class="help-item" data-insert='.bvh("surprise")'><span class="help-cmd">.bvh("nombre")</span><span
           class="help-desc">Asigna animación al bloque</span></div>
       <div class="help-item" data-insert='.bones(2, 1)'><span class="help-cmd">.bones(w, [l])</span><span
           class="help-desc">Grosor y largo de los huesos</span></div>
       <div class="help-item" data-insert='.joints(1.5)'><span class="help-cmd">.joints(s)</span><span
           class="help-desc">Tamaño de articulaciones</span></div>
 
-      <div class="help-item" data-insert='.color("red", "blue")'><span class="help-cmd">.color(c1, c2)</span><span
+      <div class="help-item" data-insert='.color("red", "blue")'><span class="help-cmd">.color(c1, [c2])</span><span
           class="help-desc">Color o degradado</span></div>
       <div class="help-item" data-insert='.pos(0, 0, 0)'><span class="help-cmd">.pos(x, y, z)</span><span
           class="help-desc">Desplaza al bailarín</span></div>
@@ -587,7 +587,7 @@
       // --- INTENTO NUBE ---
       if (animacionesDisponibles.length === 0 && navigator.onLine) {
         try {
-          const urlNube = 'https://cdn.jsdelivr.net/gh/aristu138167/MotionCoder@master/assets/lista.json';
+          const urlNube = 'https://cdn.jsdelivr.net/gh/aristu138167/MoveScript@master/assets/lista.json';
           const response = await fetch(urlNube);
           if (response.ok) animacionesDisponibles = await response.json();
         } catch (e) { console.warn("Nube bloqueada temporalmente"); }

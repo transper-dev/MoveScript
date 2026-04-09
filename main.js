@@ -42,47 +42,55 @@ let errorTimeout;
 
 let engineReady = false, pendingCode = null, isRigSelected = false, isGlobalPaused = false, isSaved = false;
 let activeChainMarks = {};
-let currentChainSteps = {}
+let currentChainSteps = {};
 let colorWidgets = [];
 let colorUpdateTimer = null;
+
+const isNewBlock = (lines, idx) => {
+  if (!lines[idx].trim().startsWith('[')) return false;
+  let prev = idx - 1;
+  while (prev >= 0 && lines[prev].trim() === "") prev--;
+  if (prev >= 0 && lines[prev].trim().endsWith('>')) return false; // Es una continuación, no cortamos
+  return true;
+};
 
 function highlightStep(codeIndex, step) {
   if (!window.editor) return;
   let lines = window.editor.getValue().split('\n');
   let currentIdx = 0, blockStartLine = -1;
 
+  // 1. Buscamos en qué línea empieza el bloque principal
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trim().startsWith('[')) {
+    if (isNewBlock(lines, i)) {
       if (currentIdx === codeIndex) { blockStartLine = i; break; }
       currentIdx++;
     }
   }
 
+  // 2. Buscamos el paso exacto para iluminarlo
   if (blockStartLine !== -1) {
     let currentStep = 0;
     let startPos = null, endPos = null;
     let l = blockStartLine;
     let c = lines[l].indexOf('[');
-    let stepStart = { line: l, ch: c };
 
     while (l < lines.length) {
       let lineStr = lines[l];
 
-      if (currentStep === step && !startPos) {
-        startPos = { line: stepStart.line, ch: stepStart.ch };
-      }
-
       while (c < lineStr.length) {
         let char = lineStr[c];
 
-        if (char === '>') {
-          if (currentStep === step) { endPos = { line: l, ch: c }; break; }
-          currentStep++;
-          stepStart = { line: l, ch: c };
-          if (currentStep === step) { startPos = { line: stepStart.line, ch: stepStart.ch }; }
-        } else if (char === ';') {
-          if (currentStep === step) { endPos = { line: l, ch: c }; break; }
+        if (char === '[') {
+          // Si estamos en el paso correcto, marcamos el inicio
+          if (currentStep === step) { startPos = { line: l, ch: c }; }
+        } else if (char === ']') {
+          // Si estamos en el paso correcto, marcamos el final justo después del corchete
+          if (currentStep === step) { endPos = { line: l, ch: c + 1 }; break; }
+        } else if (char === '>') {
+          // Al ver un salto de cadena, avanzamos el contador de pasos
+          if (currentStep < step) currentStep++;
         }
+
         c++;
       }
 
@@ -91,17 +99,13 @@ function highlightStep(codeIndex, step) {
       l++;
       c = 0;
 
-      if (l < lines.length && lines[l].trim().startsWith('[')) {
-        if (currentStep === step && !endPos) { endPos = { line: l, ch: 0 }; }
+      // Si llegamos a un bloque nuevo distinto, cortamos la búsqueda
+      if (l < lines.length && isNewBlock(lines, l)) {
         break;
       }
     }
 
-    if (startPos && !endPos) {
-      let lastLine = l < lines.length ? l : lines.length - 1;
-      endPos = { line: lastLine, ch: lines[lastLine].length };
-    }
-
+    // 3. Aplicamos la luz si encontramos las coordenadas
     if (startPos && endPos) {
       if (activeChainMarks[codeIndex]) {
         activeChainMarks[codeIndex].clear();
@@ -119,7 +123,8 @@ function updateColorWidgets() {
   colorWidgets.forEach(widget => widget.clear());
   colorWidgets = [];
 
-  const colorRegex = /(["'])(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|red|blue|green|yellow|cyan|magenta|white|black|pink|orange|purple|gray)\1/gi; const lineCount = window.editor.lineCount();
+  const colorRegex = /(["'])(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|red|blue|green|yellow|cyan|magenta|white|black|pink|orange|purple|gray)\1/gi;
+  const lineCount = window.editor.lineCount();
 
   for (let i = 0; i < lineCount; i++) {
     const lineText = window.editor.getLine(i);
@@ -172,20 +177,21 @@ window.editor.on("keydown", (cm, e) => {
   }
 });
 
-const isNewHead = (line) => line.trim().startsWith('[');
-
 function updateEditor(codeIndex, modifierCallback) {
   let code = window.editor.getValue();
   let lines = code.split('\n');
   let currentIdx = 0, charCount = 0;
 
   for (let i = 0; i < lines.length; i++) {
-    if (isNewHead(lines[i])) {
+    if (isNewBlock(lines, i)) {
       if (currentIdx === codeIndex) {
         let start = charCount, j = i, end = charCount + lines[i].length;
         while (j < lines.length && !lines[j].includes(';')) {
           j++;
-          if (j < lines.length) { if (isNewHead(lines[j])) break; end += 1 + lines[j].length; }
+          if (j < lines.length) {
+            if (isNewBlock(lines, j)) break;
+            end += 1 + lines[j].length;
+          }
         }
 
         let statement = code.substring(start, end);
@@ -396,10 +402,10 @@ window.addEventListener("pointerup", () => { resizing = false; });
 
 saveBtn.addEventListener('click', () => {
   if (isSaved) {
-    localStorage.removeItem('motioncoder_saved_code');
+    localStorage.removeItem('movescript_saved_code');
     isSaved = false; saveBtn.textContent = ' Guardar (Ctrl+S)'; saveBtn.classList.remove('saved');
   } else {
-    localStorage.setItem('motioncoder_saved_code', window.editor.getValue());
+    localStorage.setItem('movescript_saved_code', window.editor.getValue());
     isSaved = true; saveBtn.textContent = 'Guardado'; saveBtn.classList.add('saved');
   }
 });
@@ -416,7 +422,7 @@ window.editor.on('change', () => {
 
 function init() {
   iframe.srcdoc = buildPreviewHtml();
-  const savedCode = localStorage.getItem('motioncoder_saved_code');
+  const savedCode = localStorage.getItem('movescript_saved_code');
   if (savedCode) {
     window.editor.setValue(savedCode);
     isSaved = true; saveBtn.textContent = 'Guardado'; saveBtn.classList.add('saved');

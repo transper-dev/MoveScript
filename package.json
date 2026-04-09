@@ -1,5 +1,5 @@
 {
-  "name": "motioncoder",
+  "name": "movescript",
   "version": "1.0.0",
   "description": "Motor de coreografías 3D mediante código",
   "main": "main-electron.js",
@@ -17,11 +17,11 @@
     "electron-builder": "^24.13.3"
   },
   "build": {
-    "appId": "com.motioncoder.app",
-    "productName": "MotionCoder",
+    "appId": "com.movescript.app",
+    "productName": "MoveScript",
     "win": {
       "target": "nsis",
-      "icon": "assets/icons/icon.ico"
+      "icon": "icons/icon.ico"
     }
   }
 }

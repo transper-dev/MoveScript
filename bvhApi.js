@@ -123,8 +123,9 @@ const SB = {
       _scale: null, _showSkeleton: null, _speed: null, _reverse: null,
       _color: null, _color2: null, _trail: null, _delay: null,
 
-      // NUEVAS PROPIEDADES SEPARADAS
-      _useDummy: false, _boneWidth: null, _boneLength: null, _jointSize: null,
+      // NUEVO: INTERRUPTORES INDEPENDIENTES Y LIMITADOR HUMANOIDE
+      _useDummy: false, _reqBones: false, _reqJoints: false, _enforceProportions: false,
+      _boneWidth: null, _boneLength: null, _jointSize: null,
 
       _codeIndex: (!isChained ? bvhCounter++ : null),
       _chainStep: 0,
@@ -154,21 +155,22 @@ const SB = {
       color(c1, c2) { return this._propagate({ _color: c1, _color2: c2 }); },
       trail(length) { return this._propagate({ _trail: length }); },
 
-      // NUEVOS MÉTODOS DE DUMMY
+      // LOGICA MODULAR: DUMMY, BONES y JOINTS
       dummy() {
-        return this._propagate({ _useDummy: true });
+        return this._propagate({ _useDummy: true, _reqBones: true, _reqJoints: true, _enforceProportions: true });
       },
       bones(width, length) {
         return this._propagate({
           _useDummy: true,
+          _reqBones: true,
           _boneWidth: width,
           _boneLength: (length !== undefined ? length : null)
         });
       },
-
       joints(size) {
         return this._propagate({
           _useDummy: true,
+          _reqJoints: true,
           _jointSize: size
         });
       },
@@ -192,8 +194,11 @@ const SB = {
         nextHandle._trail = this._trail;
         nextHandle._showSkeleton = this._showSkeleton;
 
-        // Propagar el maniquí
+        // Propagar la anatomía fragmentada
         nextHandle._useDummy = this._useDummy;
+        nextHandle._reqBones = this._reqBones;
+        nextHandle._reqJoints = this._reqJoints;
+        nextHandle._enforceProportions = this._enforceProportions;
         nextHandle._boneWidth = this._boneWidth;
         nextHandle._boneLength = this._boneLength;
         nextHandle._jointSize = this._jointSize;
@@ -252,7 +257,6 @@ const SB = {
         pivot.rotation.set(handle._rotX, handle._rotY, handle._rotZ);
         pivot.add(root); group.add(pivot);
 
-        // --- 1. ARRANCAMOS LA ANIMACIÓN ---
         const mixer = new THREE.AnimationMixer(root);
         const action = mixer.clipAction(result.clip);
 
@@ -263,7 +267,6 @@ const SB = {
         const isReversed = handle._reverse ?? SB.params.reverse;
         if (isReversed) { action.time = result.clip.duration; }
 
-        // --- 2. EL NORMALIZADOR DEFINITIVO ---
         let maxBoneLength = 0;
         root.traverse(b => {
           if (b.isBone) {
@@ -321,7 +324,6 @@ const SB = {
         }
         scene.add(helper);
 
-        // --- 3. SISTEMA DE COLOR Y DEGRADADO ---
         const col1 = handle._color ?? SB.params.color;
         const col2 = handle._color2 ?? SB.params.color2;
         let useGradient = false;
@@ -349,7 +351,7 @@ const SB = {
           geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         }
 
-        // --- 4. CREACIÓN DEL DUMMY ---
+        // --- 4. CREACIÓN DEL DUMMY (MODULAR Y SEGURO) ---
         if (handle._useDummy) {
           helper.visible = (handle._showSkeleton ?? false);
 
@@ -391,12 +393,18 @@ const SB = {
                     const length = child.position.length();
                     maxChildLength = Math.max(maxChildLength, length);
 
-                    if (length > 0.01) {
+                    // AQUI SE DIBUJAN LOS HUESOS
+                    if (handle._reqBones && length > 0.01) {
                       const mesh = new THREE.Mesh(baseCylGeom, dummyMat);
 
                       const boneLenMulti = handle._boneLength ?? 1.0;
                       const longitudVisible = length * boneLenMulti;
-                      const boneThickness = handle._boneWidth ?? (length * 0.25);
+                      let boneThickness = handle._boneWidth ?? (length * 0.25);
+
+                      // CINTURÓN DE SEGURIDAD HUMANOIDE
+                      if (handle._enforceProportions) {
+                        boneThickness = Math.min(boneThickness, length * 0.35); // Nunca más gordo que 1/3 de su largo
+                      }
 
                       mesh.scale.set(boneThickness, longitudVisible, boneThickness);
                       mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), child.position.clone().normalize());
@@ -406,20 +414,23 @@ const SB = {
                 });
               }
 
-              let jointSize = handle._jointSize;
-              if (jointSize === null || jointSize === undefined) {
-                if (hasChildren) {
-                  jointSize = Math.min(length * 0.5, maxChildLength * 0.35);
-                } else {
-                  const length = bone.position.length();
-                  jointSize = length * 0.2;
-                }
-              }
+              // AQUI SE DIBUJAN LAS ARTICULACIONES
+              if (handle._reqJoints) {
+                let jointSize = handle._jointSize;
+                let limiteNatural = hasChildren ? Math.max(0.5, maxChildLength * 0.35) : Math.max(0.5, bone.position.length() * 0.2);
 
-              if (jointSize > 0) {
-                const jointMesh = new THREE.Mesh(baseSphereGeom, dummyMat);
-                jointMesh.scale.setScalar(jointSize);
-                bone.add(jointMesh);
+                if (jointSize === null || jointSize === undefined) {
+                  jointSize = limiteNatural;
+                } else if (handle._enforceProportions) {
+                  // CINTURÓN DE SEGURIDAD HUMANOIDE
+                  jointSize = Math.min(jointSize, limiteNatural * 1.5);
+                }
+
+                if (jointSize > 0) {
+                  const jointMesh = new THREE.Mesh(baseSphereGeom, dummyMat);
+                  jointMesh.scale.setScalar(jointSize);
+                  bone.add(jointMesh);
+                }
               }
             }
           });
@@ -427,7 +438,6 @@ const SB = {
           root.visible = !(handle._isChained && !handle._isHead);
         }
 
-        // --- 5. EVENTO DE FINALIZACIÓN (ENCADENAMIENTOS) ---
         mixer.addEventListener('finished', (e) => {
           if (handle._isChained && handle._nextHandle) {
             helper.visible = false;
@@ -471,7 +481,9 @@ const SB = {
           opts: { rotX: handle._rotX, rotY: handle._rotY, rotZ: handle._rotZ, speed: (handle._speed ?? 1.0), showSkeleton: (handle._showSkeleton ?? null), scale: (handle._scale ?? null), reverse: handle._reverse, color: handle._color, color2: handle._color2, trail: handle._trail, delay: handle._delay }
         });
         mixers.push(mixer);
-      }, undefined, (err) => { throw new Error("BVH load error (" + handle._url + "): " + (err?.message || err)); });
+      }, undefined, (err) => {
+        window.parent.postMessage({ type: 'error', message: `No se encuentra la animación: ${fileOrUrl}.bvh` }, '*');
+      });
     }, 0);
 
     return handle;
@@ -484,7 +496,7 @@ const SB = {
     let newCurrent = this.bvh(startOrig._rawFile, true);
     newCurrent._codeIndex = bvhCounter++;
 
-    const keysToCopy = ["_x", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_boneWidth", "_boneLength", "_jointSize"];
+    const keysToCopy = ["_x", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize"];
     keysToCopy.forEach(k => newCurrent[k] = startOrig[k]);
     const newHead = newCurrent;
 
@@ -710,6 +722,10 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+window.addEventListener('error', (event) => {
+  window.parent.postMessage({ type: 'error', message: event.message }, '*');
+});
+
 window.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'execute') {
     try { const ejecutar = new Function(event.data.code); ejecutar(); }
@@ -731,9 +747,10 @@ class RigNode {
   bvh(f) { this.props.file = f; return this; }
   duplicate(h) { this.props.duplicate = h; return this; }
 
-  dummy() { this.props.useDummy = true; return this; }
-  bones(w, l) { this.props.useDummy = true; this.props.boneWidth = w; this.props.boneLength = l; return this; }
-  joints(s) { this.props.useDummy = true; this.props.jointSize = s; return this; }
+  // LOGICA MODULAR DE LA BOLSA DE COMPRA
+  dummy() { this.props.calledDummy = true; return this; }
+  bones(w, l) { this.props.calledBones = true; this.props.boneWidth = w; this.props.boneLength = l; return this; }
+  joints(s) { this.props.calledJoints = true; this.props.jointSize = s; return this; }
 
   color(c1, c2) { this.props.color1 = c1; this.props.color2 = c2; return this; }
   pos(x, y, z) { this.props.x = x; this.props.y = y; this.props.z = z; return this; }
@@ -758,7 +775,7 @@ window.CHAIN = (...nodes) => {
   let esManiquiEstatico = false;
 
   if (!file && !headNode.props.duplicate) {
-    file = "urki";
+    file = "hand_moves"; // Archivo por defecto para estáticos
     esManiquiEstatico = true;
   }
 
@@ -771,7 +788,15 @@ window.CHAIN = (...nodes) => {
 
   applyPropsToHandle(headHandle, headNode.props);
 
-  if (!esManiquiEstatico) {
+  if (esManiquiEstatico) {
+    const tiempoEspera = (headNode.props.delay || 3) * 1000;
+    setTimeout(() => {
+      const rig = rigs.find(r => r.handle === headHandle);
+      if (rig) {
+        rig.mixer.dispatchEvent({ type: 'finished', action: rig.action });
+      }
+    }, tiempoEspera);
+  } else {
     headHandle.play();
   }
 
@@ -793,10 +818,10 @@ window.CHAIN = (...nodes) => {
 function applyPropsToHandle(handle, props) {
   if (props.x !== undefined) handle.pos(props.x, props.y ?? 0, props.z ?? 0);
 
-  // NUEVOS APLICADORES DE DUMMY
-  if (props.useDummy) handle.dummy();
-  if (props.boneWidth !== undefined) handle.bones(props.boneWidth, props.boneLength);
-  if (props.jointSize !== undefined) handle.joints(props.jointSize);
+  // SE APLICA EXACTAMENTE LO QUE EL ALUMNO PIDIÓ
+  if (props.calledDummy) handle.dummy();
+  if (props.calledBones) handle.bones(props.boneWidth, props.boneLength);
+  if (props.calledJoints) handle.joints(props.jointSize);
 
   if (props.color1 !== undefined) handle.color(props.color1, props.color2);
   if (props.rotX !== undefined) handle.rotX(props.rotX);
