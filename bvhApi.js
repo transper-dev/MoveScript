@@ -193,6 +193,7 @@ const SB = {
         nextHandle._speed = this._speed;
         nextHandle._trail = this._trail;
         nextHandle._showSkeleton = this._showSkeleton;
+        nextHandle._reverse = this._reverse;
 
         // Propagar la anatomía fragmentada
         nextHandle._useDummy = this._useDummy;
@@ -265,6 +266,10 @@ const SB = {
         if (!handle._isPlaying || (handle._isChained && !handle._isHead)) { action.paused = true; }
 
         const isReversed = handle._reverse ?? SB.params.reverse;
+        const localSpeed = handle._speed ?? 1.0;
+
+        mixer.timeScale = SB.params.speed * localSpeed * (isReversed ? -1 : 1);
+
         if (isReversed) { action.time = result.clip.duration; }
 
         let maxBoneLength = 0;
@@ -448,6 +453,18 @@ const SB = {
               root.getWorldPosition(currentPos);
 
               nextRig.action.reset();
+
+              // --- ARREGLO: PREPARAR EL TIEMPO Y LA DIRECCIÓN ANTES DEL UPDATE ---
+              const isNextReversed = nextRig.opts.reverse ?? SB.params.reverse;
+              const nextLocalSpeed = nextRig.opts.speed ?? 1.0;
+
+              nextRig.mixer.timeScale = SB.params.speed * nextLocalSpeed * (isNextReversed ? -1 : 1);
+
+              if (isNextReversed) {
+                nextRig.action.time = nextRig.clip.duration;
+              }
+              // -----------------------------------------------------------
+
               nextRig.action.paused = false;
               nextRig.mixer.update(0.05);
 
@@ -573,7 +590,12 @@ const SB = {
 
         const localSpeed = r?.opts?.speed ?? 1.0; const isReversed = r.opts?.reverse ?? SB.params.reverse;
         mixers[i].timeScale = SB.params.speed * localSpeed * (isReversed ? -1 : 1);
-        if (isReversed && r.action && r.clip) { if (r.action.time <= 0.0001) r.action.time = r.clip.duration; }
+
+        // --- ARREGLO: SOLO BUCLE INFINITO SI NO ESTÁ EN CADENA ---
+        if (isReversed && r.action && r.clip && !r.handle._isChained) {
+          if (r.action.time <= 0.0001) r.action.time = r.clip.duration;
+        }
+        // ---------------------------------------------------------
 
         mixers[i].update(tiempoActivo);
       }
