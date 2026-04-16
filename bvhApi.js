@@ -760,8 +760,8 @@ class RigNode {
   scale(s) { this.props.scale = s; return this; }
   speed(s) { this.props.speed = s; return this; }
   delay(s) { this.props.delay = s; return this; }
-  reverse(v) { this.props.reverse = v; return this; }
-  skeleton(v) { this.props.skeleton = v; return this; }
+  reverse(v = true) { this.props.reverse = v; return this; }
+  skeleton(v = true) { this.props.skeleton = v; return this; }
   trail(l) { this.props.trail = l; return this; }
 }
 
@@ -821,7 +821,7 @@ function applyPropsToHandle(handle, props) {
   if (props.calledDummy) handle.dummy();
   if (props.calledBones) handle.bones(props.boneWidth, props.boneLength);
   if (props.calledJoints) handle.joints(props.jointSize);
-  
+
   if (props.calledBones || props.calledJoints) {
     handle._useDummy = true;
   }
