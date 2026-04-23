@@ -156,8 +156,9 @@ const SB = {
       trail(length) { return this._propagate({ _trail: length }); },
 
       // LOGICA MODULAR: DUMMY, BONES y JOINTS
-      dummy() {
-        return this._propagate({ _useDummy: true, _reqBones: true, _reqJoints: true, _enforceProportions: true });
+      dummy(v = true) {
+        const estado = !!v; // Fuerza que sea true o false estrictamente
+        return this._propagate({ _useDummy: estado, _reqBones: estado, _reqJoints: estado, _enforceProportions: estado });
       },
       bones(width, length) {
         return this._propagate({
@@ -770,8 +771,7 @@ class RigNode {
   duplicate(h) { this.props.duplicate = h; return this; }
 
   // LOGICA MODULAR DE LA BOLSA DE COMPRA
-  dummy() { this.props.calledDummy = true; return this; }
-  bones(w, l) { this.props.calledBones = true; this.props.boneWidth = w; this.props.boneLength = l; return this; }
+  dummy(v = true) { this.props.calledDummy = true; this.props.dummyValue = v; return this; } bones(w, l) { this.props.calledBones = true; this.props.boneWidth = w; this.props.boneLength = l; return this; }
   joints(s) { this.props.calledJoints = true; this.props.jointSize = s; return this; }
 
   color(c1, c2) { this.props.color1 = c1; this.props.color2 = c2; return this; }
@@ -840,7 +840,7 @@ window.CHAIN = (...nodes) => {
 function applyPropsToHandle(handle, props) {
   if (props.x !== undefined) handle.pos(props.x, props.y ?? 0, props.z ?? 0);
 
-  if (props.calledDummy) handle.dummy();
+  if (props.calledDummy) handle.dummy(props.dummyValue);
   if (props.calledBones) handle.bones(props.boneWidth, props.boneLength);
   if (props.calledJoints) handle.joints(props.jointSize);
 
