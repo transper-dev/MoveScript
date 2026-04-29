@@ -403,7 +403,7 @@ window.addEventListener("pointerup", () => { resizing = false; });
 saveBtn.addEventListener('click', () => {
   if (isSaved) {
     localStorage.removeItem('movescript_saved_code');
-    isSaved = false; saveBtn.textContent = ' Guardar (Ctrl+S)'; saveBtn.classList.remove('saved');
+    isSaved = false; saveBtn.textContent = ' Save (Ctrl+S)'; saveBtn.classList.remove('saved');
   } else {
     localStorage.setItem('movescript_saved_code', window.editor.getValue());
     isSaved = true; saveBtn.textContent = 'Guardado'; saveBtn.classList.add('saved');
@@ -412,9 +412,9 @@ saveBtn.addEventListener('click', () => {
 
 window.editor.on('change', () => {
   if (isSaved) {
-    isSaved = false; saveBtn.textContent = ' Guardar (Ctrl+S) *'; saveBtn.classList.remove('saved');
-  } else if (saveBtn.textContent === ' Guardar (Ctrl+S)') {
-    saveBtn.textContent = ' Guardar (Ctrl+S) *';
+    isSaved = false; saveBtn.textContent = ' Save (Ctrl+S) *'; saveBtn.classList.remove('saved');
+  } else if (saveBtn.textContent === ' Save (Ctrl+S)') {
+    saveBtn.textContent = ' Save (Ctrl+S) *';
   }
   clearTimeout(colorUpdateTimer);
   colorUpdateTimer = setTimeout(updateColorWidgets, 200);
@@ -428,7 +428,7 @@ function init() {
     isSaved = true; saveBtn.textContent = 'Guardado'; saveBtn.classList.add('saved');
   } else {
     window.editor.setValue(`///// ${examples[0].name} /////\n${examples[0].code}`);
-    isSaved = false; saveBtn.textContent = ' Guardar (Ctrl+S)'; saveBtn.classList.remove('saved');
+    isSaved = false; saveBtn.textContent = ' Save (Ctrl+S)'; saveBtn.classList.remove('saved');
   }
   pendingCode = window.editor.getValue();
   updateColorWidgets();

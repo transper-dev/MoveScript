@@ -42,7 +42,7 @@
       position: fixed;
       top: 16px;
       left: 16px;
-      width: min(520px, calc(100vw - 32px));
+      width: min(620px, calc(100vw - 32px));
       height: min(420px, calc(100vh - 32px));
       display: flex;
       flex-direction: column;
@@ -76,7 +76,9 @@
     #randomBtn,
     #globalPauseBtn,
     #saveBtn,
-    #submitRq1Btn {
+    #submitRq2Btn,
+    #submitTrain1Btn,
+    #submitTrain2Btn {
       padding: 6px 10px;
       cursor: pointer;
       border-radius: 8px;
@@ -91,7 +93,9 @@
     #randomBtn:hover,
     #globalPauseBtn:hover,
     #saveBtn:hover,
-    #submitRq1Btn:hover {
+    #submitRq2Btn:hover,
+    #submitTrain1Btn:hover,
+    #submitTrain2Btn:hover {
       background: rgba(255, 255, 255, 0.10);
     }
 
@@ -102,14 +106,18 @@
       font-weight: bold;
     }
 
-    /* ESTILO PARA EL BOTÓN DEL EXPERIMENTO */
-    #submitRq1Btn {
+    /* ESTILO PARA LOS BOTONES DEL EXPERIMENTO */
+    #submitRq2Btn,
+    #submitTrain1Btn,
+    #submitTrain2Btn {
       background: rgba(255, 0, 204, 0.2);
       border-color: rgba(255, 0, 204, 0.5);
       color: #ff99ff;
     }
 
-    #submitRq1Btn:hover {
+    #submitRq2Btn:hover,
+    #submitTrain1Btn:hover,
+    #submitTrain2Btn:hover {
       background: rgba(255, 0, 204, 0.4);
     }
 
@@ -170,7 +178,7 @@
     }
 
     #overlay {
-      min-width: 420px;
+      min-width: 620px;
       min-height: 220px;
       max-width: calc(100vw - 16px);
       max-height: calc(100vh - 16px);
@@ -456,7 +464,6 @@
       backdrop-filter: blur(5px);
       z-index: 10000;
       display: none;
-      /* Oculto por defecto */
       align-items: center;
       justify-content: center;
     }
@@ -539,15 +546,16 @@
 </head>
 
 <body>
-  <form name="estudio_rq1" method="POST" data-netlify="true" id="form-rq1" style="display: none;">
-    <input type="hidden" name="form-name" value="estudio_rq1" />
-    <input type="text" name="participante" id="rq1-nombre" />
-    <textarea name="codigo_enviado" id="rq1-codigo"></textarea>
+  <form name="estudio_rq2" method="POST" data-netlify="true" id="form-rq2" style="display: none;">
+    <input type="hidden" name="form-name" value="estudio_rq2" />
+    <input type="text" name="participante" id="rq2-nombre" />
+    <textarea name="codigo_enviado" id="rq2-codigo"></textarea>
+    <input type="hidden" name="tipo_tarea" id="rq2-tarea" />
   </form>
 
   <div id="custom-modal-overlay">
     <div id="custom-modal">
-      <h3>¡Has terminado! 🎉</h3>
+      <h3 id="modal-title">¡Has terminado! 🎉</h3>
       <p>Por favor, introduce tu ID de participante o tu Nombre para guardar la coreografía:</p>
       <input type="text" id="modal-input-name" placeholder="Ej: Participante 01" autocomplete="off" />
       <div class="modal-buttons">
@@ -563,11 +571,13 @@
 
     <div id="overlay">
       <div id="bar">
+        <button id="saveBtn" class="btn-save">Save (Ctrl+S)</button>
         <button id="run">Run (Ctrl+Enter)</button>
         <button id="toggle">Hide (Esc)</button>
         <button id="globalPauseBtn">Pause (Ctrl+P)</button>
-        <button id="saveBtn" class="btn-save">Guardar (Ctrl+S)</button>
-        <button id="submitRq1Btn"><i class="fas fa-paper-plane"></i> Finalizar Experimento</button>
+        <button id="submitTrain1Btn"><i class="fas fa-dumbbell"></i> Enviar Training1</button>
+        <button id="submitTrain2Btn"><i class="fas fa-dumbbell"></i> Enviar Training2</button>
+        <button id="submitRq2Btn"><i class="fas fa-paper-plane"></i> Enviar Creación</button>
         <button id="randomBtn" style="display: none;"><i class="fas fa-random"></i> Random</button>
       </div>
       <textarea id="code" spellcheck="false"></textarea>
@@ -582,30 +592,15 @@
       <div class="help-item" data-insert='[dummy()]'><span class="help-cmd">[dummy()]</span><span class="help-desc">Crea
           un maniquí estándar</span></div>
       <div class="help-category">Modificadores</div>
-      <div class="help-item" data-insert='.bvh("surprise")'><span class="help-cmd">.bvh("nombre")</span><span
-          class="help-desc">Asigna animación al bloque</span></div>
-      <div class="help-item" data-insert='.bones(2, 1)'><span class="help-cmd">.bones(w, [l])</span><span
-          class="help-desc">Grosor y largo de los huesos</span></div>
       <div class="help-item" data-insert='.joints(1.5)'><span class="help-cmd">.joints(s)</span><span
           class="help-desc">Tamaño de articulaciones</span></div>
+      <div class="help-item" data-insert='.bones(2, 1)'><span class="help-cmd">.bones(w, [l])</span><span
+          class="help-desc">Grosor y largura de los huesos</span></div>
       <div class="help-item" data-insert='.color("red", "blue")'><span class="help-cmd">.color(c1, [c2])</span><span
           class="help-desc">Color o degradado</span></div>
-      <div class="help-item" data-insert='.pos(0, 0, 0)'><span class="help-cmd">.pos(x, y, z)</span><span
-          class="help-desc">Desplaza al bailarín</span></div>
-      <div class="help-item" data-insert='.rotY(0.5)'><span class="help-cmd">.rotX/Y/Z(rad)</span><span
-          class="help-desc">Rota el modelo</span></div>
-      <div class="help-item" data-insert='.scale(1.5)'><span class="help-cmd">.scale(s)</span><span
-          class="help-desc">Cambia el tamaño final</span></div>
-      <div class="help-item" data-insert='.speed(1.2)'><span class="help-cmd">.speed(s)</span><span
-          class="help-desc">Multiplicador de velocidad</span></div>
-      <div class="help-item" data-insert='.reverse()'><span class="help-cmd">.reverse()</span><span
-          class="help-desc">Reproduce marcha atrás</span></div>
-      <div class="help-item" data-insert='.delay(0.5)'><span class="help-cmd">.delay(s)</span><span
-          class="help-desc">Segundos antes de arrancar</span></div>
-      <div class="help-item" data-insert='.trail(10)'><span class="help-cmd">.trail(l)</span><span
-          class="help-desc">Estela geométrica</span></div>
-      <div class="help-item" data-insert='.skeleton(false)'><span class="help-cmd">.skeleton(bool)</span><span
-          class="help-desc">Muestra/oculta el esqueleto</span></div>
+      <div class="help-category">Animadores</div>
+      <div class="help-item" data-insert='.bvh("hands_up_fast")'><span class="help-cmd">.bvh("nombre")</span><span
+          class="help-desc">Asigna animación al bloque</span></div>
     </div>
   </div>
 
@@ -630,15 +625,23 @@
       const bvhList = document.getElementById('bvh-list');
       const iframePreview = document.getElementById('preview');
 
-      // --- LÓGICA DE ENVÍO CON EL NUEVO MODAL ---
-      const submitBtn = document.getElementById('submitRq1Btn');
+      // --- LÓGICA DE ENVÍO UNIFICADA PARA LOS 3 BOTONES ---
+      const submitTrain1Btn = document.getElementById('submitTrain1Btn');
+      const submitTrain2Btn = document.getElementById('submitTrain2Btn');
+      const submitRq2Btn = document.getElementById('submitRq2Btn');
+
       const modalOverlay = document.getElementById('custom-modal-overlay');
       const modalInput = document.getElementById('modal-input-name');
+      const modalTitle = document.getElementById('modal-title');
       const modalBtnCancel = document.getElementById('modal-btn-cancel');
       const modalBtnSubmit = document.getElementById('modal-btn-submit');
 
-      // 1. Al pulsar "Finalizar Experimento"
-      submitBtn.addEventListener('click', () => {
+      // Variables para recordar qué botón pulsaron
+      let botonActivo = null;
+      let tareaActiva = "";
+
+      // Función genérica para abrir el modal
+      function abrirModalEnvio(nombreTarea, botonReferencia) {
         if (!window.editor) return;
 
         const codigo = window.editor.getValue();
@@ -650,41 +653,53 @@
           return;
         }
 
-        // Mostrar nuestro modal en lugar del prompt nativo
-        modalInput.value = ""; // Limpiar el input
-        modalInput.style.borderColor = "#444"; // Resetear color
+        // Guardamos el estado para saber a qué botón responder luego
+        botonActivo = botonReferencia;
+        tareaActiva = nombreTarea;
+
+        // Personalizamos el título del modal según lo que envíen
+        modalTitle.innerText = `Enviando: ${nombreTarea}`;
+
+        modalInput.value = "";
+        modalInput.style.borderColor = "#444";
         modalOverlay.style.display = "flex";
         modalInput.focus();
-      });
+      }
 
-      // 2. Al pulsar "Cancelar" dentro del modal
+      // Conectamos los 3 botones a la misma función, pasándole su "etiqueta"
+      submitTrain1Btn.addEventListener('click', () => abrirModalEnvio("Training 1", submitTrain1Btn));
+      submitTrain2Btn.addEventListener('click', () => abrirModalEnvio("Training 2", submitTrain2Btn));
+      submitRq2Btn.addEventListener('click', () => abrirModalEnvio("Creacion Final", submitRq2Btn));
+
+      // Al pulsar "Cancelar" dentro del modal
       modalBtnCancel.addEventListener('click', () => {
         modalOverlay.style.display = "none";
       });
 
-      // 3. Al pulsar "Enviar" dentro del modal
+      // Al pulsar "Enviar" dentro del modal
       modalBtnSubmit.addEventListener('click', () => {
         const nombre = modalInput.value.trim();
 
-        // Validación visual si está vacío
         if (nombre === "") {
           modalInput.style.borderColor = "red";
           return;
         }
 
-        // Ocultar el modal
         modalOverlay.style.display = "none";
 
-        // Preparar el envío
         const codigo = window.editor.getValue();
-        const textoOriginal = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-        submitBtn.style.pointerEvents = 'none';
+        const textoOriginal = botonActivo.innerHTML;
 
-        document.getElementById('rq1-nombre').value = nombre;
-        document.getElementById('rq1-codigo').value = codigo;
+        // Ponemos a cargar SOLO el botón que pulsó el usuario
+        botonActivo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        botonActivo.style.pointerEvents = 'none';
 
-        const form = document.getElementById('form-rq1');
+        // Rellenamos el formulario oculto
+        document.getElementById('rq2-nombre').value = nombre;
+        document.getElementById('rq2-codigo').value = codigo;
+        document.getElementById('rq2-tarea').value = tareaActiva; // <--- Enviamos la etiqueta a Netlify
+
+        const form = document.getElementById('form-rq2');
         const formData = new FormData(form);
 
         fetch("/", {
@@ -695,14 +710,16 @@
           .then(response => {
             if (!response.ok) throw new Error("Fallo en la red");
 
-            submitBtn.innerHTML = '<i class="fas fa-check"></i> ¡Guardado! Gracias';
-            submitBtn.style.background = '#00ffcc';
-            submitBtn.style.color = '#000';
-            submitBtn.style.borderColor = '#00ffcc';
+            // Éxito: Pintamos de verde SOLO el botón correspondiente
+            botonActivo.innerHTML = '<i class="fas fa-check"></i> Enviado';
+            botonActivo.style.background = '#00ffcc';
+            botonActivo.style.color = '#000';
+            botonActivo.style.borderColor = '#00ffcc';
           })
           .catch((error) => {
-            submitBtn.innerHTML = textoOriginal;
-            submitBtn.style.pointerEvents = 'auto';
+            // Error: Restauramos el botón original
+            botonActivo.innerHTML = textoOriginal;
+            botonActivo.style.pointerEvents = 'auto';
 
             const errorToast = document.getElementById('error-toast');
             document.getElementById('error-text').innerText = "Hubo un error de conexión al enviar. Avisa al responsable.";
