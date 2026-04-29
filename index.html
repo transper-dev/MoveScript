@@ -695,9 +695,9 @@
         botonActivo.style.pointerEvents = 'none';
 
         // Rellenamos el formulario oculto
-        document.getElementById('rq2-nombre').value = nombre;
+        document.getElementById('rq2-nombre').value = "[" + tareaActiva + "] " + nombre;
         document.getElementById('rq2-codigo').value = codigo;
-        document.getElementById('rq2-tarea').value = tareaActiva; // <--- Enviamos la etiqueta a Netlify
+        document.getElementById('rq2-tarea').value = tareaActiva;
 
         const form = document.getElementById('form-rq2');
         const formData = new FormData(form);
