@@ -75,7 +75,8 @@
     #toggle,
     #randomBtn,
     #globalPauseBtn,
-    #saveBtn {
+    #saveBtn,
+    #submitRq1Btn {
       padding: 6px 10px;
       cursor: pointer;
       border-radius: 8px;
@@ -89,7 +90,8 @@
     #toggle:hover,
     #randomBtn:hover,
     #globalPauseBtn:hover,
-    #saveBtn:hover {
+    #saveBtn:hover,
+    #submitRq1Btn:hover {
       background: rgba(255, 255, 255, 0.10);
     }
 
@@ -98,6 +100,17 @@
       color: #000 !important;
       border-color: #00ffcc !important;
       font-weight: bold;
+    }
+
+    /* ESTILO PARA EL BOTÓN DEL EXPERIMENTO */
+    #submitRq1Btn {
+      background: rgba(255, 0, 204, 0.2);
+      border-color: rgba(255, 0, 204, 0.5);
+      color: #ff99ff;
+    }
+
+    #submitRq1Btn:hover {
+      background: rgba(255, 0, 204, 0.4);
     }
 
     /* --- ESTILOS DE CODEMIRROR SOBREESCRITOS --- */
@@ -431,10 +444,119 @@
       text-transform: uppercase;
       letter-spacing: 1px;
     }
+
+    /* --- ESTILOS DEL MODAL PERSONALIZADO --- */
+    #custom-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      display: none;
+      /* Oculto por defecto */
+      align-items: center;
+      justify-content: center;
+    }
+
+    #custom-modal {
+      background: #111;
+      border: 1px solid rgba(255, 0, 204, 0.5);
+      border-radius: 12px;
+      padding: 30px;
+      width: 350px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+      text-align: center;
+      font-family: sans-serif;
+    }
+
+    #custom-modal h3 {
+      margin-top: 0;
+      color: #ff99ff;
+      font-size: 20px;
+    }
+
+    #custom-modal p {
+      color: #aaa;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    #modal-input-name {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin-bottom: 20px;
+      background: #000;
+      border: 1px solid #444;
+      color: white;
+      border-radius: 8px;
+      outline: none;
+      font-size: 15px;
+      transition: border-color 0.3s;
+    }
+
+    #modal-input-name:focus {
+      border-color: #00ffcc;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    #modal-btn-cancel {
+      background: #333;
+      color: #bbb;
+    }
+
+    #modal-btn-cancel:hover {
+      background: #444;
+      color: white;
+    }
+
+    #modal-btn-submit {
+      background: #00ffcc;
+      color: #000;
+    }
+
+    #modal-btn-submit:hover {
+      background: #00ccaa;
+    }
   </style>
 </head>
 
 <body>
+  <form name="estudio_rq1" method="POST" data-netlify="true" id="form-rq1" style="display: none;">
+    <input type="hidden" name="form-name" value="estudio_rq1" />
+    <input type="text" name="participante" id="rq1-nombre" />
+    <textarea name="codigo_enviado" id="rq1-codigo"></textarea>
+  </form>
+
+  <div id="custom-modal-overlay">
+    <div id="custom-modal">
+      <h3>¡Has terminado! 🎉</h3>
+      <p>Por favor, introduce tu ID de participante o tu Nombre para guardar la coreografía:</p>
+      <input type="text" id="modal-input-name" placeholder="Ej: Participante 01" autocomplete="off" />
+      <div class="modal-buttons">
+        <button id="modal-btn-cancel" class="modal-btn">Cancelar</button>
+        <button id="modal-btn-submit" class="modal-btn">Enviar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="loader">Loading... ⏳</div>
   <div id="app">
     <iframe id="preview" sandbox="allow-scripts allow-same-origin"></iframe>
@@ -445,6 +567,7 @@
         <button id="toggle">Hide (Esc)</button>
         <button id="globalPauseBtn">Pause (Ctrl+P)</button>
         <button id="saveBtn" class="btn-save">Guardar (Ctrl+S)</button>
+        <button id="submitRq1Btn"><i class="fas fa-paper-plane"></i> Finalizar Experimento</button>
         <button id="randomBtn" style="display: none;"><i class="fas fa-random"></i> Random</button>
       </div>
       <textarea id="code" spellcheck="false"></textarea>
@@ -458,7 +581,6 @@
       <div class="help-category">Creadores (Inicio de bloque)</div>
       <div class="help-item" data-insert='[dummy()]'><span class="help-cmd">[dummy()]</span><span class="help-desc">Crea
           un maniquí estándar</span></div>
-
       <div class="help-category">Modificadores</div>
       <div class="help-item" data-insert='.bvh("surprise")'><span class="help-cmd">.bvh("nombre")</span><span
           class="help-desc">Asigna animación al bloque</span></div>
@@ -466,7 +588,6 @@
           class="help-desc">Grosor y largo de los huesos</span></div>
       <div class="help-item" data-insert='.joints(1.5)'><span class="help-cmd">.joints(s)</span><span
           class="help-desc">Tamaño de articulaciones</span></div>
-
       <div class="help-item" data-insert='.color("red", "blue")'><span class="help-cmd">.color(c1, [c2])</span><span
           class="help-desc">Color o degradado</span></div>
       <div class="help-item" data-insert='.pos(0, 0, 0)'><span class="help-cmd">.pos(x, y, z)</span><span
@@ -509,7 +630,89 @@
       const bvhList = document.getElementById('bvh-list');
       const iframePreview = document.getElementById('preview');
 
-      // --- 1. ACTIVAR LA INTERFAZ PRIMERO ---
+      // --- LÓGICA DE ENVÍO CON EL NUEVO MODAL ---
+      const submitBtn = document.getElementById('submitRq1Btn');
+      const modalOverlay = document.getElementById('custom-modal-overlay');
+      const modalInput = document.getElementById('modal-input-name');
+      const modalBtnCancel = document.getElementById('modal-btn-cancel');
+      const modalBtnSubmit = document.getElementById('modal-btn-submit');
+
+      // 1. Al pulsar "Finalizar Experimento"
+      submitBtn.addEventListener('click', () => {
+        if (!window.editor) return;
+
+        const codigo = window.editor.getValue();
+        if (codigo.trim() === "") {
+          const errorToast = document.getElementById('error-toast');
+          document.getElementById('error-text').innerText = "El editor está vacío. Escribe tu coreografía antes de enviarla.";
+          errorToast.classList.add('visible');
+          setTimeout(() => errorToast.classList.remove('visible'), 4000);
+          return;
+        }
+
+        // Mostrar nuestro modal en lugar del prompt nativo
+        modalInput.value = ""; // Limpiar el input
+        modalInput.style.borderColor = "#444"; // Resetear color
+        modalOverlay.style.display = "flex";
+        modalInput.focus();
+      });
+
+      // 2. Al pulsar "Cancelar" dentro del modal
+      modalBtnCancel.addEventListener('click', () => {
+        modalOverlay.style.display = "none";
+      });
+
+      // 3. Al pulsar "Enviar" dentro del modal
+      modalBtnSubmit.addEventListener('click', () => {
+        const nombre = modalInput.value.trim();
+
+        // Validación visual si está vacío
+        if (nombre === "") {
+          modalInput.style.borderColor = "red";
+          return;
+        }
+
+        // Ocultar el modal
+        modalOverlay.style.display = "none";
+
+        // Preparar el envío
+        const codigo = window.editor.getValue();
+        const textoOriginal = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        submitBtn.style.pointerEvents = 'none';
+
+        document.getElementById('rq1-nombre').value = nombre;
+        document.getElementById('rq1-codigo').value = codigo;
+
+        const form = document.getElementById('form-rq1');
+        const formData = new FormData(form);
+
+        fetch("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams(formData).toString()
+        })
+          .then(response => {
+            if (!response.ok) throw new Error("Fallo en la red");
+
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> ¡Guardado! Gracias';
+            submitBtn.style.background = '#00ffcc';
+            submitBtn.style.color = '#000';
+            submitBtn.style.borderColor = '#00ffcc';
+          })
+          .catch((error) => {
+            submitBtn.innerHTML = textoOriginal;
+            submitBtn.style.pointerEvents = 'auto';
+
+            const errorToast = document.getElementById('error-toast');
+            document.getElementById('error-text').innerText = "Hubo un error de conexión al enviar. Avisa al responsable.";
+            errorToast.classList.add('visible');
+            setTimeout(() => errorToast.classList.remove('visible'), 5000);
+          });
+      });
+      // -------------------------------------------------------------
+
+      // --- ACTIVAR LA INTERFAZ ---
       toggleBtn.addEventListener('click', () => {
         drawer.classList.toggle('abierto');
         if (drawer.classList.contains('abierto')) {
@@ -554,10 +757,9 @@
         });
       });
 
-      // --- 2. INTENTO DE CARGA DE DATOS ---
+      // --- CARGA DE DATOS ---
       let animacionesDisponibles = [];
 
-      // --- INTENTO LOCAL ---
       try {
         if (typeof require !== 'undefined') {
           const fs = require('fs');
@@ -572,7 +774,6 @@
         }
       } catch (e) { console.warn("Local no disponible"); }
 
-      // --- INTENTO LOCAL WEB ---
       if (animacionesDisponibles.length === 0) {
         try {
           const response = await fetch('./assets/lista.json');
@@ -584,7 +785,6 @@
         }
       }
 
-      // --- INTENTO NUBE ---
       if (animacionesDisponibles.length === 0 && navigator.onLine) {
         try {
           const urlNube = 'https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/lista.json';
@@ -593,13 +793,12 @@
         } catch (e) { console.warn("Nube bloqueada temporalmente"); }
       }
 
-      // --- PLAN DE EMERGENCIA ---
       if (animacionesDisponibles.length === 0) {
         console.warn("Cargando animaciones de emergencia.");
         animacionesDisponibles = ["turn", "silly_walk", "monster_walk", "serious_walk"];
       }
 
-      // --- 4. DIBUJAR LOS BOTONES EN LA BANDEJA ---
+      // --- DIBUJAR LOS BOTONES EN LA BANDEJA ---
       animacionesDisponibles.forEach(nombre => {
         const btn = document.createElement('div');
         btn.className = 'bvh-item';
@@ -615,7 +814,6 @@
             code = code.replace(regexBusqueda, `[bvh("${nombre}")]\n>$&`);
           } else {
             let salto = code.trim() !== "" ? "\n\n" : "";
-            // ACTUALIZADO a [dummy()] por defecto
             code += `${salto}[bvh("${nombre}")]\n>[dummy()]\n>[color("#00ffcc")];`;
           }
 
