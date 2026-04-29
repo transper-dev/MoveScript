@@ -549,8 +549,6 @@
   <form name="estudio_rq2" method="POST" data-netlify="true" id="form-rq2" style="display: none;">
     <input type="hidden" name="form-name" value="estudio_rq2" />
 
-    <input type="text" name="resumen" id="rq2-resumen" />
-
     <input type="text" name="participante" id="rq2-nombre" />
     <input type="text" name="tipo_tarea" id="rq2-tarea" />
     <textarea name="codigo_enviado" id="rq2-codigo"></textarea>
@@ -697,10 +695,7 @@
         botonActivo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
         botonActivo.style.pointerEvents = 'none';
 
-        // 1. Rellenamos el título bonito para el panel de Netlify
-        document.getElementById('rq2-resumen').value = "[" + tareaActiva + "] " + nombre;
-
-        // 2. Rellenamos los datos reales completamente limpios
+        // Rellenamos los datos reales completamente limpios
         document.getElementById('rq2-nombre').value = nombre;
         document.getElementById('rq2-tarea').value = tareaActiva;
         document.getElementById('rq2-codigo').value = codigo;
