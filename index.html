@@ -38,11 +38,12 @@
       z-index: 0;
     }
 
+    /* BARRA DEL EDITOR IZQUIERDO */
     #overlay {
       position: fixed;
       top: 16px;
       left: 16px;
-      width: min(670px, calc(100vw - 32px));
+      width: min(465px, calc(100vw - 32px));
       height: min(220px, calc(100vh - 32px));
       display: flex;
       flex-direction: column;
@@ -65,6 +66,11 @@
       user-select: none;
       overflow-x: auto;
       scrollbar-width: none;
+      cursor: grab;
+    }
+
+    #bar:active {
+      cursor: grabbing;
     }
 
     #bar::-webkit-scrollbar {
@@ -75,10 +81,7 @@
     #toggle,
     #randomBtn,
     #globalPauseBtn,
-    #saveBtn,
-    #submitRq2Btn,
-    #submitTrain1Btn,
-    #submitTrain2Btn {
+    #saveBtn {
       padding: 6px 10px;
       cursor: pointer;
       border-radius: 8px;
@@ -92,10 +95,7 @@
     #toggle:hover,
     #randomBtn:hover,
     #globalPauseBtn:hover,
-    #saveBtn:hover,
-    #submitRq2Btn:hover,
-    #submitTrain1Btn:hover,
-    #submitTrain2Btn:hover {
+    #saveBtn:hover {
       background: rgba(255, 255, 255, 0.10);
     }
 
@@ -104,21 +104,6 @@
       color: #000 !important;
       border-color: #00ffcc !important;
       font-weight: bold;
-    }
-
-    /* ESTILO PARA LOS BOTONES DEL EXPERIMENTO */
-    #submitRq2Btn,
-    #submitTrain1Btn,
-    #submitTrain2Btn {
-      background: rgba(255, 0, 204, 0.2);
-      border-color: rgba(255, 0, 204, 0.5);
-      color: #ff99ff;
-    }
-
-    #submitRq2Btn:hover,
-    #submitTrain1Btn:hover,
-    #submitTrain2Btn:hover {
-      background: rgba(255, 0, 204, 0.4);
     }
 
     /* --- ESTILOS DE CODEMIRROR SOBREESCRITOS --- */
@@ -178,7 +163,7 @@
     }
 
     #overlay {
-      min-width: 670px;
+      min-width: 465px;
       min-height: 220px;
       max-width: calc(100vw - 16px);
       max-height: calc(100vh - 16px);
@@ -453,94 +438,71 @@
       letter-spacing: 1px;
     }
 
-    /* --- ESTILOS DEL MODAL PERSONALIZADO --- */
-    #custom-modal-overlay {
+    /* --- PANEL AISLADO DEL EXPERIMENTO --- */
+    #experiment-panel {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(5px);
-      z-index: 10000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #custom-modal {
-      background: #111;
+      top: 20px;
+      right: 60px;
+      /* Separado de la derecha para no tapar el botón "?" de ayuda */
+      width: 250px;
+      background: rgba(15, 15, 15, 0.85);
+      backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 0, 204, 0.5);
-      border-radius: 12px;
-      padding: 30px;
-      width: 350px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-      text-align: center;
+      border-radius: 10px;
+      padding: 15px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.8);
       font-family: sans-serif;
     }
 
-    #custom-modal h3 {
-      margin-top: 0;
+    #experiment-panel h3 {
+      margin: 0;
       color: #ff99ff;
-      font-size: 20px;
+      font-size: 15px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      user-select: none;
     }
 
-    #custom-modal p {
-      color: #aaa;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    #modal-input-name {
+    #participant-input {
       width: 100%;
       box-sizing: border-box;
-      padding: 12px;
-      margin-bottom: 20px;
-      background: #000;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.8);
       border: 1px solid #444;
       color: white;
-      border-radius: 8px;
+      border-radius: 6px;
       outline: none;
-      font-size: 15px;
+      font-size: 13px;
       transition: border-color 0.3s;
+      text-align: center;
     }
 
-    #modal-input-name:focus {
+    #participant-input:focus {
       border-color: #00ffcc;
     }
 
-    .modal-buttons {
-      display: flex;
-      gap: 10px;
-    }
-
-    .modal-btn {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
+    .exp-btn {
+      padding: 10px;
       cursor: pointer;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 0, 204, 0.5);
+      background: rgba(255, 0, 204, 0.15);
+      color: #ff99ff;
+      transition: all 0.3s ease;
       font-weight: bold;
-      transition: all 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
     }
 
-    #modal-btn-cancel {
-      background: #333;
-      color: #bbb;
-    }
-
-    #modal-btn-cancel:hover {
-      background: #444;
-      color: white;
-    }
-
-    #modal-btn-submit {
-      background: #00ffcc;
-      color: #000;
-    }
-
-    #modal-btn-submit:hover {
-      background: #00ccaa;
+    .exp-btn:hover {
+      background: rgba(255, 0, 204, 0.35);
     }
   </style>
 </head>
@@ -548,25 +510,21 @@
 <body>
   <form name="estudio_rq2" method="POST" data-netlify="true" id="form-rq2" style="display: none;">
     <input type="hidden" name="form-name" value="estudio_rq2" />
-
     <input type="text" name="participante" id="rq2-nombre" />
     <input type="text" name="tipo_tarea" id="rq2-tarea" />
     <textarea name="codigo_enviado" id="rq2-codigo"></textarea>
   </form>
 
-  <div id="custom-modal-overlay">
-    <div id="custom-modal">
-      <h3 id="modal-title">¡Has terminado! 🎉</h3>
-      <p>Por favor, introduce tu ID de participante o tu Nombre para guardar la coreografía:</p>
-      <input type="text" id="modal-input-name" placeholder="Ej: Participante 01" autocomplete="off" />
-      <div class="modal-buttons">
-        <button id="modal-btn-cancel" class="modal-btn">Cancelar</button>
-        <button id="modal-btn-submit" class="modal-btn">Enviar</button>
-      </div>
-    </div>
+  <div id="experiment-panel">
+    <h3>Estudio</h3>
+    <input type="text" id="participant-input" placeholder="ID de Participante" autocomplete="off" />
+    <button id="submitTrain1Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Enviar Training 1</button>
+    <button id="submitTrain2Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Enviar Training 2</button>
+    <button id="submitRq2Btn" class="exp-btn"><i class="fas fa-paper-plane"></i> Enviar Creación</button>
   </div>
 
   <div id="loader">Loading... ⏳</div>
+
   <div id="app">
     <iframe id="preview" sandbox="allow-scripts allow-same-origin"></iframe>
 
@@ -576,9 +534,6 @@
         <button id="run">Run (Ctrl+Enter)</button>
         <button id="toggle">Hide (Esc)</button>
         <button id="globalPauseBtn">Pause (Ctrl+P)</button>
-        <button id="submitTrain1Btn"><i class="fas fa-dumbbell"></i> Enviar Training1</button>
-        <button id="submitTrain2Btn"><i class="fas fa-dumbbell"></i> Enviar Training2</button>
-        <button id="submitRq2Btn"><i class="fas fa-paper-plane"></i> Enviar Creación</button>
         <button id="randomBtn" style="display: none;"><i class="fas fa-random"></i> Random</button>
       </div>
       <textarea id="code" spellcheck="false"></textarea>
@@ -626,25 +581,58 @@
       const bvhList = document.getElementById('bvh-list');
       const iframePreview = document.getElementById('preview');
 
-      // --- LÓGICA DE ENVÍO UNIFICADA PARA LOS 3 BOTONES ---
-      const submitTrain1Btn = document.getElementById('submitTrain1Btn');
-      const submitTrain2Btn = document.getElementById('submitTrain2Btn');
-      const submitRq2Btn = document.getElementById('submitRq2Btn');
+      // --- HACER EL PANEL DEL EXPERIMENTO ARRASTRABLE ---
+      const expPanel = document.getElementById('experiment-panel');
+      const expHeader = expPanel.querySelector('h3');
+      expHeader.style.cursor = 'grab';
+      expHeader.title = "Arrastra para mover";
 
-      const modalOverlay = document.getElementById('custom-modal-overlay');
-      const modalInput = document.getElementById('modal-input-name');
-      const modalTitle = document.getElementById('modal-title');
-      const modalBtnCancel = document.getElementById('modal-btn-cancel');
-      const modalBtnSubmit = document.getElementById('modal-btn-submit');
+      let isDraggingExp = false, expStartX, expStartY, expStartLeft, expStartTop;
 
-      // Variables para recordar qué botón pulsaron
-      let botonActivo = null;
-      let tareaActiva = "";
+      expHeader.addEventListener('pointerdown', (e) => {
+        isDraggingExp = true;
+        expHeader.setPointerCapture(e.pointerId);
+        expHeader.style.cursor = 'grabbing';
 
-      // Función genérica para abrir el modal
-      function abrirModalEnvio(nombreTarea, botonReferencia) {
+        const rect = expPanel.getBoundingClientRect();
+        expStartX = e.clientX;
+        expStartY = e.clientY;
+        expStartLeft = rect.left;
+        expStartTop = rect.top;
+
+        // Rompemos el anclaje inicial CSS para que se mueva libremente
+        expPanel.style.right = 'auto';
+        expPanel.style.bottom = 'auto';
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        if (!isDraggingExp) return;
+
+        let newLeft = expStartLeft + (e.clientX - expStartX);
+        let newTop = expStartTop + (e.clientY - expStartY);
+
+        // Evitamos que lo arrastren fuera de la pantalla
+        newLeft = Math.max(0, Math.min(window.innerWidth - expPanel.offsetWidth, newLeft));
+        newTop = Math.max(0, Math.min(window.innerHeight - expPanel.offsetHeight, newTop));
+
+        expPanel.style.left = `${newLeft}px`;
+        expPanel.style.top = `${newTop}px`;
+      });
+
+      window.addEventListener('pointerup', () => {
+        if (isDraggingExp) {
+          isDraggingExp = false;
+          expHeader.style.cursor = 'grab';
+        }
+      });
+
+      // --- LÓGICA DE ENVÍO DIRECTO DESDE EL PANEL ---
+      const participantInput = document.getElementById('participant-input');
+
+      function procesarEnvio(nombreTarea, botonReferencia) {
         if (!window.editor) return;
 
+        // 1. Validar que hay código
         const codigo = window.editor.getValue();
         if (codigo.trim() === "") {
           const errorToast = document.getElementById('error-toast');
@@ -654,50 +642,23 @@
           return;
         }
 
-        // Guardamos el estado para saber a qué botón responder luego
-        botonActivo = botonReferencia;
-        tareaActiva = nombreTarea;
-
-        // Personalizamos el título del modal según lo que envíen
-        modalTitle.innerText = `Enviando: ${nombreTarea}`;
-
-        modalInput.value = "";
-        modalInput.style.borderColor = "#444";
-        modalOverlay.style.display = "flex";
-        modalInput.focus();
-      }
-
-      // Conectamos los 3 botones a la misma función, pasándole su "etiqueta"
-      submitTrain1Btn.addEventListener('click', () => abrirModalEnvio("Training 1", submitTrain1Btn));
-      submitTrain2Btn.addEventListener('click', () => abrirModalEnvio("Training 2", submitTrain2Btn));
-      submitRq2Btn.addEventListener('click', () => abrirModalEnvio("Creacion Final", submitRq2Btn));
-
-      // Al pulsar "Cancelar" dentro del modal
-      modalBtnCancel.addEventListener('click', () => {
-        modalOverlay.style.display = "none";
-      });
-
-      // Al pulsar "Enviar" dentro del modal
-      modalBtnSubmit.addEventListener('click', () => {
-        const nombre = modalInput.value.trim();
-
+        // 2. Validar que el campo del ID no está vacío
+        const nombre = participantInput.value.trim();
         if (nombre === "") {
-          modalInput.style.borderColor = "red";
+          participantInput.style.borderColor = "red"; // Lo ponemos rojo para llamar su atención
+          participantInput.focus();
           return;
         }
+        participantInput.style.borderColor = "#444"; // Restauramos el color normal
 
-        modalOverlay.style.display = "none";
+        // 3. Modificar estado del botón
+        const textoOriginal = botonReferencia.innerHTML;
+        botonReferencia.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        botonReferencia.style.pointerEvents = 'none';
 
-        const codigo = window.editor.getValue();
-        const textoOriginal = botonActivo.innerHTML;
-
-        // Ponemos a cargar SOLO el botón que pulsó el usuario
-        botonActivo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-        botonActivo.style.pointerEvents = 'none';
-
-        // Rellenamos los datos reales completamente limpios
+        // 4. Preparar datos para Netlify
         document.getElementById('rq2-nombre').value = nombre;
-        document.getElementById('rq2-tarea').value = tareaActiva;
+        document.getElementById('rq2-tarea').value = nombreTarea;
         document.getElementById('rq2-codigo').value = codigo;
 
         const form = document.getElementById('form-rq2');
@@ -711,23 +672,28 @@
           .then(response => {
             if (!response.ok) throw new Error("Fallo en la red");
 
-            // Éxito: Pintamos de verde SOLO el botón correspondiente
-            botonActivo.innerHTML = '<i class="fas fa-check"></i> Enviado';
-            botonActivo.style.background = '#00ffcc';
-            botonActivo.style.color = '#000';
-            botonActivo.style.borderColor = '#00ffcc';
+            // Éxito: Pintamos el botón
+            botonReferencia.innerHTML = '<i class="fas fa-check"></i> Enviado';
+            botonReferencia.style.background = '#00ffcc';
+            botonReferencia.style.color = '#000';
+            botonReferencia.style.borderColor = '#00ffcc';
           })
           .catch((error) => {
-            // Error: Restauramos el botón original
-            botonActivo.innerHTML = textoOriginal;
-            botonActivo.style.pointerEvents = 'auto';
+            // Error: Restauramos botón y mostramos Toast
+            botonReferencia.innerHTML = textoOriginal;
+            botonReferencia.style.pointerEvents = 'auto';
 
             const errorToast = document.getElementById('error-toast');
-            document.getElementById('error-text').innerText = "Hubo un error de conexión al enviar. Avisa al responsable.";
+            document.getElementById('error-text').innerText = "Error de conexión al enviar datos. Avisa al investigador.";
             errorToast.classList.add('visible');
             setTimeout(() => errorToast.classList.remove('visible'), 5000);
           });
-      });
+      }
+
+      // Conectamos los botones a la nueva función
+      document.getElementById('submitTrain1Btn').addEventListener('click', function () { procesarEnvio("Training 1", this); });
+      document.getElementById('submitTrain2Btn').addEventListener('click', function () { procesarEnvio("Training 2", this); });
+      document.getElementById('submitRq2Btn').addEventListener('click', function () { procesarEnvio("Creacion Final", this); });
       // -------------------------------------------------------------
 
       // --- ACTIVAR LA INTERFAZ ---
