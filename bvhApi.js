@@ -123,9 +123,10 @@ const SB = {
       _scale: null, _showSkeleton: null, _speed: null, _reverse: null,
       _color: null, _color2: null, _trail: null, _delay: null,
 
-      // NUEVO: INTERRUPTORES INDEPENDIENTES Y LIMITADOR HUMANOIDE
       _useDummy: false, _reqBones: false, _reqJoints: false, _enforceProportions: false,
       _boneWidth: null, _boneLength: null, _jointSize: null,
+
+      _isStaticDummy: false,
 
       _codeIndex: (!isChained ? bvhCounter++ : null),
       _chainStep: 0,
@@ -155,9 +156,8 @@ const SB = {
       color(c1, c2) { return this._propagate({ _color: c1, _color2: c2 }); },
       trail(length) { return this._propagate({ _trail: length }); },
 
-      // LOGICA MODULAR: DUMMY, BONES y JOINTS
       dummy(v = true) {
-        const estado = !!v; // Fuerza que sea true o false estrictamente
+        const estado = !!v;
         return this._propagate({ _useDummy: estado, _reqBones: estado, _reqJoints: estado, _enforceProportions: estado });
       },
       bones(width, length) {
@@ -196,7 +196,6 @@ const SB = {
         nextHandle._showSkeleton = this._showSkeleton;
         nextHandle._reverse = this._reverse;
 
-        // Propagar la anatomía fragmentada
         nextHandle._useDummy = this._useDummy;
         nextHandle._reqBones = this._reqBones;
         nextHandle._reqJoints = this._reqJoints;
@@ -357,7 +356,6 @@ const SB = {
           geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         }
 
-        // --- 4. CREACIÓN DEL DUMMY (MODULAR Y SEGURO) ---
         if (handle._useDummy) {
           helper.visible = (handle._showSkeleton ?? false);
 
@@ -399,7 +397,6 @@ const SB = {
                     const length = child.position.length();
                     maxChildLength = Math.max(maxChildLength, length);
 
-                    // AQUI SE DIBUJAN LOS HUESOS
                     if (handle._reqBones && length > 0.01) {
                       const mesh = new THREE.Mesh(baseCylGeom, dummyMat);
 
@@ -407,9 +404,8 @@ const SB = {
                       const longitudVisible = length * boneLenMulti;
                       let boneThickness = handle._boneWidth ?? (length * 0.25);
 
-                      // CINTURÓN DE SEGURIDAD HUMANOIDE
                       if (handle._enforceProportions) {
-                        boneThickness = Math.min(boneThickness, length * 0.35); // Nunca más gordo que 1/3 de su largo
+                        boneThickness = Math.min(boneThickness, length * 0.35);
                       }
 
                       mesh.scale.set(boneThickness, longitudVisible, boneThickness);
@@ -420,7 +416,6 @@ const SB = {
                 });
               }
 
-              // AQUI SE DIBUJAN LAS ARTICULACIONES
               if (handle._reqJoints) {
                 let jointSize = handle._jointSize;
                 let limiteNatural = hasChildren ? Math.max(0.5, maxChildLength * 0.35) : Math.max(0.5, bone.position.length() * 0.2);
@@ -428,7 +423,6 @@ const SB = {
                 if (jointSize === null || jointSize === undefined) {
                   jointSize = limiteNatural;
                 } else if (handle._enforceProportions) {
-                  // CINTURÓN DE SEGURIDAD HUMANOIDE
                   jointSize = Math.min(jointSize, limiteNatural * 1.5);
                 }
 
@@ -455,7 +449,6 @@ const SB = {
 
               nextRig.action.reset();
 
-              // --- ARREGLO: PREPARAR EL TIEMPO Y LA DIRECCIÓN ANTES DEL UPDATE ---
               const isNextReversed = nextRig.opts.reverse ?? SB.params.reverse;
               const nextLocalSpeed = nextRig.opts.speed ?? 1.0;
 
@@ -464,9 +457,13 @@ const SB = {
               if (isNextReversed) {
                 nextRig.action.time = nextRig.clip.duration;
               }
-              // -----------------------------------------------------------
 
-              nextRig.action.paused = false;
+              if (handle._nextHandle._isStaticDummy) {
+                nextRig.action.paused = true;
+              } else {
+                nextRig.action.paused = false;
+              }
+
               nextRig.mixer.update(0.05);
 
               const nextRootStartPos = new THREE.Vector3();
@@ -478,7 +475,15 @@ const SB = {
               if (handle._nextHandle._useDummy) { nextRig.root.visible = true; }
               else { nextRig.helper.visible = (handle._nextHandle._showSkeleton ?? SB.params.showSkeleton); }
               nextRig.timeAlive = 0.05;
+
               nextRig.action.play();
+
+              if (handle._nextHandle._isStaticDummy) {
+                const waitTime = (handle._nextHandle._delay ?? 3) * 1000;
+                setTimeout(() => {
+                  nextRig.mixer.dispatchEvent({ type: 'finished', action: nextRig.action });
+                }, waitTime);
+              }
 
               window.parent.postMessage({ type: 'chainStep', codeIndex: nextRig.handle._codeIndex, step: nextRig.handle._chainStep }, '*');
             };
@@ -514,7 +519,7 @@ const SB = {
     let newCurrent = this.bvh(startOrig._rawFile, true);
     newCurrent._codeIndex = bvhCounter++;
 
-    const keysToCopy = ["_x", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize"];
+    const keysToCopy = ["_x", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize", "_isStaticDummy"];
     keysToCopy.forEach(k => newCurrent[k] = startOrig[k]);
     const newHead = newCurrent;
 
@@ -592,11 +597,9 @@ const SB = {
         const localSpeed = r?.opts?.speed ?? 1.0; const isReversed = r.opts?.reverse ?? SB.params.reverse;
         mixers[i].timeScale = SB.params.speed * localSpeed * (isReversed ? -1 : 1);
 
-        // --- ARREGLO: SOLO BUCLE INFINITO SI NO ESTÁ EN CADENA ---
         if (isReversed && r.action && r.clip && !r.handle._isChained) {
           if (r.action.time <= 0.0001) r.action.time = r.clip.duration;
         }
-        // ---------------------------------------------------------
 
         mixers[i].update(tiempoActivo);
       }
@@ -762,6 +765,7 @@ window.addEventListener('message', (event) => {
 });
 
 window.parent.postMessage({ type: 'ready' }, '*');
+
 // ====================================================
 // PATRÓN BUILDER: BOLSA DE LA COMPRA Y HERENCIA DE BVH
 // ====================================================
@@ -770,7 +774,6 @@ class RigNode {
   bvh(f) { this.props.file = f; return this; }
   duplicate(h) { this.props.duplicate = h; return this; }
 
-  // LOGICA MODULAR DE LA BOLSA DE COMPRA
   dummy(v = true) { this.props.calledDummy = true; this.props.dummyValue = v; return this; } bones(w, l) { this.props.calledBones = true; this.props.boneWidth = w; this.props.boneLength = l; return this; }
   joints(s) { this.props.calledJoints = true; this.props.jointSize = s; return this; }
 
@@ -808,10 +811,12 @@ window.CHAIN = (...nodes) => {
     headHandle = SB.bvh(file);
   }
 
+  headHandle._isStaticDummy = esManiquiEstatico;
+
   applyPropsToHandle(headHandle, headNode.props);
 
   if (esManiquiEstatico) {
-    const tiempoEspera = (headNode.props.delay || 3) * 1000;
+    const tiempoEspera = (headNode.props.delay ?? 3) * 1000;
     setTimeout(() => {
       const rig = rigs.find(r => r.handle === headHandle);
       if (rig) {
@@ -831,6 +836,9 @@ window.CHAIN = (...nodes) => {
     let nextFile = nextNode.props.file || currentHandle._rawFile;
 
     let nextHandle = currentHandle.nextBvh(nextFile);
+
+    nextHandle._isStaticDummy = (!nextNode.props.file && currentHandle._isStaticDummy);
+
     applyPropsToHandle(nextHandle, nextNode.props);
     currentHandle = nextHandle;
   }
