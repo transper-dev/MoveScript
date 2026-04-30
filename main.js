@@ -320,7 +320,7 @@ function runCode(code) {
   const configuracionOculta = `
     clear();
     grid(800, 20);
-    cam(0, 150, 250, 0, 120, 0);
+    cam(0, 150, 350, 0, 100, 0);
     bg("#0a0a0a");
   `;
 
