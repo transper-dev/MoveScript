@@ -527,40 +527,37 @@
       background: #00ccaa;
     }
 
-    /* --- PANEL AISLADO DEL EXPERIMENTO --- */
     #experiment-panel {
       position: fixed;
-      top: 20px;
-      right: 60px;
-      /* Separado de la derecha para no tapar el botón "?" de ayuda */
-      width: 250px;
+      top: 16px;
+      left: calc(50% + 85px);
+      transform: translateX(-50%);
+      right: auto;
       background: rgba(15, 15, 15, 0.85);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 0, 204, 0.5);
       border-radius: 10px;
-      padding: 15px;
+      padding: 10px 15px;
       z-index: 20;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      flex-direction: row;
+      align-items: center;
+      gap: 15px;
       box-shadow: 0 5px 20px rgba(0, 0, 0, 0.8);
       font-family: sans-serif;
+      width: auto;
+      cursor: grab;
     }
 
-    #experiment-panel h3 {
-      margin: 0;
-      color: #ff99ff;
-      font-size: 15px;
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      user-select: none;
+    #experiment-panel:active {
+      cursor: grabbing;
     }
 
     #participant-input {
-      width: 100%;
+      width: 160px;
+      /* Tamaño controlado para que no ocupe todo */
       box-sizing: border-box;
-      padding: 10px;
+      padding: 8px 10px;
       background: rgba(0, 0, 0, 0.8);
       border: 1px solid #444;
       color: white;
@@ -576,7 +573,7 @@
     }
 
     .exp-btn {
-      padding: 10px;
+      padding: 8px 12px;
       cursor: pointer;
       border-radius: 6px;
       border: 1px solid rgba(255, 0, 204, 0.5);
@@ -588,6 +585,7 @@
       justify-content: center;
       align-items: center;
       gap: 8px;
+      white-space: nowrap;
     }
 
     .exp-btn:hover {
@@ -607,7 +605,7 @@
 
   <div id="custom-modal-overlay">
     <div id="custom-modal">
-      <h3>¡Falta el título!</h3>
+      <h3>¡Casi listo!</h3>
       <p>Por favor, ponle un título a tu creación final:</p>
       <input type="text" id="modal-input-title" placeholder="Ej: Baile Épico" autocomplete="off" />
       <div class="modal-buttons">
@@ -617,12 +615,11 @@
     </div>
   </div>
 
-  <div id="experiment-panel">
-    <h3>Estudio</h3>
-    <input type="text" id="participant-input" placeholder="ID de Participante" autocomplete="off" />
-    <button id="submitTrain1Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Enviar Training 1</button>
-    <button id="submitTrain2Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Enviar Training 2</button>
-    <button id="submitRq2Btn" class="exp-btn"><i class="fas fa-paper-plane"></i> Enviar Creación</button>
+  <div id="experiment-panel" title="Arrastra para mover">
+    <input type="text" id="participant-input" placeholder="User ID" autocomplete="off" />
+    <button id="submitTrain1Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Send Training 1</button>
+    <button id="submitTrain2Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Send Training 2</button>
+    <button id="submitRq2Btn" class="exp-btn"><i class="fas fa-paper-plane"></i> Send Creation</button>
   </div>
 
   <div id="loader">Loading... ⏳</div>
@@ -684,16 +681,14 @@
       const iframePreview = document.getElementById('preview');
 
       const expPanel = document.getElementById('experiment-panel');
-      const expHeader = expPanel.querySelector('h3');
-      expHeader.style.cursor = 'grab';
-      expHeader.title = "Arrastra para mover";
-
       let isDraggingExp = false, expStartX, expStartY, expStartLeft, expStartTop;
 
-      expHeader.addEventListener('pointerdown', (e) => {
+      expPanel.addEventListener('pointerdown', (e) => {
+        // No arrastrar si pinchan en la caja de texto o en los botones
+        if (e.target.closest('button') || e.target.tagName === 'INPUT') return;
+
         isDraggingExp = true;
-        expHeader.setPointerCapture(e.pointerId);
-        expHeader.style.cursor = 'grabbing';
+        expPanel.setPointerCapture(e.pointerId);
 
         const rect = expPanel.getBoundingClientRect();
         expStartX = e.clientX;
@@ -701,6 +696,10 @@
         expStartLeft = rect.left;
         expStartTop = rect.top;
 
+        // Fijar posiciones absolutas y quitar transform para que no salte
+        expPanel.style.transform = 'none';
+        expPanel.style.left = `${expStartLeft}px`;
+        expPanel.style.top = `${expStartTop}px`;
         expPanel.style.right = 'auto';
         expPanel.style.bottom = 'auto';
       });
@@ -721,7 +720,6 @@
       window.addEventListener('pointerup', () => {
         if (isDraggingExp) {
           isDraggingExp = false;
-          expHeader.style.cursor = 'grab';
         }
       });
 
@@ -732,9 +730,8 @@
       const modalBtnCancel = document.getElementById('modal-btn-cancel');
       const modalBtnSubmit = document.getElementById('modal-btn-submit');
 
-      let pendingSubmit = null; // Para guardar los datos mientras rellenan el título
+      let pendingSubmit = null;
 
-      // Función encargada estrictamente de mandar a Netlify
       function ejecutarEnvioNetlify(nombreTarea, botonReferencia, codigo, nombre, titulo) {
         const textoOriginal = botonReferencia.innerHTML;
         botonReferencia.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
@@ -770,13 +767,11 @@
           });
       }
 
-      // Evento: Al darle a "Cancelar" en el modal del título
       modalBtnCancel.addEventListener('click', () => {
         modalOverlay.style.display = 'none';
         pendingSubmit = null;
       });
 
-      // Evento: Al darle a "Enviar" en el modal del título
       modalBtnSubmit.addEventListener('click', () => {
         if (!pendingSubmit) return;
         const titulo = modalInputTitle.value.trim();
@@ -798,7 +793,6 @@
         pendingSubmit = null;
       });
 
-      // Evento inicial cuando le dan a cualquiera de los 3 botones principales
       function procesarEnvio(nombreTarea, botonReferencia) {
         if (!window.editor) return;
 
@@ -820,23 +814,19 @@
         participantInput.style.borderColor = "#444";
 
         if (nombreTarea === "Creacion Final") {
-          // Si es la final, pausamos todo y abrimos el Modal
           pendingSubmit = { nombreTarea, botonReferencia, codigo, nombre };
           modalInputTitle.value = "";
           modalInputTitle.style.borderColor = "#444";
           modalOverlay.style.display = "flex";
           modalInputTitle.focus();
         } else {
-          // Si es Training 1 o 2, enviar directo sin título
           ejecutarEnvioNetlify(nombreTarea, botonReferencia, codigo, nombre, "");
         }
       }
 
-      // Conectamos los botones
       document.getElementById('submitTrain1Btn').addEventListener('click', function () { procesarEnvio("Training 1", this); });
       document.getElementById('submitTrain2Btn').addEventListener('click', function () { procesarEnvio("Training 2", this); });
       document.getElementById('submitRq2Btn').addEventListener('click', function () { procesarEnvio("Creacion Final", this); });
-      // -------------------------------------------------------------
 
       // --- ACTIVAR LA INTERFAZ ---
       toggleBtn.addEventListener('click', () => {
