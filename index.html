@@ -438,6 +438,95 @@
       letter-spacing: 1px;
     }
 
+    #custom-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #custom-modal {
+      background: #111;
+      border: 1px solid rgba(255, 0, 204, 0.5);
+      border-radius: 12px;
+      padding: 30px;
+      width: 350px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+      text-align: center;
+      font-family: sans-serif;
+    }
+
+    #custom-modal h3 {
+      margin-top: 0;
+      color: #ff99ff;
+      font-size: 20px;
+    }
+
+    #custom-modal p {
+      color: #aaa;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    #modal-input-title {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin-bottom: 20px;
+      background: #000;
+      border: 1px solid #444;
+      color: white;
+      border-radius: 8px;
+      outline: none;
+      font-size: 15px;
+      transition: border-color 0.3s;
+    }
+
+    #modal-input-title:focus {
+      border-color: #00ffcc;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    #modal-btn-cancel {
+      background: #333;
+      color: #bbb;
+    }
+
+    #modal-btn-cancel:hover {
+      background: #444;
+      color: white;
+    }
+
+    #modal-btn-submit {
+      background: #00ffcc;
+      color: #000;
+    }
+
+    #modal-btn-submit:hover {
+      background: #00ccaa;
+    }
+
     /* --- PANEL AISLADO DEL EXPERIMENTO --- */
     #experiment-panel {
       position: fixed;
@@ -511,9 +600,22 @@
   <form name="estudio_rq2" method="POST" data-netlify="true" id="form-rq2" style="display: none;">
     <input type="hidden" name="form-name" value="estudio_rq2" />
     <input type="text" name="participante" id="rq2-nombre" />
+    <input type="text" name="titulo" id="rq2-titulo" />
     <input type="text" name="tipo_tarea" id="rq2-tarea" />
     <textarea name="codigo_enviado" id="rq2-codigo"></textarea>
   </form>
+
+  <div id="custom-modal-overlay">
+    <div id="custom-modal">
+      <h3>¡Falta el título!</h3>
+      <p>Por favor, ponle un título a tu creación final:</p>
+      <input type="text" id="modal-input-title" placeholder="Ej: Baile Épico" autocomplete="off" />
+      <div class="modal-buttons">
+        <button id="modal-btn-cancel" class="modal-btn">Cancelar</button>
+        <button id="modal-btn-submit" class="modal-btn">Enviar</button>
+      </div>
+    </div>
+  </div>
 
   <div id="experiment-panel">
     <h3>Estudio</h3>
@@ -581,7 +683,6 @@
       const bvhList = document.getElementById('bvh-list');
       const iframePreview = document.getElementById('preview');
 
-      // --- HACER EL PANEL DEL EXPERIMENTO ARRASTRABLE ---
       const expPanel = document.getElementById('experiment-panel');
       const expHeader = expPanel.querySelector('h3');
       expHeader.style.cursor = 'grab';
@@ -600,7 +701,6 @@
         expStartLeft = rect.left;
         expStartTop = rect.top;
 
-        // Rompemos el anclaje inicial CSS para que se mueva libremente
         expPanel.style.right = 'auto';
         expPanel.style.bottom = 'auto';
       });
@@ -611,7 +711,6 @@
         let newLeft = expStartLeft + (e.clientX - expStartX);
         let newTop = expStartTop + (e.clientY - expStartY);
 
-        // Evitamos que lo arrastren fuera de la pantalla
         newLeft = Math.max(0, Math.min(window.innerWidth - expPanel.offsetWidth, newLeft));
         newTop = Math.max(0, Math.min(window.innerHeight - expPanel.offsetHeight, newTop));
 
@@ -628,36 +727,21 @@
 
       // --- LÓGICA DE ENVÍO DIRECTO DESDE EL PANEL ---
       const participantInput = document.getElementById('participant-input');
+      const modalOverlay = document.getElementById('custom-modal-overlay');
+      const modalInputTitle = document.getElementById('modal-input-title');
+      const modalBtnCancel = document.getElementById('modal-btn-cancel');
+      const modalBtnSubmit = document.getElementById('modal-btn-submit');
 
-      function procesarEnvio(nombreTarea, botonReferencia) {
-        if (!window.editor) return;
+      let pendingSubmit = null; // Para guardar los datos mientras rellenan el título
 
-        // 1. Validar que hay código
-        const codigo = window.editor.getValue();
-        if (codigo.trim() === "") {
-          const errorToast = document.getElementById('error-toast');
-          document.getElementById('error-text').innerText = "El editor está vacío. Escribe tu coreografía antes de enviarla.";
-          errorToast.classList.add('visible');
-          setTimeout(() => errorToast.classList.remove('visible'), 4000);
-          return;
-        }
-
-        // 2. Validar que el campo del ID no está vacío
-        const nombre = participantInput.value.trim();
-        if (nombre === "") {
-          participantInput.style.borderColor = "red"; // Lo ponemos rojo para llamar su atención
-          participantInput.focus();
-          return;
-        }
-        participantInput.style.borderColor = "#444"; // Restauramos el color normal
-
-        // 3. Modificar estado del botón
+      // Función encargada estrictamente de mandar a Netlify
+      function ejecutarEnvioNetlify(nombreTarea, botonReferencia, codigo, nombre, titulo) {
         const textoOriginal = botonReferencia.innerHTML;
         botonReferencia.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
         botonReferencia.style.pointerEvents = 'none';
 
-        // 4. Preparar datos para Netlify
         document.getElementById('rq2-nombre').value = nombre;
+        document.getElementById('rq2-titulo').value = titulo;
         document.getElementById('rq2-tarea').value = nombreTarea;
         document.getElementById('rq2-codigo').value = codigo;
 
@@ -671,18 +755,14 @@
         })
           .then(response => {
             if (!response.ok) throw new Error("Fallo en la red");
-
-            // Éxito: Pintamos el botón
             botonReferencia.innerHTML = '<i class="fas fa-check"></i> Enviado';
             botonReferencia.style.background = '#00ffcc';
             botonReferencia.style.color = '#000';
             botonReferencia.style.borderColor = '#00ffcc';
           })
           .catch((error) => {
-            // Error: Restauramos botón y mostramos Toast
             botonReferencia.innerHTML = textoOriginal;
             botonReferencia.style.pointerEvents = 'auto';
-
             const errorToast = document.getElementById('error-toast');
             document.getElementById('error-text').innerText = "Error de conexión al enviar datos. Avisa al investigador.";
             errorToast.classList.add('visible');
@@ -690,7 +770,69 @@
           });
       }
 
-      // Conectamos los botones a la nueva función
+      // Evento: Al darle a "Cancelar" en el modal del título
+      modalBtnCancel.addEventListener('click', () => {
+        modalOverlay.style.display = 'none';
+        pendingSubmit = null;
+      });
+
+      // Evento: Al darle a "Enviar" en el modal del título
+      modalBtnSubmit.addEventListener('click', () => {
+        if (!pendingSubmit) return;
+        const titulo = modalInputTitle.value.trim();
+        if (titulo === "") {
+          modalInputTitle.style.borderColor = "red";
+          modalInputTitle.focus();
+          return;
+        }
+        modalInputTitle.style.borderColor = "#444";
+        modalOverlay.style.display = 'none';
+
+        ejecutarEnvioNetlify(
+          pendingSubmit.nombreTarea,
+          pendingSubmit.botonReferencia,
+          pendingSubmit.codigo,
+          pendingSubmit.nombre,
+          titulo
+        );
+        pendingSubmit = null;
+      });
+
+      // Evento inicial cuando le dan a cualquiera de los 3 botones principales
+      function procesarEnvio(nombreTarea, botonReferencia) {
+        if (!window.editor) return;
+
+        const codigo = window.editor.getValue();
+        if (codigo.trim() === "") {
+          const errorToast = document.getElementById('error-toast');
+          document.getElementById('error-text').innerText = "El editor está vacío. Escribe tu coreografía antes de enviarla.";
+          errorToast.classList.add('visible');
+          setTimeout(() => errorToast.classList.remove('visible'), 4000);
+          return;
+        }
+
+        const nombre = participantInput.value.trim();
+        if (nombre === "") {
+          participantInput.style.borderColor = "red";
+          participantInput.focus();
+          return;
+        }
+        participantInput.style.borderColor = "#444";
+
+        if (nombreTarea === "Creacion Final") {
+          // Si es la final, pausamos todo y abrimos el Modal
+          pendingSubmit = { nombreTarea, botonReferencia, codigo, nombre };
+          modalInputTitle.value = "";
+          modalInputTitle.style.borderColor = "#444";
+          modalOverlay.style.display = "flex";
+          modalInputTitle.focus();
+        } else {
+          // Si es Training 1 o 2, enviar directo sin título
+          ejecutarEnvioNetlify(nombreTarea, botonReferencia, codigo, nombre, "");
+        }
+      }
+
+      // Conectamos los botones
       document.getElementById('submitTrain1Btn').addEventListener('click', function () { procesarEnvio("Training 1", this); });
       document.getElementById('submitTrain2Btn').addEventListener('click', function () { procesarEnvio("Training 2", this); });
       document.getElementById('submitRq2Btn').addEventListener('click', function () { procesarEnvio("Creacion Final", this); });
