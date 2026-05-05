@@ -1,6 +1,6 @@
 export const examples = [
   {
-    name: "Default Code",
+    name: "",
     code: ``
   },
 ];
