@@ -800,7 +800,7 @@ window.CHAIN = (...nodes) => {
   let esManiquiEstatico = false;
 
   if (!file && !headNode.props.duplicate) {
-    file = "hand_moves"; // Archivo por defecto para estáticos
+    file = "deep_breath"; // Archivo por defecto para estáticos
     esManiquiEstatico = true;
   }
 
