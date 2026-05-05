@@ -616,7 +616,7 @@
   </div>
 
   <div id="experiment-panel" title="Arrastra para mover">
-    <input type="text" id="participant-input" placeholder="User ID" autocomplete="off" />
+    <input type="text" id="participant-input" placeholder="Group ID" autocomplete="off" />
     <button id="submitTrain1Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Send Training 1</button>
     <button id="submitTrain2Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Send Training 2</button>
     <button id="submitRq2Btn" class="exp-btn"><i class="fas fa-paper-plane"></i> Send Creation</button>
@@ -734,7 +734,7 @@
 
       function ejecutarEnvioNetlify(nombreTarea, botonReferencia, codigo, nombre, titulo) {
         const textoOriginal = botonReferencia.innerHTML;
-        botonReferencia.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        botonReferencia.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
         botonReferencia.style.pointerEvents = 'none';
 
         document.getElementById('rq2-nombre').value = nombre;
@@ -752,7 +752,7 @@
         })
           .then(response => {
             if (!response.ok) throw new Error("Fallo en la red");
-            botonReferencia.innerHTML = '<i class="fas fa-check"></i> Enviado';
+            botonReferencia.innerHTML = '<i class="fas fa-check"></i> Sent';
             botonReferencia.style.background = '#00ffcc';
             botonReferencia.style.color = '#000';
             botonReferencia.style.borderColor = '#00ffcc';
@@ -930,7 +930,7 @@
             code = code.replace(regexBusqueda, `[bvh("${nombre}")]\n>$&`);
           } else {
             let salto = code.trim() !== "" ? "\n\n" : "";
-            code += `${salto}[bvh("${nombre}")]\n>[dummy()]\n>[color("#00ffcc")];`;
+            code += `${salto}[bvh("${nombre}")]`;
           }
 
           window.editor.setValue(code);

@@ -223,7 +223,7 @@ function updateEditor(codeIndex, modifierCallback) {
 window.addEventListener('message', (e) => {
   if (e.data.type === 'ready') {
     engineReady = true;
-    if (pendingCode) { runCode(pendingCode); pendingCode = null; }
+    if (pendingCode !== null) { runCode(pendingCode); pendingCode = null; }
   } else if (e.data.type === 'error') {
     // --- MANEJO DEL TOAST DE ERROR ---
     if (errorToast && errorText) {
@@ -406,7 +406,7 @@ saveBtn.addEventListener('click', () => {
     isSaved = false; saveBtn.textContent = ' Save (Ctrl+S)'; saveBtn.classList.remove('saved');
   } else {
     localStorage.setItem('movescript_saved_code', window.editor.getValue());
-    isSaved = true; saveBtn.textContent = 'Guardado'; saveBtn.classList.add('saved');
+    isSaved = true; saveBtn.textContent = 'Saved'; saveBtn.classList.add('saved');
   }
 });
 
@@ -425,9 +425,9 @@ function init() {
   const savedCode = localStorage.getItem('movescript_saved_code');
   if (savedCode) {
     window.editor.setValue(savedCode);
-    isSaved = true; saveBtn.textContent = 'Guardado'; saveBtn.classList.add('saved');
+    isSaved = true; saveBtn.textContent = 'Saved'; saveBtn.classList.add('saved');
   } else {
-    window.editor.setValue(`///// ${examples[0].name} /////\n${examples[0].code}`);
+    window.editor.setValue("");
     isSaved = false; saveBtn.textContent = ' Save (Ctrl+S)'; saveBtn.classList.remove('saved');
   }
   pendingCode = window.editor.getValue();
