@@ -527,6 +527,63 @@
       background: #00ccaa;
     }
 
+    /* --- POPUP DE SIGUIENTE PASO --- */
+    #next-step-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #next-step-modal {
+      background: #111;
+      border: 1px solid #00ffcc;
+      border-radius: 12px;
+      padding: 30px;
+      width: 350px;
+      box-shadow: 0 10px 40px rgba(0, 255, 204, 0.2);
+      text-align: center;
+      font-family: sans-serif;
+    }
+
+    #next-step-modal h3 {
+      margin-top: 0;
+      color: #00ffcc;
+      font-size: 20px;
+    }
+
+    #next-step-modal p {
+      color: #aaa;
+      font-size: 14px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .close-x-btn {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      background: transparent;
+      border: none;
+      color: #aaa;
+      font-size: 28px;
+      cursor: pointer;
+      transition: color 0.2s;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .close-x-btn:hover {
+      color: #ff3366;
+    }
+
     #experiment-panel {
       position: fixed;
       top: 16px;
@@ -555,7 +612,6 @@
 
     #participant-input {
       width: 160px;
-      /* Tamaño controlado para que no ocupe todo */
       box-sizing: border-box;
       padding: 8px 10px;
       background: rgba(0, 0, 0, 0.8);
@@ -611,6 +667,21 @@
       <div class="modal-buttons">
         <button id="modal-btn-cancel" class="modal-btn">Cancelar</button>
         <button id="modal-btn-submit" class="modal-btn">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="next-step-modal-overlay">
+    <div id="next-step-modal" style="position: relative;">
+
+      <button id="next-step-close" class="close-x-btn">&times;</button>
+
+      <h3 id="next-step-title">¡Enviado con éxito!</h3>
+      <p id="next-step-desc">Descripción del siguiente paso...</p>
+
+      <div class="modal-buttons" style="flex-direction: column; gap: 15px;">
+        <a id="next-step-link" href="#" target="_blank" class="modal-btn"
+          style="background: #00ffcc; color: #000; text-decoration: none; text-align: center;">Ir al siguiente paso</a>
       </div>
     </div>
   </div>
@@ -684,7 +755,6 @@
       let isDraggingExp = false, expStartX, expStartY, expStartLeft, expStartTop;
 
       expPanel.addEventListener('pointerdown', (e) => {
-        // No arrastrar si pinchan en la caja de texto o en los botones
         if (e.target.closest('button') || e.target.tagName === 'INPUT') return;
 
         isDraggingExp = true;
@@ -696,7 +766,6 @@
         expStartLeft = rect.left;
         expStartTop = rect.top;
 
-        // Fijar posiciones absolutas y quitar transform para que no salte
         expPanel.style.transform = 'none';
         expPanel.style.left = `${expStartLeft}px`;
         expPanel.style.top = `${expStartTop}px`;
@@ -721,6 +790,24 @@
         if (isDraggingExp) {
           isDraggingExp = false;
         }
+      });
+
+      // --- LÓGICA DEL POPUP DE SIGUIENTE PASO ---
+      const nextStepOverlay = document.getElementById('next-step-modal-overlay');
+      const nextStepTitle = document.getElementById('next-step-title');
+      const nextStepDesc = document.getElementById('next-step-desc');
+      const nextStepLink = document.getElementById('next-step-link');
+      const nextStepClose = document.getElementById('next-step-close');
+
+      function mostrarSiguientePaso(titulo, descripcion, urlDestino) {
+        nextStepTitle.textContent = titulo;
+        nextStepDesc.textContent = descripcion;
+        nextStepLink.href = urlDestino;
+        nextStepOverlay.style.display = 'flex';
+      }
+
+      nextStepClose.addEventListener('click', () => {
+        nextStepOverlay.style.display = 'none';
       });
 
       // --- LÓGICA DE ENVÍO DIRECTO DESDE EL PANEL ---
@@ -756,6 +843,28 @@
             botonReferencia.style.background = '#00ffcc';
             botonReferencia.style.color = '#000';
             botonReferencia.style.borderColor = '#00ffcc';
+
+            if (nombreTarea === "Training 1") {
+              mostrarSiguientePaso(
+                "¡Training 1 Completado!",
+                "Tu código se ha guardado correctamente. Ahora debes ver el vídeo de preparación para el Training 2.",
+                "https://drive.google.com/file/d/12NmmyZzvTvA9JM0ut3xk2datEnvwk-lY/view?usp=sharing"
+              );
+            }
+            else if (nombreTarea === "Training 2") {
+              mostrarSiguientePaso(
+                "¡Training 2 Completado!",
+                "¡Genial! Ya has dominado lo básico. Mira este breve vídeo para saber cómo hacer tu creación final.",
+                "https://drive.google.com/file/d/1xW5wQs7MuOMVLtA891Vo9n7XQ7JhN_Nq/view?usp=sharing"
+              );
+            }
+            else if (nombreTarea === "Creacion Final") {
+              mostrarSiguientePaso(
+                "¡Creación Final Enviada!",
+                "¡Increíble trabajo! Solo te queda un último paso.",
+                "https://forms.gle/k6skmQRNoXdrS1SR9"
+              );
+            }
           })
           .catch((error) => {
             botonReferencia.innerHTML = textoOriginal;
