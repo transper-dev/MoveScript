@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { BVHLoader } from "three/addons/loaders/BVHLoader.js";
+import { VRButton } from "three/addons/webxr/VRButton.js";
 
 // --- CONFIGURACIÓN DE ESCENA ---
 const canvas = document.getElementById("c");
@@ -8,12 +9,34 @@ canvas.addEventListener("pointerdown", () => canvas.focus());
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.xr.enabled = true;
+document.body.appendChild(VRButton.createButton(renderer));
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x111111);
 
 const camera = new THREE.PerspectiveCamera(60, 2, 0.1, 20000);
 camera.position.set(0, 200, 450);
+
+const vrCameraRig = new THREE.Group();
+vrCameraRig.position.set(0, 0, 0);
+vrCameraRig.scale.set(1, 1, 1);
+vrCameraRig.add(camera);
+scene.add(vrCameraRig);
+
+renderer.xr.addEventListener('sessionstart', () => {
+  // Al entrar en VR: Nos hacemos gigantes para que el movimiento sea real
+  vrCameraRig.scale.set(100, 100, 100);
+
+  // Y copiamos la posición X y Z exacta de la cámara del PC.
+  // Mantenemos la Y en 0 para que tus pies sigan en el suelo real de tu habitación.
+  vrCameraRig.position.set(camera.position.x, 0, camera.position.z);
+});
+
+renderer.xr.addEventListener('sessionend', () => {
+  vrCameraRig.scale.set(1, 1, 1);
+  vrCameraRig.position.set(0, 0, 0);
+});
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -621,8 +644,13 @@ function resize() {
   if (canvas.width !== w || canvas.height !== h) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 }
 
-function animate() { resize(); controls.update(); SB._tick(); renderer.render(scene, camera); requestAnimationFrame(animate); }
-animate();
+function animate() {
+  resize();
+  controls.update();
+  SB._tick();
+  renderer.render(scene, camera);
+}
+renderer.setAnimationLoop(animate);
 
 // --- SISTEMA DE SELECCIÓN ---
 raycaster.params.Line.threshold = 20;

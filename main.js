@@ -1,30 +1,5 @@
 import { examples } from './examples.js';
 
-function buildPreviewHtml() {
-  return `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <style>
-    html, body { margin:0; height:100%; overflow:hidden; background:#111; }
-    canvas { width:100%; height:100%; display:block; outline: none; }
-  </style>
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/"
-      }
-    }
-  </script>
-</head>
-<body>
-  <canvas id="c" tabindex="1"></canvas>
-  <script type="module" src="./bvhApi.js"></script>
-</body>
-</html>`;
-}
-
 const iframe = document.getElementById("preview");
 const runBtn = document.getElementById("run");
 const toggleBtn = document.getElementById("toggle");
@@ -421,7 +396,6 @@ window.editor.on('change', () => {
 });
 
 function init() {
-  iframe.srcdoc = buildPreviewHtml();
   const savedCode = localStorage.getItem('movescript_saved_code');
   if (savedCode) {
     window.editor.setValue(savedCode);
