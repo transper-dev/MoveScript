@@ -427,7 +427,7 @@ function init() {
     window.editor.setValue(savedCode);
     isSaved = true; saveBtn.textContent = 'Saved'; saveBtn.classList.add('saved');
   } else {
-    window.editor.setValue("");
+    window.editor.setValue(examples[0].code);//"" para sandbox vacio, examples[0].code para cargar el ejemplo por defecto
     isSaved = false; saveBtn.textContent = ' Save (Ctrl+S)'; saveBtn.classList.remove('saved');
   }
   pendingCode = window.editor.getValue();

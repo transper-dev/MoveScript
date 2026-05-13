@@ -1,6 +1,6 @@
 {
   "name": "movescript",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Motor de coreografías 3D mediante código",
   "main": "main-electron.js",
   "scripts": {

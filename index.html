@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <title>MoveScript</title>
+  <title>MoveScript VR</title>
   <link rel="icon" type="image/png" href="./icons/icon.png">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
@@ -437,262 +437,10 @@
       text-transform: uppercase;
       letter-spacing: 1px;
     }
-
-    #custom-modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(5px);
-      z-index: 10000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #custom-modal {
-      background: #111;
-      border: 1px solid rgba(255, 0, 204, 0.5);
-      border-radius: 12px;
-      padding: 30px;
-      width: 350px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-      text-align: center;
-      font-family: sans-serif;
-    }
-
-    #custom-modal h3 {
-      margin-top: 0;
-      color: #ff99ff;
-      font-size: 20px;
-    }
-
-    #custom-modal p {
-      color: #aaa;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    #modal-input-title {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 12px;
-      margin-bottom: 20px;
-      background: #000;
-      border: 1px solid #444;
-      color: white;
-      border-radius: 8px;
-      outline: none;
-      font-size: 15px;
-      transition: border-color 0.3s;
-    }
-
-    #modal-input-title:focus {
-      border-color: #00ffcc;
-    }
-
-    .modal-buttons {
-      display: flex;
-      gap: 10px;
-    }
-
-    .modal-btn {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.2s;
-    }
-
-    #modal-btn-cancel {
-      background: #333;
-      color: #bbb;
-    }
-
-    #modal-btn-cancel:hover {
-      background: #444;
-      color: white;
-    }
-
-    #modal-btn-submit {
-      background: #00ffcc;
-      color: #000;
-    }
-
-    #modal-btn-submit:hover {
-      background: #00ccaa;
-    }
-
-    /* --- POPUP DE SIGUIENTE PASO --- */
-    #next-step-modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(5px);
-      z-index: 10000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #next-step-modal {
-      background: #111;
-      border: 1px solid #00ffcc;
-      border-radius: 12px;
-      padding: 30px;
-      width: 350px;
-      box-shadow: 0 10px 40px rgba(0, 255, 204, 0.2);
-      text-align: center;
-      font-family: sans-serif;
-    }
-
-    #next-step-modal h3 {
-      margin-top: 0;
-      color: #00ffcc;
-      font-size: 20px;
-    }
-
-    #next-step-modal p {
-      color: #aaa;
-      font-size: 14px;
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-
-    .close-x-btn {
-      position: absolute;
-      top: 12px;
-      right: 15px;
-      background: transparent;
-      border: none;
-      color: #aaa;
-      font-size: 28px;
-      cursor: pointer;
-      transition: color 0.2s;
-      line-height: 1;
-      padding: 0;
-    }
-
-    .close-x-btn:hover {
-      color: #ff3366;
-    }
-
-    #experiment-panel {
-      position: fixed;
-      top: 16px;
-      left: calc(50% + 85px);
-      transform: translateX(-50%);
-      right: auto;
-      background: rgba(15, 15, 15, 0.85);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 0, 204, 0.5);
-      border-radius: 10px;
-      padding: 10px 15px;
-      z-index: 20;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 15px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.8);
-      font-family: sans-serif;
-      width: auto;
-      cursor: grab;
-    }
-
-    #experiment-panel:active {
-      cursor: grabbing;
-    }
-
-    #participant-input {
-      width: 160px;
-      box-sizing: border-box;
-      padding: 8px 10px;
-      background: rgba(0, 0, 0, 0.8);
-      border: 1px solid #444;
-      color: white;
-      border-radius: 6px;
-      outline: none;
-      font-size: 13px;
-      transition: border-color 0.3s;
-      text-align: center;
-    }
-
-    #participant-input:focus {
-      border-color: #00ffcc;
-    }
-
-    .exp-btn {
-      padding: 8px 12px;
-      cursor: pointer;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 0, 204, 0.5);
-      background: rgba(255, 0, 204, 0.15);
-      color: #ff99ff;
-      transition: all 0.3s ease;
-      font-weight: bold;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
-    }
-
-    .exp-btn:hover {
-      background: rgba(255, 0, 204, 0.35);
-    }
   </style>
 </head>
 
 <body>
-  <form name="estudio_rq2" method="POST" data-netlify="true" id="form-rq2" style="display: none;">
-    <input type="hidden" name="form-name" value="estudio_rq2" />
-    <input type="text" name="participante" id="rq2-nombre" />
-    <input type="text" name="titulo" id="rq2-titulo" />
-    <input type="text" name="tipo_tarea" id="rq2-tarea" />
-    <textarea name="codigo_enviado" id="rq2-codigo"></textarea>
-  </form>
-
-  <div id="custom-modal-overlay">
-    <div id="custom-modal">
-      <h3>¡Casi listo!</h3>
-      <p>Por favor, ponle un título a tu creación final:</p>
-      <input type="text" id="modal-input-title" placeholder="Ej: Baile Épico" autocomplete="off" />
-      <div class="modal-buttons">
-        <button id="modal-btn-cancel" class="modal-btn">Cancelar</button>
-        <button id="modal-btn-submit" class="modal-btn">Enviar</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="next-step-modal-overlay">
-    <div id="next-step-modal" style="position: relative;">
-
-      <button id="next-step-close" class="close-x-btn">&times;</button>
-
-      <h3 id="next-step-title">¡Enviado con éxito!</h3>
-      <p id="next-step-desc">Descripción del siguiente paso...</p>
-
-      <div class="modal-buttons" style="flex-direction: column; gap: 15px;">
-        <a id="next-step-link" href="#" target="_blank" class="modal-btn"
-          style="background: #00ffcc; color: #000; text-decoration: none; text-align: center;">Ir al siguiente paso</a>
-      </div>
-    </div>
-  </div>
-
-  <div id="experiment-panel" title="Arrastra para mover">
-    <input type="text" id="participant-input" placeholder="Group ID" autocomplete="off" />
-    <button id="submitTrain1Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Send Training 1</button>
-    <button id="submitTrain2Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Send Training 2</button>
-    <button id="submitRq2Btn" class="exp-btn"><i class="fas fa-paper-plane"></i> Send Creation</button>
-  </div>
-
   <div id="loader">Loading... ⏳</div>
 
   <div id="app">
@@ -751,193 +499,7 @@
       const bvhList = document.getElementById('bvh-list');
       const iframePreview = document.getElementById('preview');
 
-      const expPanel = document.getElementById('experiment-panel');
-      let isDraggingExp = false, expStartX, expStartY, expStartLeft, expStartTop;
-
-      expPanel.addEventListener('pointerdown', (e) => {
-        if (e.target.closest('button') || e.target.tagName === 'INPUT') return;
-
-        isDraggingExp = true;
-        expPanel.setPointerCapture(e.pointerId);
-
-        const rect = expPanel.getBoundingClientRect();
-        expStartX = e.clientX;
-        expStartY = e.clientY;
-        expStartLeft = rect.left;
-        expStartTop = rect.top;
-
-        expPanel.style.transform = 'none';
-        expPanel.style.left = `${expStartLeft}px`;
-        expPanel.style.top = `${expStartTop}px`;
-        expPanel.style.right = 'auto';
-        expPanel.style.bottom = 'auto';
-      });
-
-      window.addEventListener('pointermove', (e) => {
-        if (!isDraggingExp) return;
-
-        let newLeft = expStartLeft + (e.clientX - expStartX);
-        let newTop = expStartTop + (e.clientY - expStartY);
-
-        newLeft = Math.max(0, Math.min(window.innerWidth - expPanel.offsetWidth, newLeft));
-        newTop = Math.max(0, Math.min(window.innerHeight - expPanel.offsetHeight, newTop));
-
-        expPanel.style.left = `${newLeft}px`;
-        expPanel.style.top = `${newTop}px`;
-      });
-
-      window.addEventListener('pointerup', () => {
-        if (isDraggingExp) {
-          isDraggingExp = false;
-        }
-      });
-
-      // --- LÓGICA DEL POPUP DE SIGUIENTE PASO ---
-      const nextStepOverlay = document.getElementById('next-step-modal-overlay');
-      const nextStepTitle = document.getElementById('next-step-title');
-      const nextStepDesc = document.getElementById('next-step-desc');
-      const nextStepLink = document.getElementById('next-step-link');
-      const nextStepClose = document.getElementById('next-step-close');
-
-      function mostrarSiguientePaso(titulo, descripcion, urlDestino) {
-        nextStepTitle.textContent = titulo;
-        nextStepDesc.textContent = descripcion;
-        nextStepLink.href = urlDestino;
-        nextStepOverlay.style.display = 'flex';
-      }
-
-      nextStepClose.addEventListener('click', () => {
-        nextStepOverlay.style.display = 'none';
-      });
-
-      // --- LÓGICA DE ENVÍO DIRECTO DESDE EL PANEL ---
-      const participantInput = document.getElementById('participant-input');
-      const modalOverlay = document.getElementById('custom-modal-overlay');
-      const modalInputTitle = document.getElementById('modal-input-title');
-      const modalBtnCancel = document.getElementById('modal-btn-cancel');
-      const modalBtnSubmit = document.getElementById('modal-btn-submit');
-
-      let pendingSubmit = null;
-
-      function ejecutarEnvioNetlify(nombreTarea, botonReferencia, codigo, nombre, titulo) {
-        const textoOriginal = botonReferencia.innerHTML;
-        botonReferencia.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-        botonReferencia.style.pointerEvents = 'none';
-
-        document.getElementById('rq2-nombre').value = nombre;
-        document.getElementById('rq2-titulo').value = titulo;
-        document.getElementById('rq2-tarea').value = nombreTarea;
-        document.getElementById('rq2-codigo').value = codigo;
-
-        const form = document.getElementById('form-rq2');
-        const formData = new FormData(form);
-
-        fetch("/", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams(formData).toString()
-        })
-          .then(response => {
-            if (!response.ok) throw new Error("Fallo en la red");
-            botonReferencia.innerHTML = '<i class="fas fa-check"></i> Sent';
-            botonReferencia.style.background = '#00ffcc';
-            botonReferencia.style.color = '#000';
-            botonReferencia.style.borderColor = '#00ffcc';
-
-            if (nombreTarea === "Training 1") {
-              mostrarSiguientePaso(
-                "¡Training 1 Completado!",
-                "Tu código se ha guardado correctamente. Ahora debes ver el vídeo de preparación para el Training 2.",
-                "https://drive.google.com/file/d/12NmmyZzvTvA9JM0ut3xk2datEnvwk-lY/view?usp=sharing"
-              );
-            }
-            else if (nombreTarea === "Training 2") {
-              mostrarSiguientePaso(
-                "¡Training 2 Completado!",
-                "¡Genial! Ya has dominado lo básico. Mira este breve vídeo para saber cómo hacer tu creación final.",
-                "https://drive.google.com/file/d/1xW5wQs7MuOMVLtA891Vo9n7XQ7JhN_Nq/view?usp=sharing"
-              );
-            }
-            else if (nombreTarea === "Creacion Final") {
-              mostrarSiguientePaso(
-                "¡Creación Final Enviada!",
-                "¡Increíble trabajo! Solo te queda un último paso.",
-                "https://forms.gle/k6skmQRNoXdrS1SR9"
-              );
-            }
-          })
-          .catch((error) => {
-            botonReferencia.innerHTML = textoOriginal;
-            botonReferencia.style.pointerEvents = 'auto';
-            const errorToast = document.getElementById('error-toast');
-            document.getElementById('error-text').innerText = "Error de conexión al enviar datos. Avisa al investigador.";
-            errorToast.classList.add('visible');
-            setTimeout(() => errorToast.classList.remove('visible'), 5000);
-          });
-      }
-
-      modalBtnCancel.addEventListener('click', () => {
-        modalOverlay.style.display = 'none';
-        pendingSubmit = null;
-      });
-
-      modalBtnSubmit.addEventListener('click', () => {
-        if (!pendingSubmit) return;
-        const titulo = modalInputTitle.value.trim();
-        if (titulo === "") {
-          modalInputTitle.style.borderColor = "red";
-          modalInputTitle.focus();
-          return;
-        }
-        modalInputTitle.style.borderColor = "#444";
-        modalOverlay.style.display = 'none';
-
-        ejecutarEnvioNetlify(
-          pendingSubmit.nombreTarea,
-          pendingSubmit.botonReferencia,
-          pendingSubmit.codigo,
-          pendingSubmit.nombre,
-          titulo
-        );
-        pendingSubmit = null;
-      });
-
-      function procesarEnvio(nombreTarea, botonReferencia) {
-        if (!window.editor) return;
-
-        const codigo = window.editor.getValue();
-        if (codigo.trim() === "") {
-          const errorToast = document.getElementById('error-toast');
-          document.getElementById('error-text').innerText = "El editor está vacío. Escribe tu coreografía antes de enviarla.";
-          errorToast.classList.add('visible');
-          setTimeout(() => errorToast.classList.remove('visible'), 4000);
-          return;
-        }
-
-        const nombre = participantInput.value.trim();
-        if (nombre === "") {
-          participantInput.style.borderColor = "red";
-          participantInput.focus();
-          return;
-        }
-        participantInput.style.borderColor = "#444";
-
-        if (nombreTarea === "Creacion Final") {
-          pendingSubmit = { nombreTarea, botonReferencia, codigo, nombre };
-          modalInputTitle.value = "";
-          modalInputTitle.style.borderColor = "#444";
-          modalOverlay.style.display = "flex";
-          modalInputTitle.focus();
-        } else {
-          ejecutarEnvioNetlify(nombreTarea, botonReferencia, codigo, nombre, "");
-        }
-      }
-
-      document.getElementById('submitTrain1Btn').addEventListener('click', function () { procesarEnvio("Training 1", this); });
-      document.getElementById('submitTrain2Btn').addEventListener('click', function () { procesarEnvio("Training 2", this); });
-      document.getElementById('submitRq2Btn').addEventListener('click', function () { procesarEnvio("Creacion Final", this); });
-
-      // --- ACTIVAR LA INTERFAZ ---
+      // --- ACTIVAR LA INTERFAZ (MENÚS DESPLEGABLES) ---
       toggleBtn.addEventListener('click', () => {
         drawer.classList.toggle('abierto');
         if (drawer.classList.contains('abierto')) {
@@ -954,6 +516,7 @@
         helpToggle.textContent = helpSidebar.classList.contains('abierto') ? 'X' : '?';
       });
 
+      // --- INSERCIÓN DESDE EL SIDEBAR DE AYUDA ---
       document.querySelectorAll('.help-item').forEach(item => {
         item.addEventListener('click', () => {
           if (!window.editor) return;
@@ -977,12 +540,11 @@
           } else {
             window.editor.replaceSelection(insertText);
           }
-
           window.editor.focus();
         });
       });
 
-      // --- CARGA DE DATOS ---
+      // --- CARGA DE DATOS (ANIMACIONES BVH) ---
       let animacionesDisponibles = [];
 
       try {
@@ -1020,7 +582,7 @@
 
       if (animacionesDisponibles.length === 0) {
         console.warn("Cargando animaciones de emergencia.");
-        animacionesDisponibles = ["turn", "silly_walk", "monster_walk", "serious_walk"];
+        animacionesDisponibles = ["surprise", "posing", "pendulum", "froging"];
       }
 
       // --- DIBUJAR LOS BOTONES EN LA BANDEJA ---

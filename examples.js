@@ -1,6 +1,8 @@
 export const examples = [
   {
-    name: "",
-    code: ``
+    name: "Default",
+    code: `[bvh("deep_breath")]
+>[dummy()]
+>[color("red", "blue")];`
   },
 ];
