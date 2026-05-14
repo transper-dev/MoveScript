@@ -4,6 +4,8 @@ const iframe = document.getElementById("preview");
 const runBtn = document.getElementById("run");
 const toggleBtn = document.getElementById("toggle");
 const overlay = document.getElementById("overlay");
+const bvhDrawer = document.getElementById("bvh-drawer");
+const helpSidebar = document.getElementById("help-sidebar")
 const bar = document.getElementById("bar");
 const resizeHandle = document.getElementById("resizeHandle");
 const randomBtn = document.getElementById("randomBtn");
@@ -240,6 +242,14 @@ window.addEventListener('message', (e) => {
     if (e.data.key === "enter") run();
     if (e.data.key === "s" && saveBtn) saveBtn.click();
     if (e.data.key === "p" && globalPauseBtn) globalPauseBtn.click();
+  } else if (e.data.type === 'vr_start') {
+    if (overlay) overlay.style.display = 'none';
+    if (bvhDrawer) bvhDrawer.style.display = 'none';
+    if (helpSidebar) helpSidebar.style.display = 'none';
+  } else if (e.data.type === 'vr_end') {
+    if (overlay) overlay.style.display = '';
+    if (bvhDrawer) bvhDrawer.style.display = '';
+    if (helpSidebar) helpSidebar.style.display = '';
   }
 });
 

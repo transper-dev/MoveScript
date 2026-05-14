@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { BVHLoader } from "three/addons/loaders/BVHLoader.js";
 import { VRButton } from "three/addons/webxr/VRButton.js";
+import { XRControllerModelFactory } from "three/addons/webxr/XRControllerModelFactory.js";
 
 // --- CONFIGURACIÓN DE ESCENA ---
 const canvas = document.getElementById("c");
@@ -10,6 +11,7 @@ canvas.addEventListener("pointerdown", () => canvas.focus());
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.xr.enabled = true;
+renderer.xr.setReferenceSpaceType('local-floor');
 document.body.appendChild(VRButton.createButton(renderer));
 
 const scene = new THREE.Scene();
@@ -24,18 +26,44 @@ vrCameraRig.scale.set(1, 1, 1);
 vrCameraRig.add(camera);
 scene.add(vrCameraRig);
 
+// Dejamos tu rayo láser sutil para ayudar a apuntar
+const laserGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -5)]);
+const laserMat = new THREE.LineBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.5 });
+const controllerModelFactory = new XRControllerModelFactory();
+
+// --- MANDO IZQUIERDO ---
+const con1 = renderer.xr.getController(0);
+//con1.add(new THREE.Line(laserGeo, laserMat));
+vrCameraRig.add(con1);
+
+const grip1 = renderer.xr.getControllerGrip(0);
+const model1 = controllerModelFactory.createControllerModel(grip1);
+grip1.add(model1);
+vrCameraRig.add(grip1);
+
+// --- MANDO DERECHO ---
+const con2 = renderer.xr.getController(1);
+//con2.add(new THREE.Line(laserGeo, laserMat));
+vrCameraRig.add(con2);
+
+const grip2 = renderer.xr.getControllerGrip(1);
+const model2 = controllerModelFactory.createControllerModel(grip2);
+grip2.add(model2);
+vrCameraRig.add(grip2);
+
 renderer.xr.addEventListener('sessionstart', () => {
   // Al entrar en VR: Nos hacemos gigantes para que el movimiento sea real
   vrCameraRig.scale.set(100, 100, 100);
-
-  // Y copiamos la posición X y Z exacta de la cámara del PC.
-  // Mantenemos la Y en 0 para que tus pies sigan en el suelo real de tu habitación.
   vrCameraRig.position.set(camera.position.x, 0, camera.position.z);
+
+  window.parent.postMessage({ type: 'vr_start' }, '*');
 });
 
 renderer.xr.addEventListener('sessionend', () => {
   vrCameraRig.scale.set(1, 1, 1);
   vrCameraRig.position.set(0, 0, 0);
+
+  window.parent.postMessage({ type: 'vr_end' }, '*');
 });
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -70,6 +98,14 @@ const SB = {
   params: { speed: 1.0, pause: false, showSkeleton: true, globalScale: 1.0, rotSpeed: 0.0, reverse: false, color: null, color2: null, trail: 0, delay: 0 },
 
   grid(size = 400, div = 10) { scene.add(new THREE.GridHelper(size, div)); return SB; },
+  floor(color = "#1a1a24", size = 2000) {
+    const geom = new THREE.PlaneGeometry(size, size);
+    const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.9, metalness: 0.1 });
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.rotation.x = -Math.PI / 2; // Lo tumbamos para que sea un suelo
+    scene.add(mesh);
+    return SB;
+  },
   cam(x = 0, y = 200, z = 450, lx = 0, ly = 120, lz = 0) { camera.position.set(x, y, z); controls.target.set(lx, ly, lz); return SB; },
   background(color) { scene.background = new THREE.Color(color); return SB; },
   bg(color) { return this.background(color); },
@@ -343,6 +379,7 @@ const SB = {
         scene.add(group);
 
         const helper = new THREE.SkeletonHelper(root);
+        helper.frustumCulled = false;
         helper.skeleton = result.skeleton;
 
         if (handle._isChained && !handle._isHead) {
@@ -422,7 +459,7 @@ const SB = {
 
                     if (handle._reqBones && length > 0.01) {
                       const mesh = new THREE.Mesh(baseCylGeom, dummyMat);
-
+                      mesh.frustumCulled = false;
                       const boneLenMulti = handle._boneLength ?? 1.0;
                       const longitudVisible = length * boneLenMulti;
                       let boneThickness = handle._boneWidth ?? (length * 0.25);
@@ -451,6 +488,7 @@ const SB = {
 
                 if (jointSize > 0) {
                   const jointMesh = new THREE.Mesh(baseSphereGeom, dummyMat);
+                  jointMesh.frustumCulled = false;
                   jointMesh.scale.setScalar(jointSize);
                   bone.add(jointMesh);
                 }
@@ -630,7 +668,7 @@ const SB = {
   }
 };
 
-window.clear = () => SB.clear(); window.grid = (a, b) => SB.grid(a, b);
+window.clear = () => SB.clear(); window.grid = (a, b) => SB.grid(a, b); window.floor = (color, size) => SB.floor(color, size);
 window.cam = (x, y, z, lx, ly, lz) => SB.cam(x, y, z, lx, ly, lz); window.bvh = (fileOrUrl) => SB.bvh(fileOrUrl);
 window.speed = (v) => SB.speed(v); window.pause = (v = true) => SB.pause(v);
 window.skeleton = (v = true) => SB.skeleton(v); window.scale = (v) => SB.scale(v);
@@ -648,6 +686,39 @@ function animate() {
   resize();
   controls.update();
   SB._tick();
+  const session = renderer.xr.getSession();
+  if (session && session.inputSources) {
+    for (const source of session.inputSources) {
+      if (source.gamepad && source.gamepad.axes.length >= 4) {
+        const axisX = source.gamepad.axes[2];
+        const axisY = source.gamepad.axes[3];
+
+        // JOYSTICK IZQUIERDO: MOVIMIENTO (Desplazamiento)
+        if (source.handedness === 'left') {
+          if (Math.abs(axisX) > 0.1 || Math.abs(axisY) > 0.1) {
+            const speed = 4.0;
+            const camDir = new THREE.Vector3();
+            camera.getWorldDirection(camDir);
+            camDir.y = 0;
+            camDir.normalize();
+            const camRight = new THREE.Vector3(-camDir.z, 0, camDir.x);
+
+            vrCameraRig.position.addScaledVector(camDir, -axisY * speed);
+            vrCameraRig.position.addScaledVector(camRight, axisX * speed);
+          }
+        }
+
+        // JOYSTICK DERECHO: CÁMARA (Rotación suave)
+        else if (source.handedness === 'right') {
+          if (Math.abs(axisX) > 0.1) {
+            const rotSpeed = 0.03; // Velocidad de giro. Súbela a 0.05 si gira muy lento
+            // Al girar en negativo sobre el eje Y, miramos a los lados
+            vrCameraRig.rotation.y -= axisX * rotSpeed;
+          }
+        }
+      }
+    }
+  }
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
