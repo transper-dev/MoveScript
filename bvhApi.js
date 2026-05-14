@@ -584,6 +584,17 @@ const SB = {
       for (let i = 0; i < mixers.length; i++) {
         const r = rigs[i]; const delayTime = r.opts?.delay ?? SB.params.delay;
         const isVisible = r.handle._useDummy ? r.root.visible : (r.helper && r.helper.visible);
+        if (isVisible) {
+          const worldPos = new THREE.Vector3();
+          r.root.getWorldPosition(worldPos); // Obtenemos la posición real en el espacio 3D
+
+          // Mandamos el mensaje al padre (main.js)
+          window.parent.postMessage({
+            type: 'osc-data',
+            address: '/movescript/hips',
+            data: [worldPos.x, worldPos.y, worldPos.z]
+          }, '*');
+        }
 
         if (r.handle._isChained && r.handle !== r.handle._chainHead && !isVisible && r.timeAlive === 0) continue;
 

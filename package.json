@@ -23,5 +23,8 @@
       "target": "nsis",
       "icon": "icons/icon.ico"
     }
+  },
+  "dependencies": {
+    "node-osc": "^11.4.0"
   }
 }

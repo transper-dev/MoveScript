@@ -420,6 +420,13 @@ window.editor.on('change', () => {
   colorUpdateTimer = setTimeout(updateColorWidgets, 200);
 });
 
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'osc-data') {
+    const { ipcRenderer } = require('electron');
+    ipcRenderer.send('osc-out', e.data.address, e.data.data);
+  }
+});
+
 function init() {
   iframe.srcdoc = buildPreviewHtml();
   const savedCode = localStorage.getItem('movescript_saved_code');
