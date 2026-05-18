@@ -585,15 +585,31 @@ const SB = {
         const r = rigs[i]; const delayTime = r.opts?.delay ?? SB.params.delay;
         const isVisible = r.handle._useDummy ? r.root.visible : (r.helper && r.helper.visible);
         if (isVisible) {
-          const worldPos = new THREE.Vector3();
-          r.root.getWorldPosition(worldPos); // Obtenemos la posición real en el espacio 3D
+          // Definimos los puntos que queremos seguir
+          const puntosInteres = {
+            "/movescript/center": "Hips",
+            "/movescript/head": "Head",
+            "/movescript/leftHand": "LeftHand",
+            "/movescript/rightHand": "RightHand",
+            "/movescript/leftFoot": "LeftFoot",
+            "/movescript/rightFoot": "RightFoot"
+          };
 
-          // Mandamos el mensaje al padre (main.js)
-          window.parent.postMessage({
-            type: 'osc-data',
-            address: '/movescript/hips',
-            data: [worldPos.x, worldPos.y, worldPos.z]
-          }, '*');
+          for (let address in puntosInteres) {
+            // Buscamos el hueso por su nombre en el esqueleto
+            const bone = r.helper.skeleton.getBoneByName(puntosInteres[address]);
+
+            if (bone) {
+              const worldPos = new THREE.Vector3();
+              bone.getWorldPosition(worldPos); // Obtenemos la posición real
+
+              window.parent.postMessage({
+                type: 'osc-data',
+                address: address,
+                data: [worldPos.x, worldPos.y, worldPos.z]
+              }, '*');
+            }
+          }
         }
 
         if (r.handle._isChained && r.handle !== r.handle._chainHead && !isVisible && r.timeAlive === 0) continue;
