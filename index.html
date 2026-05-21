@@ -651,12 +651,12 @@
 </head>
 
 <body>
-  <form name="estudio_rq2" method="POST" data-netlify="true" id="form-rq2" style="display: none;">
-    <input type="hidden" name="form-name" value="estudio_rq2" />
-    <input type="text" name="participante" id="rq2-nombre" />
-    <input type="text" name="titulo" id="rq2-titulo" />
-    <input type="text" name="tipo_tarea" id="rq2-tarea" />
-    <textarea name="codigo_enviado" id="rq2-codigo"></textarea>
+  <form name="estudio_rq1" method="POST" data-netlify="true" id="form-rq1" style="display: none;">
+    <input type="hidden" name="form-name" value="estudio_rq1" />
+    <input type="text" name="participante" id="rq1-nombre" />
+    <input type="text" name="titulo" id="rq1-titulo" />
+    <input type="text" name="tipo_tarea" id="rq1-tarea" />
+    <textarea name="codigo_enviado" id="rq1-codigo"></textarea>
   </form>
 
   <div id="custom-modal-overlay">
@@ -690,7 +690,7 @@
     <input type="text" id="participant-input" placeholder="Group ID" autocomplete="off" />
     <button id="submitTrain1Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Send Training 1</button>
     <button id="submitTrain2Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Send Training 2</button>
-    <button id="submitRq2Btn" class="exp-btn"><i class="fas fa-paper-plane"></i> Send Creation</button>
+    <button id="submitRq1Btn" class="exp-btn"><i class="fas fa-paper-plane"></i> Send Creation</button>
   </div>
 
   <div id="loader">Loading... ⏳</div>
@@ -716,10 +716,9 @@
     <div class="help-content">
       <div class="help-category">Creadores (Inicio de bloque)</div>
       <div class="help-item" data-insert='[bvh("dummy")]'><span class="help-cmd">[bvh("dummy")]</span><span
-          class="help-desc">Crea
-          un maniquí estándar</span></div>
+          class="help-desc">Crea un esqueleto en t-pose</span></div>
       <div class="help-category">Modificadores</div>
-      <div class="help-item" data-insert='.joints(1.5)'><span class="help-cmd">.joints(s)</span><span
+      <div class="help-item" data-insert='.joints(2)'><span class="help-cmd">.joints(s)</span><span
           class="help-desc">Tamaño de articulaciones</span></div>
       <div class="help-item" data-insert='.bones(2, 1)'><span class="help-cmd">.bones(w, [l])</span><span
           class="help-desc">Grosor y largura de los huesos</span></div>
@@ -822,12 +821,12 @@
         botonReferencia.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
         botonReferencia.style.pointerEvents = 'none';
 
-        document.getElementById('rq2-nombre').value = nombre;
-        document.getElementById('rq2-titulo').value = titulo;
-        document.getElementById('rq2-tarea').value = nombreTarea;
-        document.getElementById('rq2-codigo').value = codigo;
+        document.getElementById('rq1-nombre').value = nombre;
+        document.getElementById('rq1-titulo').value = titulo;
+        document.getElementById('rq1-tarea').value = nombreTarea;
+        document.getElementById('rq1-codigo').value = codigo;
 
-        const form = document.getElementById('form-rq2');
+        const form = document.getElementById('form-rq1');
         const formData = new FormData(form);
 
         fetch("/", {
@@ -933,7 +932,7 @@
 
       document.getElementById('submitTrain1Btn').addEventListener('click', function () { procesarEnvio("Training 1", this); });
       document.getElementById('submitTrain2Btn').addEventListener('click', function () { procesarEnvio("Training 2", this); });
-      document.getElementById('submitRq2Btn').addEventListener('click', function () { procesarEnvio("Creacion Final", this); });
+      document.getElementById('submitRq1Btn').addEventListener('click', function () { procesarEnvio("Creacion Final", this); });
 
       // --- ACTIVAR LA INTERFAZ ---
       toggleBtn.addEventListener('click', () => {
@@ -971,6 +970,15 @@
 
             if (iframePreview.contentWindow) {
               document.getElementById('run').click();
+            }
+            for (let i = 0; i < window.editor.lineCount(); i++) {
+              let textoLinea = window.editor.getLine(i);
+              let posicion = textoLinea.indexOf(insertText);
+              if (posicion !== -1) {
+                // Columna = Inicio del texto + (longitud total - 1 para ignorar el ']')
+                window.editor.setCursor({ line: i, ch: posicion + insertText.length - 1 });
+                break;
+              }
             }
           } else {
             window.editor.replaceSelection(insertText);
@@ -1022,6 +1030,7 @@
       }
 
       // --- DIBUJAR LOS BOTONES EN LA BANDEJA ---
+      animacionesDisponibles = animacionesDisponibles.filter(nombre => nombre !== 'dummy');
       animacionesDisponibles.forEach(nombre => {
         const btn = document.createElement('div');
         btn.className = 'bvh-item';
