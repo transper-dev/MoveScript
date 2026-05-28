@@ -291,6 +291,26 @@
       transform: scale(1.05);
     }
 
+    /* --- ESTADO SELECCIONADO PARA AÑADIR --- */
+    .bvh-item.selected-bvh {
+      background: rgba(0, 255, 204, 0.15);
+      border-color: #00ffcc;
+      transform: scale(1.05);
+    }
+
+    .bvh-item.selected-bvh span {
+      display: none;
+      /* Ocultamos el nombre de la animación */
+    }
+
+    .bvh-item.selected-bvh::after {
+      content: "➕ ADD";
+      color: #00ffcc;
+      font-weight: bold;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
     .bvh-item span {
       font-size: 14px;
       font-weight: bold;
@@ -714,22 +734,22 @@
   <div id="help-sidebar">
     <div id="help-toggle">?</div>
     <div class="help-content">
-      <div class="help-category">Creadores (Inicio de bloque)</div>
+      <div class="help-category">Creators (Block start)</div>
       <div class="help-item" data-insert='[bvh("dummy")]'><span class="help-cmd">[bvh("dummy")]</span><span
-          class="help-desc">Crea un esqueleto en t-pose</span></div>
-      <div class="help-category">Modificadores</div>
+          class="help-desc">Creates a T-pose skeleton</span></div>
+      <div class="help-category">Modifiers</div>
       <div class="help-item" data-insert='.joints(2)'><span class="help-cmd">.joints(s)</span><span
-          class="help-desc">Tamaño de articulaciones</span></div>
+          class="help-desc">Joint size</span></div>
       <div class="help-item" data-insert='.bones(2, 1)'><span class="help-cmd">.bones(w, [l])</span><span
-          class="help-desc">Grosor y largura de los huesos</span></div>
+          class="help-desc">Bone thickness and length</span></div>
       <div class="help-item" data-insert='.color("red", "blue")'><span class="help-cmd">.color(c1, [c2])</span><span
-          class="help-desc">Color o degradado</span></div>
+          class="help-desc">Color or gradient</span></div>
     </div>
   </div>
 
   <div id="bvh-drawer">
     <div id="drawer-toggle"><i class="fas fa-chevron-up"></i></div>
-    <div class="drawer-header"><span>Animaciones Disponibles</span></div>
+    <div class="drawer-header"><span>Movement Previews</span></div>
     <div class="drawer-carousel" id="bvh-list"></div>
   </div>
 
@@ -1031,27 +1051,57 @@
 
       // --- DIBUJAR LOS BOTONES EN LA BANDEJA ---
       animacionesDisponibles = animacionesDisponibles.filter(nombre => nombre !== 'dummy');
+
+      let botonActivo = null;
+
       animacionesDisponibles.forEach(nombre => {
         const btn = document.createElement('div');
         btn.className = 'bvh-item';
         btn.innerHTML = `<span>${nombre}</span>`;
 
         btn.addEventListener('click', () => {
-          if (!window.editor) return;
-          let code = window.editor.getValue();
 
-          const regexBusqueda = /\[[^\]]+\]/;
+          if (botonActivo === btn) {
+            if (!window.editor) return;
+            let code = window.editor.getValue();
+            const insertText = `[bvh("${nombre}")]`;
 
-          if (regexBusqueda.test(code)) {
-            code = code.replace(regexBusqueda, `[bvh("${nombre}")]\n>$&`);
-          } else {
-            let salto = code.trim() !== "" ? "\n\n" : "";
-            code += `${salto}[bvh("${nombre}")]`;
+            let salto = code.trim() !== "" ? "\n>" : "";
+            code = code.trim() + salto + insertText;
+
+            window.editor.setValue(code);
+
+            for (let i = 0; i < window.editor.lineCount(); i++) {
+              let textoLinea = window.editor.getLine(i);
+              let posicion = textoLinea.lastIndexOf(insertText);
+              if (posicion !== -1) {
+                window.editor.setCursor({ line: i, ch: posicion + insertText.length - 1 });
+                break;
+              }
+            }
+            window.editor.focus();
+
+            if (iframePreview.contentWindow) {
+              document.getElementById('run').click();
+            }
+
+            btn.classList.remove('selected-bvh');
+            botonActivo = null;
           }
+          else {
+            if (botonActivo) {
+              botonActivo.classList.remove('selected-bvh');
+            }
 
-          window.editor.setValue(code);
-          if (iframePreview.contentWindow) {
-            document.getElementById('run').click();
+            btn.classList.add('selected-bvh');
+            botonActivo = btn;
+
+            if (iframePreview.contentWindow) {
+              if (window.editor) window.editor.getAllMarks().forEach(marker => marker.clear());
+
+              const previewCode = `clear(); grid(800, 20); cam(0, 150, 350, 0, 100, 0); bg("#0a0a0a"); CHAIN($B()._setIdx(-1).bvh("${nombre}"));`;
+              iframePreview.contentWindow.postMessage({ type: 'execute', code: previewCode }, '*');
+            }
           }
         });
 

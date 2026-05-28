@@ -308,14 +308,29 @@ function runCode(code) {
   isGlobalPaused = false;
   if (globalPauseBtn) globalPauseBtn.textContent = 'Pause (Ctrl+P)';
 
-  let transpiled = code.replace(/(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g, (match) => {
-    let parts = match.split('>');
-    let cleanedParts = parts.map(p => {
+  // Extraeccion de todos los bloques independientes a un Array
+  let blocks = [];
+  let regex = /(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g;
+  let match;
+  while ((match = regex.exec(code)) !== null) {
+    blocks.push(match[0]);
+  }
+
+  // Transpilacion de cada bloque
+  let transpiledBlocks = blocks.map((block, index) => {
+    let parts = block.split('>');
+    let cleanedParts = parts.map((p, pIdx) => {
       let inside = p.trim().replace(/^\[/, '').replace(/\]$/, '').trim();
-      return inside === '' ? `$B()` : `$B().${inside}`;
+      let base = inside === '' ? `$B()` : `$B().${inside}`;
+      // Inyectamos el índice real al nodo cabecera de la cadena
+      if (pIdx === 0) {
+        base += `._setIdx(${index})`;
+      }
+      return base;
     });
     return `CHAIN(${cleanedParts.join(', ')})`;
   });
+  let transpiled = transpiledBlocks.join('\n');
 
   const configuracionOculta = `
     clear();
