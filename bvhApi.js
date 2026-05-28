@@ -121,7 +121,7 @@ const SB = {
     const handle = {
       _rawFile: fileOrUrl, _url: url, _x: 0, _y: 0, _z: 0, _rotX: 0, _rotY: 0, _rotZ: 0,
       _scale: null, _showSkeleton: null, _speed: null, _reverse: null,
-      _color: null, _color2: null, _trail: null, _delay: null,
+      _color: null, _color2: null, _trail: null, _delay: null, _oscBones: null,
 
       _useDummy: false, _reqBones: false, _reqJoints: false, _enforceProportions: false,
       _boneWidth: null, _boneLength: null, _jointSize: null,
@@ -155,6 +155,7 @@ const SB = {
       reverse(v = true) { return this._propagate({ _reverse: v }); },
       color(c1, c2) { return this._propagate({ _color: c1, _color2: c2 }); },
       trail(length) { return this._propagate({ _trail: length }); },
+      osc(...bones) { return this._propagate({ _oscBones: bones }); },
 
       dummy(v = true) {
         const estado = !!v;
@@ -195,6 +196,7 @@ const SB = {
         nextHandle._trail = this._trail;
         nextHandle._showSkeleton = this._showSkeleton;
         nextHandle._reverse = this._reverse;
+        nextHandle._oscBones = this._oscBones;
 
         nextHandle._useDummy = this._useDummy;
         nextHandle._reqBones = this._reqBones;
@@ -584,32 +586,35 @@ const SB = {
       for (let i = 0; i < mixers.length; i++) {
         const r = rigs[i]; const delayTime = r.opts?.delay ?? SB.params.delay;
         const isVisible = r.handle._useDummy ? r.root.visible : (r.helper && r.helper.visible);
-        if (isVisible) {
-          // Definimos los puntos que queremos seguir
-          const puntosInteres = {
-            "/movescript/center": "Hips",
-            "/movescript/head": "Head",
-            "/movescript/leftHand": "LeftHand",
-            "/movescript/rightHand": "RightHand",
-            "/movescript/leftFoot": "LeftFoot",
-            "/movescript/rightFoot": "RightFoot"
+        if (isVisible && r.handle._oscBones && r.handle._oscBones.length > 0) {
+          // Diccionario para traducir lo que escribe el usuario al nombre técnico del hueso 3D
+          const boneMap = {
+            "center": "Hips", "hips": "Hips", "pelvis": "Hips",
+            "head": "Head", "cabeza": "Head",
+            "lefthand": "LeftHand", "manoizquierda": "LeftHand",
+            "righthand": "RightHand", "manoderecha": "RightHand",
+            "leftfoot": "LeftFoot", "pieizquierdo": "LeftFoot",
+            "rightfoot": "RightFoot", "piederecho": "RightFoot"
           };
 
-          for (let address in puntosInteres) {
-            // Buscamos el hueso por su nombre en el esqueleto
-            const bone = r.helper.skeleton.getBoneByName(puntosInteres[address]);
+          r.handle._oscBones.forEach(reqBone => {
+            // Normalizamos el texto (minúsculas) para que no importe si escriben "leftHand" o "lefthand"
+            const normalizedReq = reqBone.toLowerCase();
+            const actualBoneName = boneMap[normalizedReq] || reqBone; // Si no está en el mapa, intenta buscar el nombre crudo
 
+            const bone = r.helper.skeleton.getBoneByName(actualBoneName);
             if (bone) {
               const worldPos = new THREE.Vector3();
-              bone.getWorldPosition(worldPos); // Obtenemos la posición real
+              bone.getWorldPosition(worldPos);
 
+              // Enviamos los datos con la ruta /movescript/nombre_del_hueso
               window.parent.postMessage({
                 type: 'osc-data',
-                address: address,
+                address: `/movescript/${reqBone}`,
                 data: [worldPos.x, worldPos.y, worldPos.z]
               }, '*');
             }
-          }
+          });
         }
 
         if (r.handle._isChained && r.handle !== r.handle._chainHead && !isVisible && r.timeAlive === 0) continue;
@@ -815,6 +820,7 @@ class RigNode {
   reverse(v = true) { this.props.reverse = v; return this; }
   skeleton(v = true) { this.props.skeleton = v; return this; }
   trail(l) { this.props.trail = l; return this; }
+  osc(...bones) { this.props.oscBones = bones; return this; }
 }
 
 window.$B = () => new RigNode();
@@ -893,4 +899,5 @@ function applyPropsToHandle(handle, props) {
   if (props.reverse !== undefined) handle.reverse(props.reverse);
   if (props.skeleton !== undefined) handle.skeleton(props.skeleton);
   if (props.trail !== undefined) handle.trail(props.trail);
+  if (props.oscBones !== undefined) handle.osc(...props.oscBones);
 }
