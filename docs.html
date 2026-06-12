@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MoveScript Docs</title>
+    <link rel="icon" type="image/png" href="./icons/icon.png">
+    <style>
+        :root {
+            --bg-color: #111111;
+            --panel-bg: #1a1a1a;
+            --text-color: #eeeeee;
+            --accent-color: #00ffcc;
+            --code-bg: #252525;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Barra Lateral Estilo Hydra */
+        .sidebar {
+            width: 250px;
+            background-color: var(--panel-bg);
+            border-right: 1px solid #333;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #aaa;
+            text-decoration: none;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+
+        .sidebar a:hover {
+            color: var(--accent-color);
+        }
+
+        /* Contenedor de Documentación */
+        .content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .doc-section {
+            margin-bottom: 60px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 40px;
+        }
+
+        .function-title {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            margin-top: 0;
+        }
+
+        /* El bloque visual (Código + GIF) */
+        .doc-card {
+            background-color: var(--panel-bg);
+            border-radius: 6px;
+            border: 1px solid #333;
+            overflow: hidden;
+            margin-top: 20px;
+            max-width: 800px;
+        }
+
+        .code-block {
+            background-color: var(--code-bg);
+            padding: 15px;
+            margin: 0;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #333;
+            color: #fff;
+        }
+
+        .gif-preview {
+            display: block;
+            width: 100%;
+            height: auto;
+            background-color: #050505;
+        }
+
+        .description {
+            padding: 15px;
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <h2>MoveScript</h2>
+        <a href="#bvh">bvh()</a>
+        <a href="#dummy">dummy()</a>
+        <a href="#joints">joints()</a>
+        <a href="#bones">bones()</a>
+        <a href="#color">color()</a>
+        <a href="#trail">trail()</a>
+    </nav>
+
+    <main class="content">
+
+        <section id="bvh" class="doc-section">
+            <h3 class="function-title">bvh( nombre )</h3>
+            <p>Carga e inicializa una animación pregrabada para aplicarla al esqueleto.</p>
+
+            <div class="doc-card">
+                <pre class="code-block"><code>[bvh("monster_walk")]</code></pre>
+                <img class="gif-preview" src="assets/gifs/bvh-example.gif" alt="Ejemplo de bvh">
+                <div class="description">
+                    <strong>Parámetros:</strong> <code>nombre</code> (cadena de texto con el nombre del archivo de
+                    animación, sin la extensión .bvh).
+                </div>
+            </div>
+        </section>
+
+        <section id="dummy" class="doc-section">
+            <h3 class="function-title">bvh( "dummy" )</h3>
+            <p>Genera un esqueleto estático en pose T (T-pose). Útil para visualizar modificaciones de diseño sin el
+                movimiento de la animación.</p>
+
+            <div class="doc-card">
+                <pre class="code-block"><code>[bvh("dummy")]</code></pre>
+                <img class="gif-preview" src="assets/gifs/dummy-example.gif" alt="Ejemplo de dummy">
+                <div class="description">
+                    <strong>Parámetros:</strong> No requiere parámetros adicionales, funciona pasando "dummy" a la
+                    función principal.
+                </div>
+            </div>
+        </section>
+
+        <section id="joints" class="doc-section">
+            <h3 class="function-title">.joints( tamaño )</h3>
+            <p>Modifica el tamaño de las esferas que representan las articulaciones del esqueleto.</p>
+
+            <div class="doc-card">
+                <pre class="code-block"><code>[bvh("turn").joints(2)]</code></pre>
+                <img class="gif-preview" src="assets/gifs/joints-example.gif" alt="Ejemplo de joints">
+                <div class="description">
+                    <strong>Parámetros:</strong> <code>tamaño</code> (valor numérico que define la escala de la
+                    articulación).
+                </div>
+            </div>
+        </section>
+
+        <section id="bones" class="doc-section">
+            <h3 class="function-title">.bones( grosor, [longitud] )</h3>
+            <p>Ajusta el grosor y, de forma opcional, la longitud de los huesos que conectan las articulaciones.</p>
+
+            <div class="doc-card">
+                <pre class="code-block"><code>[bvh("silly_walk").bones(2, 1)]</code></pre>
+                <img class="gif-preview" src="assets/gifs/bones-example.gif" alt="Ejemplo de bones">
+                <div class="description">
+                    <strong>Parámetros:</strong> <code>grosor</code> (ancho del hueso), <code>longitud</code> (parámetro
+                    opcional para alterar la distancia entre conexiones).
+                </div>
+            </div>
+        </section>
+
+        <section id="color" class="doc-section">
+            <h3 class="function-title">.color( color1, [color2] )</h3>
+            <p>Aplica un color sólido al esqueleto, o genera un gradiente si se especifican dos colores.</p>
+
+            <div class="doc-card">
+                <pre class="code-block"><code>[bvh("flapping_wings").color("red", "blue")]</code></pre>
+                <img class="gif-preview" src="assets/gifs/color-example.gif" alt="Ejemplo de color">
+                <div class="description">
+                    <strong>Parámetros:</strong> <code>color1</code> (color principal en formato texto o hex),
+                    <code>color2</code> (color secundario opcional para crear el gradiente).
+                </div>
+            </div>
+        </section>
+
+        <section id="trail" class="doc-section">
+            <h3 class="function-title">.trail( fotogramas )</h3>
+            <p>Crea una estela visual clonando los fotogramas anteriores para mostrar la trayectoria del movimiento.</p>
+
+            <div class="doc-card">
+                <pre class="code-block"><code>[bvh("serious_walk").trail(10)]</code></pre>
+                <img class="gif-preview" src="assets/gifs/trail-example.gif" alt="Ejemplo de trail">
+                <div class="description">
+                    <strong>Parámetros:</strong> <code>fotogramas</code> (número entero que indica cuántos pasos previos
+                    forman la estela).
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+
+</html>
