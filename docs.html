@@ -24,7 +24,6 @@
             overflow: hidden;
         }
 
-        /* Barra Lateral Estilo Hydra */
         .sidebar {
             width: 250px;
             background-color: var(--panel-bg);
@@ -51,7 +50,6 @@
             color: var(--accent-color);
         }
 
-        /* Contenedor de Documentación */
         .content {
             flex: 1;
             padding: 40px;
@@ -71,7 +69,6 @@
             margin-top: 0;
         }
 
-        /* El bloque visual (Código + GIF) */
         .doc-card {
             background-color: var(--panel-bg);
             border-radius: 6px;
@@ -103,6 +100,42 @@
             font-size: 0.9rem;
             line-height: 1.4;
         }
+
+        .anim-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .anim-card {
+            background-color: var(--panel-bg);
+            border: 1px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .anim-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+        }
+
+        .anim-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background-color: #050505;
+        }
+
+        .anim-card .anim-name {
+            padding: 10px;
+            font-weight: bold;
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            border-top: 1px solid #333;
+        }
     </style>
 </head>
 
@@ -116,6 +149,8 @@
         <a href="#bones">bones()</a>
         <a href="#color">color()</a>
         <a href="#trail">trail()</a>
+        <a href="#catalogo">Catálogo Movimientos</a>
+
     </nav>
 
     <main class="content">
@@ -201,6 +236,51 @@
                 <div class="description">
                     <strong>Parámetros:</strong> <code>fotogramas</code> (número entero que indica cuántos pasos previos
                     forman la estela).
+                </div>
+            </div>
+        </section>
+
+        <section id="catalogo" class="doc-section">
+            <h3 class="function-title">Catálogo de Movimientos</h3>
+            <p>Estos son todos los archivos de captura de movimiento disponibles en el toolkit. Solo tienes que escribir
+                su nombre dentro de la función <code>bvh("nombre")</code>.</p>
+
+            <div class="anim-grid">
+                <div class="anim-card">
+                    <img src="assets/gifs/deep_breath.gif" alt="Deep Breath">
+                    <div class="anim-name">[bvh("deep_breath")]</div>
+                </div>
+                <div class="anim-card">
+                    <img src="assets/gifs/flapping_wings.gif" alt="Flapping Wings">
+                    <div class="anim-name">[bvh("flapping_wings")]</div>
+                </div>
+                <div class="anim-card">
+                    <img src="assets/gifs/froging.gif" alt="Froging">
+                    <div class="anim-name">[bvh("froging")]</div>
+                </div>
+                <div class="anim-card">
+                    <img src="assets/gifs/headbutt.gif" alt="Headbutt">
+                    <div class="anim-name">[bvh("headbutt")]</div>
+                </div>
+                <div class="anim-card">
+                    <img src="assets/gifs/little_dance.gif" alt="Little Dance">
+                    <div class="anim-name">[bvh("little_dance")]</div>
+                </div>
+                <div class="anim-card">
+                    <img src="assets/gifs/open_arms_spin.gif" alt="Open Arms Spin">
+                    <div class="anim-name">[bvh("open_arms_spin")]</div>
+                </div>
+                <div class="anim-card">
+                    <img src="assets/gifs/pendulum.gif" alt="Pendulum">
+                    <div class="anim-name">[bvh("pendulum")]</div>
+                </div>
+                <div class="anim-card">
+                    <img src="assets/gifs/posing.gif" alt="Posing">
+                    <div class="anim-name">[bvh("posing")]</div>
+                </div>
+                <div class="anim-card">
+                    <img src="assets/gifs/surprise.gif" alt="Surprise">
+                    <div class="anim-name">[bvh("surprise")]</div>
                 </div>
             </div>
         </section>
