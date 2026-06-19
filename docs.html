@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -149,101 +149,99 @@
         <a href="#bones">bones()</a>
         <a href="#color">color()</a>
         <a href="#trail">trail()</a>
-        <a href="#catalogo">Catálogo Movimientos</a>
-
+        <a href="#catalogo">Movement Catalog</a>
     </nav>
 
     <main class="content">
 
         <section id="bvh" class="doc-section">
-            <h3 class="function-title">bvh( nombre )</h3>
-            <p>Carga e inicializa una animación pregrabada para aplicarla al esqueleto.</p>
+            <h3 class="function-title">bvh( name )</h3>
+            <p>Loads and initializes a pre-recorded animation to apply it to the skeleton.</p>
 
             <div class="doc-card">
                 <pre class="code-block"><code>[bvh("surprise")]</code></pre>
-                <img class="gif-preview" src="assets/gifs/bvh-example.gif" alt="Ejemplo de bvh">
+                <img class="gif-preview" src="assets/gifs/bvh-example.gif" alt="bvh example">
                 <div class="description">
-                    <strong>Parámetros:</strong> <code>nombre</code> (cadena de texto con el nombre del archivo de
-                    animación, sin la extensión .bvh).
+                    <strong>Parameters:</strong> <code>name</code> (string with the name of the animation file, without
+                    the .bvh extension).
                 </div>
             </div>
         </section>
 
         <section id="dummy" class="doc-section">
             <h3 class="function-title">bvh( "dummy" )</h3>
-            <p>Genera un esqueleto estático en pose T (T-pose). Útil para visualizar modificaciones de diseño sin el
-                movimiento de la animación.</p>
+            <p>Generates a static skeleton in a T-pose. Useful for visualizing design modifications without the
+                distraction of animation movement.</p>
 
             <div class="doc-card">
                 <pre class="code-block"><code>[bvh("dummy")]</code></pre>
-                <img class="gif-preview" src="assets/gifs/dummy-example.gif" alt="Ejemplo de dummy">
+                <img class="gif-preview" src="assets/gifs/dummy-example.gif" alt="dummy example">
                 <div class="description">
-                    <strong>Parámetros:</strong> No requiere parámetros adicionales, funciona pasando "dummy" a la
-                    función principal.
+                    <strong>Parameters:</strong> No additional parameters required, it works by passing "dummy" to the
+                    main function.
                 </div>
             </div>
         </section>
 
         <section id="joints" class="doc-section">
-            <h3 class="function-title">.joints( tamaño )</h3>
-            <p>Modifica el tamaño de las esferas que representan las articulaciones del esqueleto.</p>
+            <h3 class="function-title">.joints( size )</h3>
+            <p>Modifies the size of the spheres that represent the skeleton's joints.</p>
 
             <div class="doc-card">
                 <pre class="code-block"><code>[bvh("surprise").joints(2)]</code></pre>
-                <img class="gif-preview" src="assets/gifs/joints-example.gif" alt="Ejemplo de joints">
+                <img class="gif-preview" src="assets/gifs/joints-example.gif" alt="joints example">
                 <div class="description">
-                    <strong>Parámetros:</strong> <code>tamaño</code> (valor numérico que define la escala de la
-                    articulación).
+                    <strong>Parameters:</strong> <code>size</code> (numeric value defining the scale of the joint).
                 </div>
             </div>
         </section>
 
         <section id="bones" class="doc-section">
-            <h3 class="function-title">.bones( grosor, [longitud] )</h3>
-            <p>Ajusta el grosor y, de forma opcional, la longitud de los huesos que conectan las articulaciones.</p>
+            <h3 class="function-title">.bones( thickness, [length] )</h3>
+            <p>Adjusts the thickness and, optionally, the length of the bones connecting the joints.</p>
 
             <div class="doc-card">
                 <pre class="code-block"><code>[bvh("surprise").bones(2, 1)]</code></pre>
-                <img class="gif-preview" src="assets/gifs/bones-example.gif" alt="Ejemplo de bones">
+                <img class="gif-preview" src="assets/gifs/bones-example.gif" alt="bones example">
                 <div class="description">
-                    <strong>Parámetros:</strong> <code>grosor</code> (ancho del hueso), <code>longitud</code> (parámetro
-                    opcional para alterar la distancia entre conexiones).
+                    <strong>Parameters:</strong> <code>thickness</code> (bone width), <code>length</code> (optional
+                    parameter to alter the distance between connections).
                 </div>
             </div>
         </section>
 
         <section id="color" class="doc-section">
             <h3 class="function-title">.color( color1, [color2] )</h3>
-            <p>Aplica un color sólido al esqueleto, o genera un gradiente si se especifican dos colores.</p>
+            <p>Applies a solid color to the skeleton, or generates a gradient if two colors are specified.</p>
 
             <div class="doc-card">
                 <pre class="code-block"><code>[bvh("surprise").color("red", "blue")]</code></pre>
-                <img class="gif-preview" src="assets/gifs/color-example.gif" alt="Ejemplo de color">
+                <img class="gif-preview" src="assets/gifs/color-example.gif" alt="color example">
                 <div class="description">
-                    <strong>Parámetros:</strong> <code>color1</code> (color principal en formato texto o hex),
-                    <code>color2</code> (color secundario opcional para crear el gradiente).
+                    <strong>Parameters:</strong> <code>color1</code> (main color in text or hex format),
+                    <code>color2</code> (optional secondary color to create the gradient).
                 </div>
             </div>
         </section>
 
         <section id="trail" class="doc-section">
-            <h3 class="function-title">.trail( fotogramas )</h3>
-            <p>Crea una estela visual clonando los fotogramas anteriores para mostrar la trayectoria del movimiento.</p>
+            <h3 class="function-title">.trail( frames )</h3>
+            <p>Creates a visual trail by cloning previous frames to show the movement trajectory.</p>
 
             <div class="doc-card">
                 <pre class="code-block"><code>[bvh("surprise").trail(20)]</code></pre>
-                <img class="gif-preview" src="assets/gifs/trail-example.gif" alt="Ejemplo de trail">
+                <img class="gif-preview" src="assets/gifs/trail-example.gif" alt="trail example">
                 <div class="description">
-                    <strong>Parámetros:</strong> <code>fotogramas</code> (número entero que indica cuántos pasos previos
-                    forman la estela).
+                    <strong>Parameters:</strong> <code>frames</code> (integer indicating how many previous steps form
+                    the trail).
                 </div>
             </div>
         </section>
 
         <section id="catalogo" class="doc-section">
-            <h3 class="function-title">Catálogo de Movimientos</h3>
-            <p>Estos son todos los archivos de captura de movimiento disponibles en el toolkit. Solo tienes que escribir
-                su nombre dentro de la función <code>bvh("nombre")</code>.</p>
+            <h3 class="function-title">Movement Catalog</h3>
+            <p>These are all the motion capture files available in the toolkit. You just need to write their name inside
+                the <code>bvh("name")</code> function.</p>
 
             <div class="anim-grid">
                 <div class="anim-card">
@@ -284,7 +282,6 @@
                 </div>
             </div>
         </section>
-
     </main>
 
 </body>
