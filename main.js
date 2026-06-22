@@ -273,6 +273,22 @@ function run() {
   if (errorToast) errorToast.classList.remove('visible');
 
   const code = window.editor.getValue();
+
+  const cadenaRotaRegex = /\]\s*\[/g;
+
+  if (cadenaRotaRegex.test(code)) {
+    if (errorToast && errorText) {
+      errorText.innerText = "Los movimientos deben concatenarse usando el símbolo '>'";
+      errorToast.classList.add('visible');
+
+      clearTimeout(errorTimeout);
+      errorTimeout = setTimeout(() => {
+        errorToast.classList.remove('visible');
+      }, 4000);
+    }
+    return; // Cortamos la ejecución aquí. El código malo no llega a correr.
+  }
+
   if (!engineReady) { pendingCode = code; } else { runCode(code); }
 
   const cursor = window.editor.getCursor();
@@ -300,6 +316,7 @@ function run() {
 }
 
 function runCode(code) {
+  code = code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*/g, '');
   Object.values(activeChainMarks).forEach(marker => {
     if (marker && marker.clear) marker.clear();
   });

@@ -427,7 +427,6 @@
       font-family: sans-serif;
     }
 
-    /* --- SISTEMA DE ERRORES VISUALES (TOAST) --- */
     #error-toast {
       position: absolute;
       bottom: 20px;
@@ -558,7 +557,7 @@
             const regexBusqueda = /\[[^\]]+\]/;
 
             if (regexBusqueda.test(code)) {
-              code = code.replace(regexBusqueda, `${insertText}\n>$&`);
+              code = code.replace(regexBusqueda, `${insertText}>\n$&`);
             } else {
               let salto = code.trim() !== "" ? "\n\n" : "";
               code += `${salto}${insertText}`;
@@ -625,7 +624,6 @@
         animacionesDisponibles = ["surprise", "posing", "pendulum", "froging"];
       }
 
-      // --- DIBUJAR LOS BOTONES EN LA BANDEJA ---
       animacionesDisponibles = animacionesDisponibles.filter(nombre => nombre !== 'dummy');
 
       let botonActivo = null;
@@ -642,7 +640,7 @@
             let code = window.editor.getValue();
             const insertText = `[bvh("${nombre}")]`;
 
-            let salto = code.trim() !== "" ? "\n>" : "";
+            let salto = code.trim() !== "" ? ">\n" : "";
             code = code.trim() + salto + insertText;
 
             window.editor.setValue(code);
