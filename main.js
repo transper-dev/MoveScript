@@ -311,6 +311,9 @@ function runCode(code) {
 
   const codigoFinal = configuracionOculta + "\n" + transpiled;
   iframe.contentWindow.postMessage({ type: 'execute', code: codigoFinal }, '*');
+  if (window.socket) {
+    window.socket.emit('update_code', { code: codigoFinal });
+  }
 }
 
 runBtn.addEventListener("click", run);

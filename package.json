@@ -13,8 +13,8 @@
   "author": "Urki Aristu",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^29.0.0",
-    "electron-builder": "^24.13.3"
+    "electron": "^42.4.1",
+    "electron-builder": "^26.15.3"
   },
   "build": {
     "appId": "com.movescript.app",
@@ -23,5 +23,9 @@
       "target": "nsis",
       "icon": "icons/icon.ico"
     }
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
   }
 }
