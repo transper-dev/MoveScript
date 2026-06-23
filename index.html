@@ -427,6 +427,31 @@
       font-family: sans-serif;
     }
 
+    #hover-preview {
+      position: fixed;
+      width: 160px;
+      /* Mismo ancho que los botones de tu carrusel */
+      height: 160px;
+      object-fit: cover;
+      background-color: #050505;
+      border: 2px solid #00ffcc;
+      border-radius: 8px;
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+      /* CRÍTICO: Evita parpadeos si el ratón lo toca */
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      transform: translateY(10px);
+      z-index: 9999;
+    }
+
+    #hover-preview.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
     #error-toast {
       position: absolute;
       bottom: 20px;
@@ -504,6 +529,8 @@
     <div class="drawer-carousel" id="bvh-list"></div>
   </div>
 
+  <img id="hover-preview" src="" alt="Preview en vivo">
+
   <div id="error-toast">
     <strong>⚠️ Error de Sintaxis</strong>
     <span id="error-text"></span>
@@ -529,8 +556,9 @@
       const toggleIcon = toggleBtn.querySelector('i');
       const bvhList = document.getElementById('bvh-list');
       const iframePreview = document.getElementById('preview');
+      const hoverPreview = document.getElementById('hover-preview');
 
-      // --- ACTIVAR LA INTERFAZ (MENÚS DESPLEGABLES) ---
+      // --- MENÚS DESPLEGABLES ---
       toggleBtn.addEventListener('click', () => {
         drawer.classList.toggle('abierto');
         if (drawer.classList.contains('abierto')) {
@@ -677,6 +705,21 @@
               iframePreview.contentWindow.postMessage({ type: 'execute', code: previewCode }, '*');
             }
           }
+        });
+
+        btn.addEventListener('mouseenter', () => {
+          hoverPreview.src = `./assets/gifs/${nombre}.gif`;
+
+          const rect = btn.getBoundingClientRect();
+
+          hoverPreview.style.left = `${rect.left}px`;
+          hoverPreview.style.top = `${rect.top - 175}px`; // 160px de alto + 15px de margen visual
+
+          hoverPreview.classList.add('visible');
+        });
+
+        btn.addEventListener('mouseleave', () => {
+          hoverPreview.classList.remove('visible');
         });
 
         bvhList.appendChild(btn);
