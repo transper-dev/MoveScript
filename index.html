@@ -264,6 +264,7 @@
       display: flex;
       gap: 15px;
       padding: 10px 20px 10px 20px;
+      margin-left: 30px;
       overflow-x: auto;
       scrollbar-width: thin;
       scrollbar-color: #555 transparent;
@@ -427,29 +428,36 @@
       font-family: sans-serif;
     }
 
-    #hover-preview {
+    #hover-preview-container {
       position: fixed;
-      width: 160px;
-      /* Mismo ancho que los botones de tu carrusel */
-      height: 160px;
+      width: 250px;
+      height: 250px;
       object-fit: cover;
       background-color: #050505;
       border: 2px solid #00ffcc;
       border-radius: 8px;
       box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.8);
       pointer-events: none;
-      /* CRÍTICO: Evita parpadeos si el ratón lo toca */
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.2s ease, transform 0.2s ease;
       transform: translateY(10px);
       z-index: 9999;
+      overflow: hidden;
     }
 
-    #hover-preview.visible {
+    #hover-preview-container.visible {
       opacity: 1;
       visibility: visible;
       transform: translateY(0);
+    }
+
+    #hover-preview-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.3);
+      transform-origin: 30% bottom;
     }
 
     #error-toast {
@@ -529,7 +537,9 @@
     <div class="drawer-carousel" id="bvh-list"></div>
   </div>
 
-  <img id="hover-preview" src="" alt="Preview en vivo">
+  <div id="hover-preview-container">
+    <img id="hover-preview-image" src="" alt="Preview en vivo">
+  </div>
 
   <div id="error-toast">
     <strong>⚠️ Error de Sintaxis</strong>
@@ -556,7 +566,8 @@
       const toggleIcon = toggleBtn.querySelector('i');
       const bvhList = document.getElementById('bvh-list');
       const iframePreview = document.getElementById('preview');
-      const hoverPreview = document.getElementById('hover-preview');
+      const hoverPreviewContainer = document.getElementById('hover-preview-container');
+      const hoverPreviewImage = document.getElementById('hover-preview-image');
 
       // --- MENÚS DESPLEGABLES ---
       toggleBtn.addEventListener('click', () => {
@@ -708,18 +719,18 @@
         });
 
         btn.addEventListener('mouseenter', () => {
-          hoverPreview.src = `./assets/gifs/${nombre}.gif`;
+          hoverPreviewImage.src = `./assets/gifs/${nombre}.gif`;
 
           const rect = btn.getBoundingClientRect();
 
-          hoverPreview.style.left = `${rect.left}px`;
-          hoverPreview.style.top = `${rect.top - 175}px`; // 160px de alto + 15px de margen visual
+          hoverPreviewContainer.style.left = `${rect.left - 45}px`;
+          hoverPreviewContainer.style.top = `${rect.top - 265}px`;
 
-          hoverPreview.classList.add('visible');
+          hoverPreviewContainer.classList.add('visible');
         });
 
         btn.addEventListener('mouseleave', () => {
-          hoverPreview.classList.remove('visible');
+          hoverPreviewContainer.classList.remove('visible');
         });
 
         bvhList.appendChild(btn);

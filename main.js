@@ -274,7 +274,8 @@ function run() {
 
   const code = window.editor.getValue();
 
-  const cadenaRotaRegex = /\]\s*\[/g;
+  const cadenaRotaRegex = /\][^>\[]*\[/g;
+  const metodoFueraRegex = /\]\s*\./g;
 
   if (cadenaRotaRegex.test(code)) {
     if (errorToast && errorText) {
@@ -286,7 +287,21 @@ function run() {
         errorToast.classList.remove('visible');
       }, 4000);
     }
-    return; // Cortamos la ejecución aquí. El código malo no llega a correr.
+    return;
+  }
+
+  if (metodoFueraRegex.test(code)) {
+    if (errorToast && errorText) {
+      // Mensaje específico enseñando cómo se hace bien
+      errorText.innerText = "Los modificadores deben ir DENTRO de los corchetes.";
+      errorToast.classList.add('visible');
+
+      clearTimeout(errorTimeout);
+      errorTimeout = setTimeout(() => {
+        errorToast.classList.remove('visible');
+      }, 5500);
+    }
+    return;
   }
 
   if (!engineReady) { pendingCode = code; } else { runCode(code); }
