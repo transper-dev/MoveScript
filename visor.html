@@ -35,8 +35,17 @@
   <script type="module" src="./bvhApi.js"></script>
   <script>
     const socket = io();
+
+    socket.on('connect', () => {
+      console.log('Visor conectado a la centralita local');
+    });
+
     socket.on('execute_code', (data) => {
-      window.postMessage({ type: 'execute', code: data.code }, '*');
+      const codigoLimpio = (typeof data === 'object') ? data.code : data;
+
+      console.log('Ejecutando codigo:', codigoLimpio);
+
+      window.postMessage({ type: 'execute', code: codigoLimpio }, '*');
     });
   </script>
 </body>

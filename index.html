@@ -441,7 +441,7 @@
 </head>
 
 <body>
-  <div id="loader">Loading... ⏳</div>
+  <div id="loader">Loading...</div>
 
   <div id="app">
     <iframe id="preview" src="http://localhost:3000/visor.html" sandbox="allow-scripts allow-same-origin"
@@ -453,11 +453,6 @@
         <button id="toggle">Hide (Esc)</button>
         <button id="globalPauseBtn">Pause (Ctrl+P)</button>
         <button id="randomBtn" style="display: none;"><i class="fas fa-random"></i> Random</button>
-
-        <div id="vr-link"
-          style="margin-left: auto; padding-right: 15px; color: #aaa; font-size: 13px; display: flex; align-items: center;">
-          Generando túnel VR... ⏳
-        </div>
       </div>
       <textarea id="code" spellcheck="false"></textarea>
       <div id="resizeHandle"></div>
@@ -490,33 +485,13 @@
   </div>
 
   <div id="error-toast">
-    <strong>⚠️ Error de Sintaxis</strong>
+    <strong>Error de Sintaxis</strong>
     <span id="error-text"></span>
   </div>
 
   <script src="http://localhost:3000/socket.io/socket.io.js"></script>
   <script>
-    // Conecta con el servidor local
     window.socket = io('http://localhost:3000');
-
-    // Escucha a Electron y escribe el enlace en la interfaz
-    try {
-      const { ipcRenderer } = require('electron');
-      ipcRenderer.on('tunnel-url', (event, url) => {
-        const vrLinkDiv = document.getElementById('vr-link');
-        if (vrLinkDiv) {
-          const enlaceCompleto = `${url}/visor.html`;
-          vrLinkDiv.innerHTML = `
-               <span style="color: #00ffcc; margin-right: 8px;">🔗 Artista VR:</span> 
-               <span style="user-select: all; background: rgba(0, 255, 204, 0.1); border: 1px solid #00ffcc; color: #fff; padding: 4px 8px; border-radius: 4px; cursor: text;">
-                 ${enlaceCompleto}
-               </span>
-             `;
-        }
-      });
-    } catch (e) {
-      console.warn("Módulo ipcRenderer no disponible.");
-    }
   </script>
   <script type="module" src="./main.js"></script>
 

@@ -3,8 +3,7 @@ const path = require('path');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const localtunnel = require('localtunnel');
-
+const { exec } = require('child_process');
 let mainWindow;
 
 function startServerAndTunnel() {
@@ -19,25 +18,20 @@ function startServerAndTunnel() {
 
     // WebSockets (Comunicación PC -> Gafas)
     io.on('connection', (socket) => {
-        console.log('🔌 Visor VR conectado:', socket.id);
+        console.log('Visor VR conectado:', socket.id);
         socket.on('update_code', (data) => {
             socket.broadcast.emit('execute_code', data);
         });
     });
 
-    // Servidor y túnel
-    server.listen(3000, '0.0.0.0', async () => {
+    // Servidor local y lanzamiento de Túnel
+    server.listen(3000, '0.0.0.0', () => {
         console.log('Servidor local corriendo en http://localhost:3000');
-        try {
-            const tunnel = await localtunnel(3000);
-            console.log('Túnel VR listo en:', tunnel.url);
+        console.log('Abriendo terminal para el tunel VR...');
 
-            if (mainWindow) {
-                mainWindow.webContents.send('tunnel-url', tunnel.url);
-            }
-        } catch (err) {
-            console.error("Error al crear el túnel:", err);
-        }
+        const comando = 'start cmd.exe /k "title Tunel VR && color 0A && echo Conectando con Pinggy... && ssh -p 443 -R0:127.0.0.1:3000 -o StrictHostKeyChecking=no qr@a.pinggy.io"'; exec(comando, (error) => {
+            if (error) console.error("Error abriendo la consola:", error);
+        });
     });
 }
 
