@@ -671,15 +671,19 @@
 
         btn.addEventListener('click', () => {
           if (botonActivo === btn) {
-            // SEGUNDO CLIC: Insertar el código
             if (!window.editor) return;
-            let code = window.editor.getValue();
+
+            let currentCode = window.editor.getValue().trim();
+            if (currentCode.endsWith(';')) {
+              currentCode = currentCode.slice(0, -1);
+            }
+
             const insertText = `[bvh("${nombre}")]`;
 
-            let salto = code.trim() !== "" ? ">\n" : "";
-            code = code.trim() + salto + insertText;
+            let salto = currentCode !== "" ? ">\n" : "";
+            let finalCode = currentCode + salto + insertText;
 
-            window.editor.setValue(code);
+            window.editor.setValue(finalCode);
 
             for (let i = 0; i < window.editor.lineCount(); i++) {
               let textoLinea = window.editor.getLine(i);
@@ -699,7 +703,6 @@
             botonActivo = null;
           }
           else {
-            // PRIMER CLIC: Seleccionar y hacer previsualización
             if (botonActivo) {
               botonActivo.classList.remove('selected-bvh');
             }
@@ -710,8 +713,22 @@
             if (iframePreview.contentWindow) {
               if (window.editor) window.editor.getAllMarks().forEach(marker => marker.clear());
 
-              // Esto solo se previsualiza en el monitor local, ¡no afecta a la VR!
-              const previewCode = `clear(); grid(800, 20); cam(0, 150, 350, 0, 100, 0); bg("#0a0a0a"); CHAIN($B()._setIdx(-1).bvh("${nombre}"));`;
+              let currentCode = window.editor ? window.editor.getValue() : "";
+
+              let comandosEntorno = "";
+              const coincidencias = currentCode.match(/(?:bg|background|floor|cam|grid)\s*\([^)]*\)/g);
+              if (coincidencias) {
+                comandosEntorno = coincidencias.join("; ");
+              }
+
+              const previewCode = `
+                clear(); 
+                cam(0, 150, 350, 0, 100, 0); 
+                bg("#0a0a0a"); 
+                ${comandosEntorno}; 
+                CHAIN($B()._setIdx(-1).bvh("${nombre}"));
+              `;
+
               iframePreview.contentWindow.postMessage({ type: 'execute', code: previewCode }, '*');
             }
           }
