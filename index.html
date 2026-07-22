@@ -87,7 +87,8 @@
     #toggle,
     #randomBtn,
     #globalPauseBtn,
-    #saveBtn {
+    #saveBtn,
+    #docsBtn {
       padding: 6px 10px;
       cursor: pointer;
       border-radius: 8px;
@@ -101,7 +102,8 @@
     #toggle:hover,
     #randomBtn:hover,
     #globalPauseBtn:hover,
-    #saveBtn:hover {
+    #saveBtn:hover,
+    #docsBtn:hover {
       background: rgba(255, 255, 255, 0.10);
     }
 
@@ -443,6 +445,56 @@
       text-transform: uppercase;
       letter-spacing: 1px;
     }
+
+    .bvh-item.selected-bvh {
+      background: rgba(0, 255, 204, 0.15);
+      border-color: #00ffcc;
+      transform: scale(1.05);
+    }
+
+    .bvh-item.selected-bvh span {
+      display: none;
+    }
+
+    .bvh-item.selected-bvh::after {
+      content: "➕ ADD";
+      color: #00ffcc;
+      font-weight: bold;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
+    #hover-preview-container {
+      position: fixed;
+      width: 250px;
+      height: 250px;
+      object-fit: cover;
+      background-color: #050505;
+      border: 2px solid #00ffcc;
+      border-radius: 8px;
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      transform: translateY(10px);
+      z-index: 9999;
+      overflow: hidden;
+    }
+
+    #hover-preview-container.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    #hover-preview-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.3);
+      transform-origin: 30% bottom;
+    }
   </style>
 </head>
 
@@ -458,6 +510,7 @@
         <button id="run">Run (Ctrl+Enter)</button>
         <button id="toggle">Hide (Esc)</button>
         <button id="globalPauseBtn">Pause (Ctrl+P)</button>
+        <button id="docsBtn"><i class="fas fa-book"></i> Docs</button>
         <button id="randomBtn" style="display: none;"><i class="fas fa-random"></i> Random</button>
       </div>
       <textarea id="code" spellcheck="false"></textarea>
@@ -490,6 +543,9 @@
     <div class="drawer-carousel" id="bvh-list"></div>
   </div>
 
+  <div id="hover-preview-container">
+    <img id="hover-preview-image" src="" alt="Preview en vivo">
+  </div>
   <div id="error-toast">
     <strong>Error de Sintaxis</strong>
     <span id="error-text"></span>
@@ -508,6 +564,12 @@
       const toggleIcon = toggleBtn.querySelector('i');
       const bvhList = document.getElementById('bvh-list');
       const iframePreview = document.getElementById('preview');
+      const docsBtn = document.getElementById('docsBtn');
+      if (docsBtn) {
+        docsBtn.addEventListener('click', () => {
+          window.open('docs.html', '_blank');
+        });
+      }
 
       // --- ACTIVAR LA INTERFAZ (MENÚS DESPLEGABLES) ---
       toggleBtn.addEventListener('click', () => {
@@ -596,28 +658,78 @@
       }
 
       // --- DIBUJAR LOS BOTONES EN LA BANDEJA ---
+      const hoverPreviewContainer = document.getElementById('hover-preview-container');
+      const hoverPreviewImage = document.getElementById('hover-preview-image');
+
+      animacionesDisponibles = animacionesDisponibles.filter(nombre => nombre !== 'dummy');
+      let botonActivo = null;
+
       animacionesDisponibles.forEach(nombre => {
         const btn = document.createElement('div');
         btn.className = 'bvh-item';
         btn.innerHTML = `<span>${nombre}</span>`;
 
         btn.addEventListener('click', () => {
-          if (!window.editor) return;
-          let code = window.editor.getValue();
+          if (botonActivo === btn) {
+            // SEGUNDO CLIC: Insertar el código
+            if (!window.editor) return;
+            let code = window.editor.getValue();
+            const insertText = `[bvh("${nombre}")]`;
 
-          const regexBusqueda = /\[[^\]]+\]/;
+            let salto = code.trim() !== "" ? ">\n" : "";
+            code = code.trim() + salto + insertText;
 
-          if (regexBusqueda.test(code)) {
-            code = code.replace(regexBusqueda, `[bvh("${nombre}")]\n>$&`);
-          } else {
-            let salto = code.trim() !== "" ? "\n\n" : "";
-            code += `${salto}[bvh("${nombre}")]`;
+            window.editor.setValue(code);
+
+            for (let i = 0; i < window.editor.lineCount(); i++) {
+              let textoLinea = window.editor.getLine(i);
+              let posicion = textoLinea.lastIndexOf(insertText);
+              if (posicion !== -1) {
+                window.editor.setCursor({ line: i, ch: posicion + insertText.length - 1 });
+                break;
+              }
+            }
+            window.editor.focus();
+
+            if (iframePreview.contentWindow) {
+              document.getElementById('run').click();
+            }
+
+            btn.classList.remove('selected-bvh');
+            botonActivo = null;
           }
+          else {
+            // PRIMER CLIC: Seleccionar y hacer previsualización
+            if (botonActivo) {
+              botonActivo.classList.remove('selected-bvh');
+            }
 
-          window.editor.setValue(code);
-          if (iframePreview.contentWindow) {
-            document.getElementById('run').click();
+            btn.classList.add('selected-bvh');
+            botonActivo = btn;
+
+            if (iframePreview.contentWindow) {
+              if (window.editor) window.editor.getAllMarks().forEach(marker => marker.clear());
+
+              // Esto solo se previsualiza en el monitor local, ¡no afecta a la VR!
+              const previewCode = `clear(); grid(800, 20); cam(0, 150, 350, 0, 100, 0); bg("#0a0a0a"); CHAIN($B()._setIdx(-1).bvh("${nombre}"));`;
+              iframePreview.contentWindow.postMessage({ type: 'execute', code: previewCode }, '*');
+            }
           }
+        });
+
+        // LÓGICA DE HOVER PARA EL GIF
+        btn.addEventListener('mouseenter', () => {
+          hoverPreviewImage.src = `./assets/gifs/${nombre}.gif`;
+
+          const rect = btn.getBoundingClientRect();
+          hoverPreviewContainer.style.left = `${rect.left - 45}px`;
+          hoverPreviewContainer.style.top = `${rect.top - 265}px`;
+
+          hoverPreviewContainer.classList.add('visible');
+        });
+
+        btn.addEventListener('mouseleave', () => {
+          hoverPreviewContainer.classList.remove('visible');
         });
 
         bvhList.appendChild(btn);

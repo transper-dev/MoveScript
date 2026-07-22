@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MoveScript Docs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="icon" type="image/png" href="./icons/icon.png">
+    <style>
+        :root {
+            --bg-color: #111111;
+            --panel-bg: #1a1a1a;
+            --text-color: #eeeeee;
+            --accent-color: #00ffcc;
+            --code-bg: #252525;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--panel-bg);
+            border-right: 1px solid #333;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #aaa;
+            text-decoration: none;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+
+        .sidebar a:hover {
+            color: var(--accent-color);
+        }
+
+        .content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .doc-section {
+            margin-bottom: 60px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 40px;
+        }
+
+        .function-title {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            margin-top: 0;
+        }
+
+        .doc-card {
+            background-color: var(--panel-bg);
+            border-radius: 6px;
+            border: 1px solid #333;
+            overflow: hidden;
+            margin-top: 20px;
+            max-width: 800px;
+        }
+
+        .code-wrapper {
+            position: relative;
+            background-color: var(--code-bg);
+            border-bottom: 1px solid #333;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            border: 1px solid #444;
+            border-radius: 4px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(0, 255, 204, 0.15);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-color);
+            color: #000;
+            border-color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .code-block {
+            padding: 15px;
+            margin: 0;
+            font-size: 0.95rem;
+            color: #fff;
+            overflow-x: auto;
+        }
+
+        .gif-preview {
+            display: block;
+            width: 100%;
+            height: auto;
+            background-color: #050505;
+        }
+
+        .description {
+            padding: 15px;
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <h2>MoveScript</h2>
+        <a href="#bvh">bvh()</a>
+        <a href="#dummy">dummy()</a>
+        <a href="#joints">joints()</a>
+        <a href="#bones">bones()</a>
+        <a href="#color">color()</a>
+        <a href="#trail">trail()</a>
+        <a href="movements.html" target="_blank">Movement Catalog <i class="fas fa-external-link-alt"
+                style="font-size: 0.8em; margin-left: 5px;"></i></a>
+    </nav>
+
+    <main class="content">
+
+        <section id="bvh" class="doc-section">
+            <h3 class="function-title">bvh( name )</h3>
+            <p>Loads and initializes a pre-recorded animation to apply it to the skeleton.</p>
+
+            <div class="doc-card">
+                <div class="code-wrapper">
+                    <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                    <pre class="code-block"><code>[bvh("surprise")]</code></pre>
+                </div>
+                <img class="gif-preview" src="assets/gifs/bvh-example.gif" alt="bvh example">
+                <div class="description">
+                    <strong>Parameters:</strong> <code>name</code> (string with the name of the animation file, without
+                    the .bvh extension).
+                </div>
+            </div>
+        </section>
+
+        <section id="dummy" class="doc-section">
+            <h3 class="function-title">bvh( "dummy" )</h3>
+            <p>Generates a static skeleton in a T-pose. Useful for visualizing design modifications without the
+                distraction of animation movement.</p>
+
+            <div class="doc-card">
+                <div class="code-wrapper">
+                    <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                    <pre class="code-block"><code>[bvh("dummy")]</code></pre>
+                </div>
+                <img class="gif-preview" src="assets/gifs/dummy-example.gif" alt="dummy example">
+                <div class="description">
+                    <strong>Parameters:</strong> No additional parameters required, it works by passing "dummy" to the
+                    main function.
+                </div>
+            </div>
+        </section>
+
+        <section id="joints" class="doc-section">
+            <h3 class="function-title">.joints( size )</h3>
+            <p>Modifies the size of the spheres that represent the skeleton's joints.</p>
+
+            <div class="doc-card">
+                <div class="code-wrapper">
+                    <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                    <pre class="code-block"><code>[bvh("surprise").joints(2)]</code></pre>
+                </div>
+                <img class="gif-preview" src="assets/gifs/joints-example.gif" alt="joints example">
+                <div class="description">
+                    <strong>Parameters:</strong> <code>size</code> (numeric value defining the scale of the joint).
+                </div>
+            </div>
+        </section>
+
+        <section id="bones" class="doc-section">
+            <h3 class="function-title">.bones( thickness, [length] )</h3>
+            <p>Adjusts the thickness and, optionally, the length of the bones connecting the joints.</p>
+
+            <div class="doc-card">
+                <div class="code-wrapper">
+                    <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                    <pre class="code-block"><code>[bvh("surprise").bones(2, 1)]</code></pre>
+                </div>
+                <img class="gif-preview" src="assets/gifs/bones-example.gif" alt="bones example">
+                <div class="description">
+                    <strong>Parameters:</strong> <code>thickness</code> (bone width), <code>length</code> (optional
+                    parameter to alter the distance between connections).
+                </div>
+            </div>
+        </section>
+
+        <section id="color" class="doc-section">
+            <h3 class="function-title">.color( color1, [color2] )</h3>
+            <p>Applies a solid color to the skeleton, or generates a gradient if two colors are specified.</p>
+
+            <div class="doc-card">
+                <div class="code-wrapper">
+                    <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                    <pre class="code-block"><code>[bvh("surprise").color("red", "blue")]</code></pre>
+                </div>
+                <img class="gif-preview" src="assets/gifs/color-example.gif" alt="color example">
+                <div class="description">
+                    <strong>Parameters:</strong> <code>color1</code> (main color in text or hex format),
+                    <code>color2</code> (optional secondary color to create the gradient).
+                </div>
+            </div>
+        </section>
+
+        <section id="trail" class="doc-section">
+            <h3 class="function-title">.trail( frames )</h3>
+            <p>Creates a visual trail by cloning previous frames to show the movement trajectory.</p>
+
+            <div class="doc-card">
+                <div class="code-wrapper">
+                    <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                    <pre class="code-block"><code>[bvh("surprise").trail(20)]</code></pre>
+                </div>
+                <img class="gif-preview" src="assets/gifs/trail-example.gif" alt="trail example">
+                <div class="description">
+                    <strong>Parameters:</strong> <code>frames</code> (integer indicating how many previous steps form
+                    the trail).
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const codeElement = button.nextElementSibling.querySelector('code');
+                const textToCopy = codeElement.innerText;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    button.innerHTML = '<i class="fas fa-check"></i>';
+                    button.classList.add('copied');
+                    setTimeout(() => {
+                        button.innerHTML = '<i class="far fa-copy"></i>';
+                        button.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

@@ -873,6 +873,8 @@ class RigNode {
   bvh(f) { this.props.file = f; return this; }
   duplicate(h) { this.props.duplicate = h; return this; }
 
+  _setIdx(i) { this.props.explicitIdx = i; return this; }
+
   dummy(v = true) { this.props.calledDummy = true; this.props.dummyValue = v; return this; } bones(w, l) { this.props.calledBones = true; this.props.boneWidth = w; this.props.boneLength = l; return this; }
   joints(s) { this.props.calledJoints = true; this.props.jointSize = s; return this; }
 
@@ -945,6 +947,8 @@ window.CHAIN = (...nodes) => {
 };
 
 function applyPropsToHandle(handle, props) {
+  if (props.explicitIdx !== undefined) handle._codeIndex = props.explicitIdx;
+
   if (props.x !== undefined) handle.pos(props.x, props.y ?? 0, props.z ?? 0);
 
   if (props.calledDummy) handle.dummy(props.dummyValue);
