@@ -329,7 +329,13 @@ if (globalPauseBtn) {
   globalPauseBtn.addEventListener('click', () => {
     isGlobalPaused = !isGlobalPaused;
     globalPauseBtn.textContent = isGlobalPaused ? 'Play (Ctrl+P)' : 'Pause (Ctrl+P)';
-    iframe.contentWindow.postMessage({ type: 'execute', code: `pause(${isGlobalPaused});` }, '*');
+
+    const codigoPausa = `pause(${isGlobalPaused});`;
+    iframe.contentWindow.postMessage({ type: 'execute', code: codigoPausa }, '*');
+
+    if (window.socket) {
+      window.socket.emit('update_code', { code: codigoPausa });
+    }
   });
 }
 
