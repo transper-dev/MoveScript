@@ -16,12 +16,16 @@ const camera = new THREE.PerspectiveCamera(60, 2, 0.1, 20000);
 camera.position.set(0, 200, 450);
 
 const audioListener = new THREE.AudioListener();
-camera.add(audioListener); // Le ponemos "orejas" a la cámara
+camera.add(audioListener);
 const audioLoader = new THREE.AudioLoader();
-const soundCache = {}; // Guardamos los sonidos ya descargados para que sea instantáneo
+const soundCache = {};
 
 function playAnimationSound(name) {
-  if (!name || name === "dummy" || name === "deep_breath") return;
+  if (!name || name === "dummy") return;
+
+  if (audioListener.context.state === 'suspended') {
+    audioListener.context.resume();
+  }
 
   const sound = new THREE.Audio(audioListener);
 
@@ -34,7 +38,7 @@ function playAnimationSound(name) {
       sound.setBuffer(buffer);
       sound.play();
     }, undefined, () => {
-      console.warn(`No se encontró el audio: ./assets/audio/${name}.mp3`);
+      console.warn(`Aviso: Falta el efecto de sonido en ./assets/audio/${name}.mp3`);
     });
   }
 }
@@ -290,7 +294,9 @@ const SB = {
         if (!handle._isPlaying || (handle._isChained && !handle._isHead)) {
           action.paused = true;
         } else {
-          playAnimationSound(handle._rawFile);
+          if (!handle._isStaticDummy) {
+            playAnimationSound(handle._rawFile);
+          }
         }
 
         const isReversed = handle._reverse ?? SB.params.reverse;
@@ -465,6 +471,12 @@ const SB = {
 
           root.visible = !(handle._isChained && !handle._isHead);
         }
+
+        mixer.addEventListener('loop', (e) => {
+          if (!handle._isChained && !handle._isStaticDummy) {
+            playAnimationSound(handle._rawFile);
+          }
+        });
 
         mixer.addEventListener('finished', (e) => {
           if (handle._isChained && handle._nextHandle) {
