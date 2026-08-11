@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Miramos la carpeta assets
-const rutaAssets = path.join(__dirname, 'assets');
+const rutaAssets = path.join(__dirname, 'assets', 'bvh');
 const archivos = fs.readdirSync(rutaAssets);
 
 // Filtramos solo los .bvh y limpiamos el nombre

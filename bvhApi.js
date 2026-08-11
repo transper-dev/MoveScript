@@ -15,6 +15,30 @@ scene.background = new THREE.Color(0x111111);
 const camera = new THREE.PerspectiveCamera(60, 2, 0.1, 20000);
 camera.position.set(0, 200, 450);
 
+const audioListener = new THREE.AudioListener();
+camera.add(audioListener); // Le ponemos "orejas" a la cámara
+const audioLoader = new THREE.AudioLoader();
+const soundCache = {}; // Guardamos los sonidos ya descargados para que sea instantáneo
+
+function playAnimationSound(name) {
+  if (!name || name === "dummy" || name === "deep_breath") return;
+
+  const sound = new THREE.Audio(audioListener);
+
+  if (soundCache[name]) {
+    sound.setBuffer(soundCache[name]);
+    sound.play();
+  } else {
+    audioLoader.load(`./assets/audio/${name}.mp3`, (buffer) => {
+      soundCache[name] = buffer;
+      sound.setBuffer(buffer);
+      sound.play();
+    }, undefined, () => {
+      console.warn(`No se encontró el audio: ./assets/audio/${name}.mp3`);
+    });
+  }
+}
+
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 120, 0);
@@ -112,9 +136,9 @@ const SB = {
       url = fileOrUrl;
     } else {
       if (navigator.onLine) {
-        url = `https://raw.githubusercontent.com/transper-dev/MoveScript/refs/heads/main/assets/${fileOrUrl}.bvh`;
+        url = `https://raw.githubusercontent.com/transper-dev/MoveScript/refs/heads/main/assets/bvh/${fileOrUrl}.bvh`;
       } else {
-        url = `./assets/${fileOrUrl}.bvh`;
+        url = `./assets/bvh/${fileOrUrl}.bvh`;
       }
     }
 
@@ -229,20 +253,20 @@ const SB = {
       if (fileOrUrl.startsWith("http")) {
         urlDefinitiva = fileOrUrl;
       } else {
-        urlDefinitiva = `./assets/${fileOrUrl}.bvh`;
+        urlDefinitiva = `./assets/bvh/${fileOrUrl}.bvh`;
 
         try {
           const comprobacionLocal = await fetch(urlDefinitiva, { method: 'HEAD' });
           if (!comprobacionLocal.ok) {
             if (navigator.onLine) {
-              urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/${fileOrUrl}.bvh`;
+              urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/bvh/${fileOrUrl}.bvh`;
             } else {
               throw new Error("Archivo no encontrado en local y no hay internet.");
             }
           }
         } catch (e) {
           if (navigator.onLine) {
-            urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/${fileOrUrl}.bvh`;
+            urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/bvh/${fileOrUrl}.bvh`;
           }
         }
       }
@@ -263,7 +287,11 @@ const SB = {
 
         if (handle._isChained) { action.setLoop(THREE.LoopOnce, 1); action.clampWhenFinished = true; }
         action.play();
-        if (!handle._isPlaying || (handle._isChained && !handle._isHead)) { action.paused = true; }
+        if (!handle._isPlaying || (handle._isChained && !handle._isHead)) {
+          action.paused = true;
+        } else {
+          playAnimationSound(handle._rawFile);
+        }
 
         const isReversed = handle._reverse ?? SB.params.reverse;
         const localSpeed = handle._speed ?? 1.0;
@@ -477,6 +505,10 @@ const SB = {
               nextRig.timeAlive = 0.05;
 
               nextRig.action.play();
+
+              if (!handle._nextHandle._isStaticDummy) {
+                playAnimationSound(handle._nextHandle._rawFile);
+              }
 
               if (handle._nextHandle._isStaticDummy) {
                 const waitTime = (handle._nextHandle._delay ?? 3) * 1000;
