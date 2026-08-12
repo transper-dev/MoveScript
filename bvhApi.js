@@ -33,12 +33,12 @@ function playAnimationSound(name) {
     sound.setBuffer(soundCache[name]);
     sound.play();
   } else {
-    audioLoader.load(`./assets/audio/${name}.mp3`, (buffer) => {
+    audioLoader.load(`./assets/audio/${name}.wav`, (buffer) => {
       soundCache[name] = buffer;
       sound.setBuffer(buffer);
       sound.play();
     }, undefined, () => {
-      console.warn(`Aviso: Falta el efecto de sonido en ./assets/audio/${name}.mp3`);
+      console.warn(`Aviso: Falta el efecto de sonido en ./assets/audio/${name}.wav`);
     });
   }
 }
