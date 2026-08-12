@@ -19,6 +19,7 @@ const audioListener = new THREE.AudioListener();
 camera.add(audioListener);
 const audioLoader = new THREE.AudioLoader();
 const soundCache = {};
+const activeSounds = [];
 
 function playAnimationSound(name) {
   if (!name || name === "dummy") return;
@@ -28,6 +29,7 @@ function playAnimationSound(name) {
   }
 
   const sound = new THREE.Audio(audioListener);
+  activeSounds.push(sound);
 
   if (soundCache[name]) {
     sound.setBuffer(soundCache[name]);
@@ -84,6 +86,13 @@ const SB = {
     bvhCounter = 0;
     selectedRig = null;
     selectionBox.visible = false;
+
+    for (const sound of activeSounds) {
+      if (sound.isPlaying) {
+        sound.stop();
+      }
+    }
+    activeSounds.length = 0;
 
     this.params = { speed: 1.0, pause: false, showSkeleton: true, globalScale: 1.0, rotSpeed: 0.0, reverse: false, color: null, color2: null, trail: 0, delay: 0 };
 
