@@ -688,16 +688,27 @@ function animate() {
   SB._tick();
   const session = renderer.xr.getSession();
   if (session && frameCount % 2 === 0) {
+    // Posiciones
     const p1 = new THREE.Vector3();
     const p2 = new THREE.Vector3();
     con1.getWorldPosition(p1);
     con2.getWorldPosition(p2);
 
-    // Enviamos las coordenadas al visor
+    // Rotaciones (Cuaterniones a Ángulos Euler)
+    const q1 = new THREE.Quaternion();
+    const q2 = new THREE.Quaternion();
+    con1.getWorldQuaternion(q1);
+    con2.getWorldQuaternion(q2);
+    const r1 = new THREE.Euler().setFromQuaternion(q1);
+    const r2 = new THREE.Euler().setFromQuaternion(q2);
+
+    // Envio
     window.parent.postMessage({
       type: 'osc_data',
       c1: [p1.x, p1.y, p1.z],
-      c2: [p2.x, p2.y, p2.z]
+      c2: [p2.x, p2.y, p2.z],
+      rot1: [r1.x, r1.y, r1.z],
+      rot2: [r2.x, r2.y, r2.z]
     }, '*');
   }
   if (session && session.inputSources) {
