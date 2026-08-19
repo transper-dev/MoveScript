@@ -40,6 +40,12 @@
       console.log('Visor conectado a la centralita local');
     });
 
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'osc_data') {
+        socket.emit('vr_data', event.data);
+      }
+    });
+
     socket.on('execute_code', (data) => {
       const codigoLimpio = (typeof data === 'object') ? data.code : data;
 

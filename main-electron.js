@@ -4,6 +4,8 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const { exec } = require('child_process');
+const osc = require('node-osc');
+const oscClient = new osc.Client('127.0.0.1', 12000);
 let mainWindow;
 
 function startServerAndTunnel() {
@@ -21,6 +23,14 @@ function startServerAndTunnel() {
         console.log('Visor VR conectado:', socket.id);
         socket.on('update_code', (data) => {
             socket.broadcast.emit('execute_code', data);
+        });
+        socket.on('vr_data', (data) => {
+            if (data.c1) {
+                oscClient.send('/vr/left_controller', data.c1[0], data.c1[1], data.c1[2]);
+            }
+            if (data.c2) {
+                oscClient.send('/vr/right_controller', data.c2[0], data.c2[1], data.c2[2]);
+            }
         });
     });
 
