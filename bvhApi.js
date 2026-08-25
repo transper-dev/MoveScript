@@ -52,7 +52,6 @@ grip2.add(model2);
 vrCameraRig.add(grip2);
 
 renderer.xr.addEventListener('sessionstart', () => {
-  // Al entrar en VR: Nos hacemos gigantes para que el movimiento sea real
   vrCameraRig.scale.set(100, 100, 100);
   vrCameraRig.position.set(camera.position.x, 0, camera.position.z);
 
@@ -102,7 +101,7 @@ const SB = {
     const geom = new THREE.PlaneGeometry(size, size);
     const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.9, metalness: 0.1 });
     const mesh = new THREE.Mesh(geom, mat);
-    mesh.rotation.x = -Math.PI / 2; // Lo tumbamos para que sea un suelo
+    mesh.rotation.x = -Math.PI / 2;
     scene.add(mesh);
     return SB;
   },
@@ -717,7 +716,7 @@ function animate() {
         const axisX = source.gamepad.axes[2];
         const axisY = source.gamepad.axes[3];
 
-        // JOYSTICK IZQUIERDO: MOVIMIENTO (Desplazamiento)
+        // JOYSTICK IZQUIERDO: MOVIMIENTO
         if (source.handedness === 'left') {
           if (Math.abs(axisX) > 0.1 || Math.abs(axisY) > 0.1) {
             const speed = 4.0;
@@ -732,11 +731,10 @@ function animate() {
           }
         }
 
-        // JOYSTICK DERECHO: CÁMARA (Rotación suave)
+        // JOYSTICK DERECHO: CÁMARA
         else if (source.handedness === 'right') {
           if (Math.abs(axisX) > 0.1) {
-            const rotSpeed = 0.03; // Velocidad de giro. Súbela a 0.05 si gira muy lento
-            // Al girar en negativo sobre el eje Y, miramos a los lados
+            const rotSpeed = 0.03;
             vrCameraRig.rotation.y -= axisX * rotSpeed;
           }
         }
