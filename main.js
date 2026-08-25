@@ -59,7 +59,7 @@ function highlightStep(codeIndex, step) {
   let lines = window.editor.getValue().split('\n');
   let currentIdx = 0, blockStartLine = -1;
 
-  // 1. Buscamos en qué línea empieza el bloque principal
+  // Buscar línea de comienzo de bloque principal
   for (let i = 0; i < lines.length; i++) {
     if (isNewBlock(lines, i)) {
       if (currentIdx === codeIndex) { blockStartLine = i; break; }
@@ -67,7 +67,7 @@ function highlightStep(codeIndex, step) {
     }
   }
 
-  // 2. Buscamos el paso exacto para iluminarlo
+  // Buscar paso para iluminarlo
   if (blockStartLine !== -1) {
     let currentStep = 0;
     let startPos = null, endPos = null;
@@ -81,13 +81,10 @@ function highlightStep(codeIndex, step) {
         let char = lineStr[c];
 
         if (char === '[') {
-          // Si estamos en el paso correcto, marcamos el inicio
           if (currentStep === step) { startPos = { line: l, ch: c }; }
         } else if (char === ']') {
-          // Si estamos en el paso correcto, marcamos el final justo después del corchete
           if (currentStep === step) { endPos = { line: l, ch: c + 1 }; break; }
         } else if (char === '>') {
-          // Al ver un salto de cadena, avanzamos el contador de pasos
           if (currentStep < step) currentStep++;
         }
 
@@ -99,13 +96,12 @@ function highlightStep(codeIndex, step) {
       l++;
       c = 0;
 
-      // Si llegamos a un bloque nuevo distinto, cortamos la búsqueda
       if (l < lines.length && isNewBlock(lines, l)) {
         break;
       }
     }
 
-    // 3. Aplicamos la luz si encontramos las coordenadas
+    // Aplicar luz en coordenadas
     if (startPos && endPos) {
       if (activeChainMarks[codeIndex]) {
         activeChainMarks[codeIndex].clear();
@@ -292,7 +288,6 @@ function run() {
 
   if (metodoFueraRegex.test(code)) {
     if (errorToast && errorText) {
-      // Mensaje específico enseñando cómo se hace bien
       errorText.innerText = "Los modificadores deben ir DENTRO de los corchetes.";
       errorToast.classList.add('visible');
 
@@ -340,12 +335,13 @@ function runCode(code) {
   isGlobalPaused = false;
   if (globalPauseBtn) globalPauseBtn.textContent = 'Pause (Ctrl+P)';
 
-  // Extraeccion de todos los bloques independientes a un Array
+  let rawCommands = code;
   let blocks = [];
   let regex = /(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g;
   let match;
   while ((match = regex.exec(code)) !== null) {
     blocks.push(match[0]);
+    rawCommands = rawCommands.replace(match[0], '');
   }
 
   // Transpilacion de cada bloque
@@ -354,7 +350,6 @@ function runCode(code) {
     let cleanedParts = parts.map((p, pIdx) => {
       let inside = p.trim().replace(/^\[/, '').replace(/\]$/, '').trim();
       let base = inside === '' ? `$B()` : `$B().${inside}`;
-      // Inyectamos el índice real al nodo cabecera de la cadena
       if (pIdx === 0) {
         base += `._setIdx(${index})`;
       }
@@ -371,7 +366,9 @@ function runCode(code) {
     bg("#0a0a0a");
   `;
 
-  const codigoFinal = configuracionOculta + "\n" + transpiled;
+  // --- NUEVO: Juntamos Configuración + Animaciones + Comandos Globales ---
+  const codigoFinal = configuracionOculta + "\n" + transpiled + "\n" + rawCommands;
+
   iframe.contentWindow.postMessage({ type: 'execute', code: codigoFinal }, '*');
 }
 

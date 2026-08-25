@@ -76,7 +76,18 @@ scene.add(selectionBox);
 const SB = {
   params: { speed: 1.0, pause: false, showSkeleton: true, globalScale: 1.0, rotSpeed: 0.0, reverse: false, color: null, color2: null, trail: 0, delay: 0 },
 
-  grid(size = 400, div = 10) { scene.add(new THREE.GridHelper(size, div)); return SB; },
+  grid(size = 400, div = 10) {
+    const grids = scene.children.filter(obj => obj.type === "GridHelper");
+    for (const g of grids) {
+      scene.remove(g);
+      g.geometry.dispose();
+      g.material.dispose();
+    }
+    if (size > 0) {
+      scene.add(new THREE.GridHelper(size, div));
+    }
+    return SB;
+  },
   cam(x = 0, y = 200, z = 450, lx = 0, ly = 120, lz = 0) { camera.position.set(x, y, z); controls.target.set(lx, ly, lz); return SB; },
   background(color) { scene.background = new THREE.Color(color); return SB; },
   bg(color) { return this.background(color); },
