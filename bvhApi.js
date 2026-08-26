@@ -399,8 +399,8 @@ const SB = {
           helper.material.color.set(colorInicio);
         } else {
           useGradient = true;
-          colorInicio = new THREE.Color(col1 || "#00ffcc");
-          colorFin = new THREE.Color(col2 || "#0055ff");
+          colorInicio = new THREE.Color(col1 || "white");
+          colorFin = new THREE.Color(col2 || "gray");
           helper.material.vertexColors = true;
           helper.material.color.set(0xffffff);
 
