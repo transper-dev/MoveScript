@@ -149,6 +149,7 @@
         <a href="#bones">bones()</a>
         <a href="#color">color()</a>
         <a href="#trail">trail()</a>
+        <a href="#chaining">Chaining</a>
         <a href="movements.html" target="_blank">Movement Catalog <i class="fas fa-external-link-alt"
                 style="font-size: 0.8em; margin-left: 5px;"></i></a>
     </nav>
@@ -253,6 +254,25 @@
                 <div class="description">
                     <strong>Parameters:</strong> <code>frames</code> (integer indicating how many previous steps form
                     the trail).
+                </div>
+            </div>
+        </section>
+
+        <section id="chaining" class="doc-section">
+            <h3 class="function-title">Chaining ( [] &gt; [] )</h3>
+            <p>Links multiple animation blocks sequentially. When the first animation finishes, the skeleton will
+                automatically transition into the next one.</p>
+
+            <div class="doc-card">
+                <div class="code-wrapper">
+                    <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                    <pre class="code-block"><code>[bvh("surprise")] > [bvh("froging").color("red")]</code></pre>
+                </div>
+                <!-- Asegúrate de tener o crear un gif llamado chain-example.gif -->
+                <img class="gif-preview" src="assets/gifs/chain-example.gif" alt="chaining example">
+                <div class="description">
+                    <strong>Syntax:</strong> Use the <code>&gt;</code> symbol between two completely closed blocks
+                    (<code>[] &gt; []</code>) to concatenate them. Modifiers act independently on each block.
                 </div>
             </div>
         </section>
