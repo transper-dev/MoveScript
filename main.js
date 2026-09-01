@@ -293,19 +293,30 @@ function runCode(code) {
   isGlobalPaused = false;
   if (globalPauseBtn) globalPauseBtn.textContent = 'Pause (Ctrl+P)';
 
+  let blockIndex = 0;
   let transpiled = code.replace(/(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g, (match) => {
     let parts = match.split('>');
-    let cleanedParts = parts.map(p => {
+    let cleanedParts = parts.map((p, pIdx) => {
       let inside = p.trim().replace(/^\[/, '').replace(/\]$/, '').trim();
-      return inside === '' ? `$B()` : `$B().${inside}`;
+      let base = inside === '' ? `$B()` : `$B().${inside}`;
+      if (pIdx === 0) {
+        base += `._setIdx(${blockIndex})`;
+      }
+      return base;
     });
+    blockIndex++;
     return `CHAIN(${cleanedParts.join(', ')})`;
   });
 
   const configuracionOculta = `
     clear();
-    cam(0, 150, 350, 0, 100, 0);
-    bg("#0a0a0a");
+    // cam(0, 150, 350, 0, 100, 0); // La cámara ya está libre
+    //bg("#0a0a0a");
+
+    if (navigator.userAgent.toLowerCase().includes('electron') && !window.vrOculto) {
+      document.head.insertAdjacentHTML('beforeend', '<style>#VRButton { display: none !important; }</style>');
+      window.vrOculto = true;
+    }
   `;
 
   const codigoFinal = configuracionOculta + "\n" + transpiled;

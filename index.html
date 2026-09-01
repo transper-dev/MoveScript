@@ -673,17 +673,16 @@
         btn.addEventListener('click', () => {
           if (botonActivo === btn) {
             if (!window.editor) return;
-
             let currentCode = window.editor.getValue().trim();
             if (currentCode.endsWith(';')) {
               currentCode = currentCode.slice(0, -1);
             }
-
             const insertText = `[bvh("${nombre}")]`;
-
-            let salto = currentCode !== "" ? ">\n" : "";
+            let salto = "";
+            if (currentCode !== "") {
+              salto = currentCode.endsWith(']') ? ">\n" : "\n";
+            }
             let finalCode = currentCode + salto + insertText;
-
             window.editor.setValue(finalCode);
 
             for (let i = 0; i < window.editor.lineCount(); i++) {
