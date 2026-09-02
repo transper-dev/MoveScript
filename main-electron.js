@@ -40,7 +40,20 @@ function startServerAndTunnel() {
         console.log('Servidor local corriendo en http://localhost:3000');
         console.log('Abriendo terminal para el tunel VR...');
 
-        const comando = 'start cmd.exe /k "title Tunel VR && color 0A && echo Conectando con Pinggy... && ssh -p 443 -R0:127.0.0.1:3000 -o StrictHostKeyChecking=no qr@a.pinggy.io"';
+        let comando = '';
+        const comandoSSH = 'ssh -p 443 -R0:127.0.0.1:3000 -o StrictHostKeyChecking=no qr@a.pinggy.io';
+
+        // Windows
+        if (process.platform === 'win32') {
+            comando = `start cmd.exe /k "title Tunel VR && color 0A && echo Conectando con Pinggy... && ${comandoSSH}"`;
+        } else if (process.platform === 'darwin') {
+            // Mac (AppleScript)
+            comando = `osascript -e 'tell app "Terminal" to do script "echo Conectando con Pinggy... && ${comandoSSH}"'`;
+        } else {
+            // Linux (gnome-terminal u xterm)
+            comando = `x-terminal-emulator -e "bash -c \\"echo Conectando con Pinggy... && ${comandoSSH}; exec bash\\""`;
+        }
+
         exec(comando, (error) => {
             if (error) console.error("Error abriendo la consola:", error);
         });
