@@ -53,7 +53,7 @@ vrCameraRig.add(grip2);
 
 renderer.xr.addEventListener('sessionstart', () => {
   vrCameraRig.scale.set(100, 100, 100);
-  vrCameraRig.position.set(camera.position.x, 0, camera.position.z);
+  vrCameraRig.position.set(0, 0, 150);
 
   window.parent.postMessage({ type: 'vr_start' }, '*');
 });
