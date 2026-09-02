@@ -710,7 +710,8 @@ function animate() {
       rot2: [r2.x, r2.y, r2.z]
     }, '*');
   }
-  if (session && session.inputSources) {
+  //ROT y MOV de camara con joysticks
+  /*if (session && session.inputSources) {
     for (const source of session.inputSources) {
       if (source.gamepad && source.gamepad.axes.length >= 4) {
         const axisX = source.gamepad.axes[2];
@@ -740,7 +741,7 @@ function animate() {
         }
       }
     }
-  }
+  }*/
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
