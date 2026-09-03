@@ -570,25 +570,22 @@
   <div id="help-sidebar">
     <div id="help-toggle">?</div>
     <div class="help-content">
-      <div class="help-category">Creadores (Inicio de bloque)</div>
-      <div class="help-item" data-insert='[dummy()]'><span class="help-cmd">[dummy()]</span><span class="help-desc">Crea
-          un maniquí estándar</span></div>
-      <div class="help-category">Modificadores</div>
+      <div class="help-category">Creators (Block Start)</div>
+      <div class="help-item" data-insert='[bvh("dummy")]'><span class="help-cmd">[bvh("dummy")]</span><span
+          class="help-desc">Creates a T-pose skeleton</span></div>
+      <div class="help-category">Modifiers</div>
       <div class="help-item" data-insert='.joints(1.5)'><span class="help-cmd">.joints(s)</span><span
-          class="help-desc">Tamaño de articulaciones</span></div>
+          class="help-desc">Joint size</span></div>
       <div class="help-item" data-insert='.bones(2, 1)'><span class="help-cmd">.bones(w, [l])</span><span
-          class="help-desc">Grosor y largura de los huesos</span></div>
+          class="help-desc">Bone thickness and length</span></div>
       <div class="help-item" data-insert='.color("red", "blue")'><span class="help-cmd">.color(c1, [c2])</span><span
-          class="help-desc">Color o degradado</span></div>
-      <div class="help-category">Animadores</div>
-      <div class="help-item" data-insert='.bvh("hands_up_fast")'><span class="help-cmd">.bvh("nombre")</span><span
-          class="help-desc">Asigna animación al bloque</span></div>
+          class="help-desc">Color or gradient</span></div>
     </div>
   </div>
 
   <div id="bvh-drawer">
     <div id="drawer-toggle"><i class="fas fa-chevron-up"></i></div>
-    <div class="drawer-header"><span>Animaciones Disponibles</span></div>
+    <div class="drawer-header"><span>Movement Previews</span></div>
     <div class="drawer-carousel" id="bvh-list"></div>
   </div>
 
@@ -766,7 +763,7 @@
           addBtn.className = 'bvh-item btn-add-local';
           addBtn.innerHTML = `
             <span style="font-size: 24px; pointer-events: none;">+</span>
-            <span style="font-size: 12px; pointer-events: none; margin-top: 5px;">ADD LOCAL</span>
+            <span style="font-size: 12px; pointer-events: none; margin-top: 5px;">ADD BVH</span>
           `;
 
           const fileInput = document.createElement('input');
@@ -825,7 +822,7 @@
 
           const tituloGlobales = document.createElement('div');
           tituloGlobales.className = 'bvh-category-header';
-          tituloGlobales.innerText = 'Globales';
+          tituloGlobales.innerText = 'Global';
           grupoGlobales.appendChild(tituloGlobales);
 
           const itemsGlobales = document.createElement('div');
@@ -845,7 +842,7 @@
 
         const tituloLocales = document.createElement('div');
         tituloLocales.className = 'bvh-category-header';
-        tituloLocales.innerText = 'Locales';
+        tituloLocales.innerText = 'Local';
         grupoLocales.appendChild(tituloLocales);
 
         const itemsLocales = document.createElement('div');
