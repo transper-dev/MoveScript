@@ -268,8 +268,8 @@
 
     .drawer-carousel {
       display: flex;
-      gap: 15px;
-      padding: 10px 20px 10px 20px;
+      align-items: flex-start;
+      padding: 10px 20px 20px 20px;
       overflow-x: auto;
       scrollbar-width: thin;
       scrollbar-color: #555 transparent;
@@ -295,7 +295,6 @@
 
     .bvh-item:hover {
       background: #333;
-      border-color: #00ffcc;
       transform: scale(1.05);
     }
 
@@ -312,6 +311,40 @@
       overflow: hidden;
     }
 
+    /* --- SISTEMA DE ERRORES VISUALES --- */
+    #error-toast {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(255, 40, 40, 0.9);
+      backdrop-filter: blur(5px);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      border-left: 5px solid #ffaaaa;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      z-index: 9999;
+      max-width: 400px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      transform: translateX(120%);
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      pointer-events: none;
+    }
+
+    #error-toast.visible {
+      transform: translateX(0);
+    }
+
+    #error-toast strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* --- SIDEBAR AYUDA --- */
     #help-sidebar {
       position: fixed;
       top: 0;
@@ -414,42 +447,71 @@
       font-family: sans-serif;
     }
 
-    /* --- SISTEMA DE ERRORES VISUALES (TOAST) --- */
-    #error-toast {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(255, 40, 40, 0.9);
-      backdrop-filter: blur(5px);
-      color: white;
-      padding: 15px 20px;
-      border-radius: 8px;
-      border-left: 5px solid #ffaaaa;
-      font-family: Consolas, monospace;
-      font-size: 13px;
-      z-index: 9999;
-      max-width: 400px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-      transform: translateX(120%);
-      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      pointer-events: none;
+    /* --- GRUPOS LOCALES / GLOBALES --- */
+    .bvh-category-group {
+      display: flex;
+      flex-direction: column;
+      margin-right: 25px;
     }
 
-    #error-toast.visible {
-      transform: translateX(0);
-    }
-
-    #error-toast strong {
-      display: block;
-      margin-bottom: 5px;
-      font-size: 14px;
+    .bvh-category-header {
+      font-size: 12px;
+      font-weight: bold;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      padding-left: 19px;
+    }
+
+    .bvh-category-items {
+      display: flex;
+      gap: 15px;
+      border-left: 4px solid;
+      padding-left: 15px;
+      border-radius: 2px;
+    }
+
+    .group-global .bvh-category-header {
+      color: #00ffcc;
+    }
+
+    .group-global .bvh-category-items {
+      border-color: #00ffcc;
+    }
+
+    .bvh-item.bvh-global:hover {
+      border-color: #00ffcc;
+    }
+
+    /* --- TEMA LOCALES (Naranja) --- */
+    .group-local .bvh-category-header {
+      color: #ffaa00;
+    }
+
+    .group-local .bvh-category-items {
+      border-color: #ffaa00;
+    }
+
+    .bvh-item.bvh-local:hover {
+      border-color: #ffaa00;
+    }
+
+    .btn-add-local {
+      border: 2px dashed rgba(255, 170, 0, 0.5) !important;
+      background: transparent;
+      flex-direction: column;
+    }
+
+    .btn-add-local:hover {
+      border-color: #ffaa00 !important;
+      background: rgba(255, 170, 0, 0.1) !important;
+    }
+
+    .btn-add-local span {
+      color: #ffaa00 !important;
     }
 
     .bvh-item.selected-bvh {
-      background: rgba(0, 255, 204, 0.15);
-      border-color: #00ffcc;
       transform: scale(1.05);
     }
 
@@ -459,42 +521,27 @@
 
     .bvh-item.selected-bvh::after {
       content: "➕ ADD";
-      color: #00ffcc;
       font-weight: bold;
       font-size: 16px;
       letter-spacing: 1px;
     }
 
-    #hover-preview-container {
-      position: fixed;
-      width: 250px;
-      height: 250px;
-      object-fit: cover;
-      background-color: #050505;
-      border: 2px solid #00ffcc;
-      border-radius: 8px;
-      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.8);
-      pointer-events: none;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      transform: translateY(10px);
-      z-index: 9999;
-      overflow: hidden;
+    .bvh-item.bvh-global.selected-bvh {
+      background: rgba(0, 255, 204, 0.15);
+      border-color: #00ffcc;
     }
 
-    #hover-preview-container.visible {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
+    .bvh-item.bvh-global.selected-bvh::after {
+      color: #00ffcc;
     }
 
-    #hover-preview-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: scale(1.3);
-      transform-origin: 30% bottom;
+    .bvh-item.bvh-local.selected-bvh {
+      background: rgba(255, 170, 0, 0.15);
+      border-color: #ffaa00;
+    }
+
+    .bvh-item.bvh-local.selected-bvh::after {
+      color: #ffaa00;
     }
   </style>
 </head>
@@ -545,9 +592,6 @@
     <div class="drawer-carousel" id="bvh-list"></div>
   </div>
 
-  <div id="hover-preview-container">
-    <img id="hover-preview-image" src="" alt="Preview en vivo">
-  </div>
   <div id="error-toast">
     <strong>Error de Sintaxis</strong>
     <span id="error-text"></span>
@@ -573,14 +617,10 @@
         });
       }
 
-      // --- ACTIVAR LA INTERFAZ (MENÚS DESPLEGABLES) ---
+      // --- ACTIVAR LA INTERFAZ ---
       toggleBtn.addEventListener('click', () => {
         drawer.classList.toggle('abierto');
-        if (drawer.classList.contains('abierto')) {
-          toggleIcon.className = 'fas fa-chevron-down';
-        } else {
-          toggleIcon.className = 'fas fa-chevron-up';
-        }
+        toggleIcon.className = drawer.classList.contains('abierto') ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
       });
 
       const helpSidebar = document.getElementById('help-sidebar');
@@ -590,27 +630,20 @@
         helpToggle.textContent = helpSidebar.classList.contains('abierto') ? 'X' : '?';
       });
 
-      // --- INSERCIÓN DESDE EL SIDEBAR DE AYUDA ---
       document.querySelectorAll('.help-item').forEach(item => {
         item.addEventListener('click', () => {
           if (!window.editor) return;
           const insertText = item.getAttribute('data-insert');
-
           if (insertText.startsWith('[')) {
             let code = window.editor.getValue();
             const regexBusqueda = /\[[^\]]+\]/;
-
             if (regexBusqueda.test(code)) {
               code = code.replace(regexBusqueda, `${insertText}\n>$&`);
             } else {
-              let salto = code.trim() !== "" ? "\n\n" : "";
-              code += `${salto}${insertText}`;
+              code += `${code.trim() !== "" ? "\n\n" : ""}${insertText}`;
             }
             window.editor.setValue(code);
-
-            if (iframePreview.contentWindow) {
-              document.getElementById('run').click();
-            }
+            if (iframePreview.contentWindow) document.getElementById('run').click();
           } else {
             window.editor.replaceSelection(insertText);
           }
@@ -618,73 +651,73 @@
         });
       });
 
-      // --- CARGA DE DATOS (ANIMACIONES BVH) ---
+      // --- CARGA DE DATOS  ---
       let animacionesDisponibles = [];
+      let animacionesLocales = new Set();
+      let customBvhPath = "";
 
       try {
-        if (typeof require !== 'undefined') {
-          const fs = require('fs');
-          const path = require('path');
-          const rutaAssets = path.join(__dirname, 'assets');
-          if (fs.existsSync(rutaAssets)) {
-            const archivos = fs.readdirSync(rutaAssets);
-            animacionesDisponibles = archivos
-              .filter(archivo => archivo.endsWith('.bvh'))
-              .map(archivo => archivo.replace('.bvh', ''));
+        if (window.require) {
+          const fs = window.require('fs');
+          const path = window.require('path');
+
+          const isDev = window.process.execPath.toLowerCase().includes('electron.exe');
+          const basePath = isDev ? window.process.cwd() : path.dirname(window.process.execPath);
+
+          // LEER GLOBALES
+          const rutaGlobal = isDev
+            ? path.join(window.process.cwd(), 'assets', 'bvh')
+            : path.join(window.process.resourcesPath, 'app.asar', 'assets', 'bvh');
+
+          if (fs.existsSync(rutaGlobal)) {
+            const archivosGlobales = fs.readdirSync(rutaGlobal);
+            archivosGlobales.filter(a => a.endsWith('.bvh')).forEach(a => {
+              animacionesDisponibles.push(a.replace('.bvh', ''));
+            });
+          }
+
+          // LEER LOCALES
+          customBvhPath = path.join(basePath, 'MoveScript_BVH');
+          if (!fs.existsSync(customBvhPath)) {
+            fs.mkdirSync(customBvhPath, { recursive: true });
+          } else {
+            const archivosCustom = fs.readdirSync(customBvhPath);
+            archivosCustom.filter(a => a.endsWith('.bvh')).forEach(a => {
+              const nombre = a.replace('.bvh', '');
+              if (!animacionesDisponibles.includes(nombre)) {
+                animacionesDisponibles.push(nombre);
+                animacionesLocales.add(nombre);
+              }
+            });
           }
         }
-      } catch (e) { console.warn("Local no disponible"); }
-
-      if (animacionesDisponibles.length === 0) {
-        try {
-          const response = await fetch('./assets/lista.json');
-          if (response.ok) {
-            animacionesDisponibles = await response.json();
-          }
-        } catch (e) {
-          console.warn("No se pudo leer el lista.json local");
-        }
-      }
-
-      if (animacionesDisponibles.length === 0 && navigator.onLine) {
-        try {
-          const urlNube = 'https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/lista.json';
-          const response = await fetch(urlNube);
-          if (response.ok) animacionesDisponibles = await response.json();
-        } catch (e) { console.warn("Nube bloqueada temporalmente"); }
+      } catch (e) {
+        console.warn("Error leyendo las carpetas nativamente:", e);
       }
 
       if (animacionesDisponibles.length === 0) {
-        console.warn("Cargando animaciones de emergencia.");
         animacionesDisponibles = ["surprise", "posing", "pendulum", "froging"];
       }
 
-      // --- DIBUJAR LOS BOTONES EN LA BANDEJA ---
-      const hoverPreviewContainer = document.getElementById('hover-preview-container');
-      const hoverPreviewImage = document.getElementById('hover-preview-image');
-
       animacionesDisponibles = animacionesDisponibles.filter(nombre => nombre !== 'dummy');
+
       let botonActivo = null;
 
-      animacionesDisponibles.forEach(nombre => {
+      function crearBotonAnimacion(nombre, esLocal = false) {
         const btn = document.createElement('div');
-        btn.className = 'bvh-item';
+        btn.className = 'bvh-item' + (esLocal ? ' bvh-local' : ' bvh-global');
         btn.innerHTML = `<span>${nombre}</span>`;
 
         btn.addEventListener('click', () => {
           if (botonActivo === btn) {
             if (!window.editor) return;
             let currentCode = window.editor.getValue().trim();
-            if (currentCode.endsWith(';')) {
-              currentCode = currentCode.slice(0, -1);
-            }
+            if (currentCode.endsWith(';')) currentCode = currentCode.slice(0, -1);
+
             const insertText = `[bvh("${nombre}")]`;
-            let salto = "";
-            if (currentCode !== "") {
-              salto = currentCode.endsWith(']') ? ">\n" : "\n";
-            }
-            let finalCode = currentCode + salto + insertText;
-            window.editor.setValue(finalCode);
+            let salto = currentCode !== "" ? (currentCode.endsWith(']') ? ">\n" : "\n") : "";
+
+            window.editor.setValue(currentCode + salto + insertText);
 
             for (let i = 0; i < window.editor.lineCount(); i++) {
               let textoLinea = window.editor.getLine(i);
@@ -695,32 +728,19 @@
               }
             }
             window.editor.focus();
-
-            if (iframePreview.contentWindow) {
-              document.getElementById('run').click();
-            }
+            if (iframePreview.contentWindow) document.getElementById('run').click();
 
             btn.classList.remove('selected-bvh');
             botonActivo = null;
-          }
-          else {
-            if (botonActivo) {
-              botonActivo.classList.remove('selected-bvh');
-            }
-
+          } else {
+            if (botonActivo) botonActivo.classList.remove('selected-bvh');
             btn.classList.add('selected-bvh');
             botonActivo = btn;
 
             if (iframePreview.contentWindow) {
-              if (window.editor) window.editor.getAllMarks().forEach(marker => marker.clear());
-
+              if (window.editor) window.editor.getAllMarks().forEach(m => m.clear());
               let currentCode = window.editor ? window.editor.getValue() : "";
-
-              let comandosEntorno = "";
-              const coincidencias = currentCode.match(/(?:bg|background|floor|cam|grid)\s*\([^)]*\)/g);
-              if (coincidencias) {
-                comandosEntorno = coincidencias.join("; ");
-              }
+              let comandosEntorno = (currentCode.match(/(?:bg|background|floor|cam|grid)\s*\([^)]*\)/g) || []).join("; ");
 
               const previewCode = `
                 clear(); 
@@ -729,29 +749,122 @@
                 ${comandosEntorno}; 
                 CHAIN($B()._setIdx(-1).bvh("${nombre}"));
               `;
-
               iframePreview.contentWindow.postMessage({ type: 'execute', code: previewCode }, '*');
             }
           }
         });
+        return btn;
+      }
 
-        // LÓGICA DE HOVER PARA EL GIF
-        btn.addEventListener('mouseenter', () => {
-          hoverPreviewImage.src = `./assets/gifs/${nombre}.gif`;
+      let addBtn = null;
+      try {
+        if (window.require) {
+          const fs = window.require('fs');
+          const path = window.require('path');
 
-          const rect = btn.getBoundingClientRect();
-          hoverPreviewContainer.style.left = `${rect.left - 45}px`;
-          hoverPreviewContainer.style.top = `${rect.top - 265}px`;
+          addBtn = document.createElement('div');
+          addBtn.className = 'bvh-item btn-add-local';
+          addBtn.innerHTML = `
+            <span style="font-size: 24px; pointer-events: none;">+</span>
+            <span style="font-size: 12px; pointer-events: none; margin-top: 5px;">ADD LOCAL</span>
+          `;
 
-          hoverPreviewContainer.classList.add('visible');
+          const fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.accept = '.bvh';
+          fileInput.style.display = 'none';
+          addBtn.appendChild(fileInput);
+
+          addBtn.addEventListener('click', () => fileInput.click());
+
+          fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+              const destPath = path.join(customBvhPath, file.name);
+              const arrayBuffer = await file.arrayBuffer();
+              const buffer = window.require('buffer').Buffer.from(arrayBuffer);
+              fs.writeFileSync(destPath, buffer);
+
+              const nombreAnimacion = path.parse(file.name).name;
+              const existe = animacionesDisponibles.includes(nombreAnimacion);
+
+              if (!existe) {
+                animacionesLocales.add(nombreAnimacion);
+                animacionesDisponibles.push(nombreAnimacion);
+                renderizarLista();
+              }
+              fileInput.value = '';
+
+            } catch (err) {
+              alert("Error al intentar guardar: " + err.message);
+              console.error(err);
+            }
+          });
+        }
+      } catch (e) {
+        console.warn("Botón ADD local desactivado.", e);
+      }
+
+      function renderizarLista() {
+        bvhList.innerHTML = '';
+
+        const locales = animacionesDisponibles
+          .filter(n => animacionesLocales.has(n))
+          .sort((a, b) => a.localeCompare(b));
+
+        const globales = animacionesDisponibles
+          .filter(n => !animacionesLocales.has(n))
+          .sort((a, b) => a.localeCompare(b));
+
+        // --- SECCIÓN GLOBALES ---
+        if (globales.length > 0) {
+          const grupoGlobales = document.createElement('div');
+          grupoGlobales.className = 'bvh-category-group group-global';
+
+          const tituloGlobales = document.createElement('div');
+          tituloGlobales.className = 'bvh-category-header';
+          tituloGlobales.innerText = 'Globales';
+          grupoGlobales.appendChild(tituloGlobales);
+
+          const itemsGlobales = document.createElement('div');
+          itemsGlobales.className = 'bvh-category-items';
+
+          globales.forEach(nombre => {
+            itemsGlobales.appendChild(crearBotonAnimacion(nombre, false));
+          });
+
+          grupoGlobales.appendChild(itemsGlobales);
+          bvhList.appendChild(grupoGlobales);
+        }
+
+        // --- SECCIÓN LOCALES ---
+        const grupoLocales = document.createElement('div');
+        grupoLocales.className = 'bvh-category-group group-local';
+
+        const tituloLocales = document.createElement('div');
+        tituloLocales.className = 'bvh-category-header';
+        tituloLocales.innerText = 'Locales';
+        grupoLocales.appendChild(tituloLocales);
+
+        const itemsLocales = document.createElement('div');
+        itemsLocales.className = 'bvh-category-items';
+
+        locales.forEach(nombre => {
+          itemsLocales.appendChild(crearBotonAnimacion(nombre, true));
         });
 
-        btn.addEventListener('mouseleave', () => {
-          hoverPreviewContainer.classList.remove('visible');
-        });
+        if (addBtn) {
+          itemsLocales.appendChild(addBtn);
+        }
 
-        bvhList.appendChild(btn);
-      });
+        grupoLocales.appendChild(itemsLocales);
+        bvhList.appendChild(grupoLocales);
+      }
+
+      // Renderizado inicial
+      renderizarLista();
     });
   </script>
 </body>

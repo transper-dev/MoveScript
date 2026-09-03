@@ -21,12 +21,20 @@
     "appId": "com.movescript.app",
     "productName": "MoveScriptVR",
     "win": {
-      "target": "nsis",
+      "target": [
+        "nsis",
+        "zip"
+      ],
       "icon": "icons/icon.ico"
     },
     "mac": {
       "target": "dmg",
       "icon": "icons/icon.icns"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": true
     }
   },
   "dependencies": {

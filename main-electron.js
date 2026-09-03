@@ -13,11 +13,24 @@ function startServerAndTunnel() {
     const server = http.createServer(expressApp);
     const io = new Server(server, { cors: { origin: "*" } });
 
-    // Servidor de archivos estáticos
+    const fs = require('fs');
+    const path = require('path');
+
+    const isDev = process.execPath.toLowerCase().includes('electron.exe');
+
+    const basePath = isDev ? process.cwd() : path.dirname(process.execPath);
+
+    const customBvhPath = path.join(basePath, 'MoveScript_BVH');
+    if (!fs.existsSync(customBvhPath)) {
+        fs.mkdirSync(customBvhPath, { recursive: true });
+    }
+
+    expressApp.use('/assets', express.static(customBvhPath));
+    expressApp.use('/assets', express.static(path.join(__dirname, 'assets', 'bvh')));
+
     expressApp.use(express.static(__dirname));
     expressApp.use('/build/', express.static(path.join(__dirname, 'node_modules/three/build')));
     expressApp.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/examples/jsm')));
-
     // WebSockets (Comunicación PC -> Gafas)
     io.on('connection', (socket) => {
         console.log('Visor VR conectado:', socket.id);
