@@ -16,9 +16,18 @@ function startServerAndTunnel() {
     const fs = require('fs');
     const path = require('path');
 
-    const isDev = process.execPath.toLowerCase().includes('electron.exe');
+    const isDev = process.execPath.toLowerCase().includes('electron');
+    const isMac = process.platform === 'darwin';
 
-    const basePath = isDev ? process.cwd() : path.dirname(process.execPath);
+    let basePath;
+    if (isDev) {
+        basePath = process.cwd();
+    } else if (isMac) {
+        const os = require('os');
+        basePath = path.join(os.homedir(), 'Documents');
+    } else {
+        basePath = path.dirname(process.execPath);
+    }
 
     const customBvhPath = path.join(basePath, 'MoveScript_BVH');
     if (!fs.existsSync(customBvhPath)) {

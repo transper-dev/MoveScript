@@ -658,9 +658,18 @@
           const fs = window.require('fs');
           const path = window.require('path');
 
-          const isDev = window.process.execPath.toLowerCase().includes('electron.exe');
-          const basePath = isDev ? window.process.cwd() : path.dirname(window.process.execPath);
+          const isDev = window.process.execPath.toLowerCase().includes('electron');
+          const isMac = window.process.platform === 'darwin';
+          const os = window.require('os');
 
+          let basePath;
+          if (isDev) {
+            basePath = window.process.cwd();
+          } else if (isMac) {
+            basePath = path.join(os.homedir(), 'Documents');
+          } else {
+            basePath = path.dirname(window.process.execPath);
+          }
           // LEER GLOBALES
           const rutaGlobal = isDev
             ? path.join(window.process.cwd(), 'assets', 'bvh')
