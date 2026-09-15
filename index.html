@@ -291,6 +291,8 @@
       padding: 10px;
       box-sizing: border-box;
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
 
     .bvh-item:hover {
@@ -543,6 +545,38 @@
     .bvh-item.bvh-local.selected-bvh::after {
       color: #ffaa00;
     }
+
+    #hover-preview-container {
+      position: fixed;
+      width: 250px;
+      height: 250px;
+      object-fit: cover;
+      background-color: #050505;
+      border: 2px solid #00ffcc;
+      border-radius: 8px;
+      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      transform: translateY(10px);
+      z-index: 9999;
+      overflow: hidden;
+    }
+
+    #hover-preview-container.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    #hover-preview-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.3);
+      transform-origin: 30% bottom;
+    }
   </style>
 </head>
 
@@ -588,7 +622,9 @@
     <div class="drawer-header"><span>Movement Previews</span></div>
     <div class="drawer-carousel" id="bvh-list"></div>
   </div>
-
+  <div id="hover-preview-container">
+    <img id="hover-preview-image" src="" alt="Preview en vivo">
+  </div>
   <div id="error-toast">
     <strong>Error de Sintaxis</strong>
     <span id="error-text"></span>
@@ -712,53 +748,71 @@
       function crearBotonAnimacion(nombre, esLocal = false) {
         const btn = document.createElement('div');
         btn.className = 'bvh-item' + (esLocal ? ' bvh-local' : ' bvh-global');
-        btn.innerHTML = `<span>${nombre}</span>`;
 
-        btn.addEventListener('click', () => {
-          if (botonActivo === btn) {
-            if (!window.editor) return;
-            let currentCode = window.editor.getValue().trim();
-            if (currentCode.endsWith(';')) currentCode = currentCode.slice(0, -1);
+        const texto = document.createElement('span');
+        texto.innerText = nombre;
+        btn.appendChild(texto);
 
-            const insertText = `[bvh("${nombre}")]`;
-            let salto = currentCode !== "" ? (currentCode.endsWith(']') ? ">\n" : "\n") : "";
+        // Capturamos los elementos del popup flotante
+        const hoverPreviewContainer = document.getElementById('hover-preview-container');
+        const hoverPreviewImage = document.getElementById('hover-preview-image');
 
-            window.editor.setValue(currentCode + salto + insertText);
+        // HOVER: Entrar con el ratón
+        btn.addEventListener('mouseenter', () => {
+          // 1. Cambiamos el texto como pidió el jefe
+          texto.innerText = `ADD ${nombre}`;
 
-            for (let i = 0; i < window.editor.lineCount(); i++) {
-              let textoLinea = window.editor.getLine(i);
-              let posicion = textoLinea.lastIndexOf(insertText);
-              if (posicion !== -1) {
-                window.editor.setCursor({ line: i, ch: posicion + insertText.length - 1 });
-                break;
-              }
-            }
-            window.editor.focus();
-            if (iframePreview.contentWindow) document.getElementById('run').click();
+          // 2. Si NO es local, mostramos tu ventana flotante
+          if (!esLocal && hoverPreviewContainer) {
+            hoverPreviewImage.src = `./assets/gifs/${nombre}.gif`;
 
-            btn.classList.remove('selected-bvh');
-            botonActivo = null;
-          } else {
-            if (botonActivo) botonActivo.classList.remove('selected-bvh');
-            btn.classList.add('selected-bvh');
-            botonActivo = btn;
+            // Si el GIF falla o no existe, escondemos la ventana para que no salga rota
+            hoverPreviewImage.onerror = () => {
+              hoverPreviewContainer.classList.remove('visible');
+            };
 
-            if (iframePreview.contentWindow) {
-              if (window.editor) window.editor.getAllMarks().forEach(m => m.clear());
-              let currentCode = window.editor ? window.editor.getValue() : "";
-              let comandosEntorno = (currentCode.match(/(?:bg|background|floor|cam|grid)\s*\([^)]*\)/g) || []).join("; ");
-
-              const previewCode = `
-                clear(); 
-                cam(0, 150, 350, 0, 100, 0); 
-                bg("#0a0a0a"); 
-                ${comandosEntorno}; 
-                CHAIN($B()._setIdx(-1).bvh("${nombre}"));
-              `;
-              iframePreview.contentWindow.postMessage({ type: 'execute', code: previewCode }, '*');
-            }
+            // Calculamos la posición exacta como lo tenías en tu código
+            const rect = btn.getBoundingClientRect();
+            hoverPreviewContainer.style.left = `${rect.left - 45}px`;
+            hoverPreviewContainer.style.top = `${rect.top - 265}px`;
+            hoverPreviewContainer.classList.add('visible');
           }
         });
+
+        // HOVER: Salir con el ratón
+        btn.addEventListener('mouseleave', () => {
+          // 1. Restauramos el texto original
+          texto.innerText = nombre;
+
+          // 2. Escondemos la ventana flotante
+          if (hoverPreviewContainer) {
+            hoverPreviewContainer.classList.remove('visible');
+          }
+        });
+
+        // CLIC: Inserción directa en un solo clic
+        btn.addEventListener('click', () => {
+          if (!window.editor) return;
+          let currentCode = window.editor.getValue().trim();
+          if (currentCode.endsWith(';')) currentCode = currentCode.slice(0, -1);
+
+          const insertText = `[bvh("${nombre}")]`;
+          let salto = currentCode !== "" ? (currentCode.endsWith(']') ? ">\n" : "\n") : "";
+
+          window.editor.setValue(currentCode + salto + insertText);
+
+          for (let i = 0; i < window.editor.lineCount(); i++) {
+            let textoLinea = window.editor.getLine(i);
+            let posicion = textoLinea.lastIndexOf(insertText);
+            if (posicion !== -1) {
+              window.editor.setCursor({ line: i, ch: posicion + insertText.length - 1 });
+              break;
+            }
+          }
+          window.editor.focus();
+          if (iframePreview.contentWindow) document.getElementById('run').click();
+        });
+
         return btn;
       }
 
