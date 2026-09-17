@@ -16,16 +16,16 @@
             --nav-height: 60px;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             margin: 0;
             font-family: 'Courier New', Courier, monospace;
             background-color: var(--bg-color);
             color: var(--text-color);
             overflow-x: hidden;
-        }
-
-        html {
-            scroll-behavior: smooth;
         }
 
         .top-nav {
@@ -56,22 +56,20 @@
             gap: 20px;
         }
 
-        .main-menu button {
-            background: none;
-            border: none;
+        .main-menu a.nav-btn {
+            text-decoration: none;
             color: #aaa;
             font-size: 1rem;
-            font-family: inherit;
-            cursor: pointer;
             padding: 10px 15px;
             border-radius: 4px;
             transition: all 0.2s;
         }
 
-        .main-menu button:hover,
-        .main-menu button.active {
+        .main-menu a.nav-btn:hover,
+        .main-menu a.nav-btn.active {
             color: var(--accent-color);
             background: rgba(0, 255, 204, 0.1);
+            font-weight: bold;
         }
 
         .page-content {
@@ -79,25 +77,9 @@
             padding: 0;
         }
 
-        .section-container {
-            display: none;
-        }
-
-        .section-container.active {
-            display: block;
-            animation: slideLateral 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        @keyframes slideLateral {
-            from {
-                opacity: 0;
-                transform: translateX(80px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        .page-section {
+            scroll-margin-top: 60px;
+            min-height: 50vh;
         }
 
         .sub-nav {
@@ -134,7 +116,7 @@
 
         .content-padding {
             padding: 40px;
-            padding-bottom: 50vh;
+            padding-bottom: 10vh;
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -148,9 +130,9 @@
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
-
             display: flex;
             flex-direction: column;
+            align-items: center;
         }
 
         .doc-section>h3,
@@ -158,6 +140,13 @@
             width: 100%;
             text-align: left;
             margin-bottom: 10px;
+        }
+
+        .function-title {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            margin-top: 0;
+            line-height: 1.4;
         }
 
         .doc-card {
@@ -168,12 +157,6 @@
             margin-top: 5px;
             width: 100%;
             text-align: left;
-        }
-
-        .function-title {
-            font-size: 1.8rem;
-            color: var(--accent-color);
-            margin-top: 0;
         }
 
         .code-wrapper {
@@ -234,7 +217,6 @@
             font-weight: bold;
         }
 
-        /* --- ESTILOS DEL CATALOGO DE MOVIMIENTOS --- */
         .header-text {
             text-align: center;
             margin-bottom: 50px;
@@ -296,50 +278,84 @@
             position: relative;
             z-index: 2;
         }
+
+        /* --- BOTÓN VOLVER ARRIBA --- */
+        #backToTop {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(15, 15, 15, 0.85);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #backToTop.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #backToTop:hover {
+            background: var(--accent-color);
+            color: #000;
+            transform: translateY(-3px);
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- NAVEGACIÓN PRINCIPAL SUPERIOR -->
     <nav class="top-nav">
         <h2>MoveScript</h2>
         <div class="main-menu">
-            <button onclick="openTab('demo')" id="btn-demo">Demo</button>
-            <button onclick="openTab('functions')" id="btn-functions" class="active">Functions</button>
-            <button onclick="openTab('movements')" id="btn-movements">Movements</button>
-            <button onclick="openTab('videotobvh')" id="btn-videotobvh">VideoToBVH</button>
+            <a href="#demo" class="nav-btn">Demo</a>
+            <a href="#functions" class="nav-btn">Functions</a>
+            <a href="#movements" class="nav-btn">Movements</a>
+            <a href="#videotobvh" class="nav-btn">VideoToBVH</a>
         </div>
-        <div style="width: 120px;"></div> <!-- Spacer para centrar el menú -->
+        <div style="width: 120px;"></div>
     </nav>
 
     <div class="page-content">
 
-        <!-- ================= SECCIÓN: DEMO ================= -->
-        <section id="demo" class="section-container">
-            <div class="content-padding">
-                <h1 class="function-title">Live Demo</h1>
-                <p style="color: #aaa;">Contenido de demostración en construcción...</p>
+        <section id="demo" class="page-section">
+            <div class="content-padding " style="padding-bottom: 10vh;">
+                <h1 class="function-title" style="text-align: center;">Live Demo</h1>
+                <p style="color: #aaa; text-align: center;">Contenido de demostración en construcción...</p>
             </div>
         </section>
 
 
-        <!-- ================= SECCIÓN: FUNCTIONS ================= -->
-        <section id="functions" class="section-container active">
-            <!-- Sub-nav central para saltar a funciones -->
+        <section id="functions" class="page-section">
             <nav class="sub-nav">
-                <a href="#bvh">bvh()</a>
-                <a href="#dummy">dummy()</a>
-                <a href="#joints">joints()</a>
-                <a href="#bones">bones()</a>
-                <a href="#color">color()</a>
-                <a href="#trail">trail()</a>
-                <a href="#chaining">Chaining</a>
+                <a href="#bvh">bvh</a>
+                <a href="#dummy">dummy</a>
+                <a href="#joints">joints</a>
+                <a href="#bones">bones</a>
+                <a href="#color">color</a>
+                <a href="#trail">trail</a>
+                <a href="#chaining">chaining</a>
             </nav>
 
             <div class="content-padding">
+                <div class="header-text" style="margin-bottom: 60px;">
+                    <h1 class="function-title">Functions Reference</h1>
+                    <p>Explore the available methods to load animations, modify the skeleton, and chain movements.</p>
+                </div>
                 <section id="bvh" class="doc-section">
-                    <h3 class="function-title">bvh( name )</h3>
+                    <h3 class="function-title">bvh( "name" )</h3>
                     <p>Loads and initializes a pre-recorded animation to apply it to the skeleton.</p>
                     <div class="doc-card">
                         <div class="code-wrapper">
@@ -347,8 +363,13 @@
                             <pre class="code-block"><code>[bvh("surprise")]</code></pre>
                         </div>
                         <img class="gif-preview" src="assets/gifs/bvh-example.gif" alt="bvh example">
-                        <div class="description"><strong>Parameters:</strong> <code>name</code> (string with the name of
-                            the animation file).</div>
+                        <div class="description">
+                            <strong>Parameters:</strong> <code>"name"</code> (string with the exact name of the
+                            animation file).
+                            <br><em>Check the <a href="#movements"
+                                    style="color: var(--accent-color); text-decoration: none; border-bottom: 1px dashed var(--accent-color);">Movement
+                                    Catalog</a> to see all available animations.</em>
+                        </div>
                     </div>
                 </section>
 
@@ -379,63 +400,68 @@
                     </div>
                 </section>
 
-                <!-- Resto de funciones -->
                 <section id="bones" class="doc-section">
-                    <h3 class="function-title">.bones( thickness, [length] )</h3>
+                    <h3 class="function-title">.bones( thickness, length = 1 )</h3>
+                    <p>Adjusts the thickness and length of the bones connecting the joints.</p>
                     <div class="doc-card">
                         <div class="code-wrapper">
                             <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
                             <pre class="code-block"><code>[bvh("surprise").bones(2, 1)]</code></pre>
                         </div>
                         <img class="gif-preview" src="assets/gifs/bones-example.gif" alt="bones example">
+                        <div class="description"><strong>Parameters:</strong> <code>thickness</code> (bone width),
+                            <code>length</code> (distance multiplier between connections, defaults to 1 if omitted).
+                        </div>
                     </div>
                 </section>
 
                 <section id="color" class="doc-section">
-                    <h3 class="function-title">.color( c1, [c2] )</h3>
+                    <h3 class="function-title">.color( c1 )<br>.color( c1, c2 )</h3>
+                    <p>Applies a solid color to the skeleton, or generates a gradient if two colors are specified.</p>
                     <div class="doc-card">
                         <div class="code-wrapper">
                             <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
                             <pre class="code-block"><code>[bvh("surprise").color("red", "blue")]</code></pre>
                         </div>
                         <img class="gif-preview" src="assets/gifs/color-example.gif" alt="color example">
+                        <div class="description"><strong>Parameters:</strong> <code>c1</code> (main color in text or hex
+                            format), <code>c2</code> (secondary color to create the gradient).</div>
                     </div>
                 </section>
 
                 <section id="trail" class="doc-section">
                     <h3 class="function-title">.trail( frames )</h3>
+                    <p>Creates a visual trail by cloning previous frames to show the movement trajectory.</p>
                     <div class="doc-card">
                         <div class="code-wrapper">
                             <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
                             <pre class="code-block"><code>[bvh("surprise").trail(20)]</code></pre>
                         </div>
                         <img class="gif-preview" src="assets/gifs/trail-example.gif" alt="trail example">
+                        <div class="description"><strong>Parameters:</strong> <code>frames</code> (integer indicating
+                            how many previous steps form the trail).</div>
                     </div>
                 </section>
 
                 <section id="chaining" class="doc-section">
                     <h3 class="function-title">Chaining ( [] > [] )</h3>
+                    <p>Links multiple animation blocks sequentially. When the first animation finishes, the skeleton
+                        will automatically transition into the next one.</p>
                     <div class="doc-card">
                         <div class="code-wrapper">
                             <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
                             <pre class="code-block"><code>[bvh("surprise")] > [bvh("froging").color("red")]</code></pre>
                         </div>
                         <img class="gif-preview" src="assets/gifs/chain-example.gif" alt="chaining example">
+                        <div class="description"><strong>Syntax:</strong> Use the <code>&gt;</code> symbol between two
+                            completely closed blocks (<code>[] &gt; []</code>) to concatenate them.</div>
                     </div>
                 </section>
             </div>
         </section>
 
 
-        <!-- ================= SECCIÓN: MOVEMENTS ================= -->
-        <section id="movements" class="section-container">
-            <!-- Sub-nav central opcional para movimientos -->
-            <nav class="sub-nav">
-                <a href="#">Sort A-Z</a>
-                <a href="#">Category 1</a>
-                <a href="#">Category 2</a>
-            </nav>
-
+        <section id="movements" class="page-section">
             <div class="content-padding">
                 <div class="header-text">
                     <h1 class="function-title">Movement Catalog</h1>
@@ -476,38 +502,20 @@
         </section>
 
 
-        <!-- ================= SECCIÓN: VIDEOTOBVH ================= -->
-        <section id="videotobvh" class="section-container">
-            <div class="content-padding">
-                <h1 class="function-title">Video to BVH Converter</h1>
-                <p style="color: #aaa;">Herramienta de conversión en construcción...</p>
+        <section id="videotobvh" class="page-section">
+            <div class="content-padding" style="padding-bottom: 50vh;">
+                <h1 class="function-title" style="text-align: center;">Video to BVH Converter</h1>
+                <p style="color: #aaa; text-align: center;">Herramienta de conversión en construcción...</p>
             </div>
         </section>
 
     </div>
 
-    <!-- SCRIPT DE NAVEGACIÓN Y COPIAR CÓDIGO -->
+    <button id="backToTop" title="Back to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
     <script>
-        // Función para cambiar de pestaña
-        function openTab(tabId) {
-            // Ocultar todas las secciones
-            document.querySelectorAll('.section-container').forEach(sec => {
-                sec.classList.remove('active');
-            });
-            // Quitar clase active de los botones
-            document.querySelectorAll('.main-menu button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Mostrar la sección seleccionada y activar su botón
-            document.getElementById(tabId).classList.add('active');
-            document.getElementById('btn-' + tabId).classList.add('active');
-
-            // Volver al inicio de la página al cambiar de sección
-            window.scrollTo(0, 0);
-        }
-
-        // Lógica de los botones de copiar código
         document.querySelectorAll('.copy-btn').forEach(button => {
             button.addEventListener('click', () => {
                 const codeElement = button.nextElementSibling.querySelector('code');
@@ -550,6 +558,53 @@
 
         document.querySelectorAll('.doc-section').forEach(section => {
             observer.observe(section);
+        });
+
+        const backToTopBtn = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        const mainObserverOptions = {
+            root: null,
+            rootMargin: '-65px 0px -60% 0px',
+            threshold: 0
+        };
+
+        const mainObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+
+                    document.querySelectorAll('.main-menu a.nav-btn').forEach(link => {
+                        link.classList.remove('active');
+                    });
+
+                    const activeLink = document.querySelector(`.main-menu a.nav-btn[href="#${id}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                    }
+
+                    if (id !== 'functions') {
+                        document.querySelectorAll('.sub-nav a').forEach(link => {
+                            link.classList.remove('active');
+                        });
+                    }
+                }
+            });
+        }, mainObserverOptions);
+
+        document.querySelectorAll('.page-section').forEach(section => {
+            mainObserver.observe(section);
         });
     </script>
 </body>
