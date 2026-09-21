@@ -42,10 +42,21 @@ function startServerAndTunnel() {
     expressApp.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/examples/jsm')));
     // WebSockets (Comunicación PC -> Gafas)
     io.on('connection', (socket) => {
-        console.log('Visor VR conectado:', socket.id);
+        const userAgent = socket.handshake.headers['user-agent'] || '';
+        const referer = socket.handshake.headers.referer || '';
+
+        if (userAgent.includes('OculusBrowser') || userAgent.includes('Quest')) {
+            console.log('\x1b[32m[VR] >>> Meta Quest conectadas con éxito! (ID: ' + socket.id + ')\x1b[0m');
+        } else if (referer.includes('visor.html')) {
+            console.log('\x1b[90m[Local] Visor 3D interno cargado\x1b[0m');
+        } else {
+            console.log('\x1b[90m[Local] Interfaz principal cargada\x1b[0m');
+        }
+
         socket.on('update_code', (data) => {
             socket.broadcast.emit('execute_code', data);
         });
+
         socket.on('vr_data', (data) => {
             // Posición (X, Y, Z)
             if (data.c1) oscClient.send('/vr/left_controller/pos', data.c1[0], data.c1[1], data.c1[2]);
@@ -54,6 +65,12 @@ function startServerAndTunnel() {
             // Rotación (Inclinación X, Y, Z en radianes)
             if (data.rot1) oscClient.send('/vr/left_controller/rot', data.rot1[0], data.rot1[1], data.rot1[2]);
             if (data.rot2) oscClient.send('/vr/right_controller/rot', data.rot2[0], data.rot2[1], data.rot2[2]);
+        });
+
+        socket.on('disconnect', () => {
+            if (userAgent.includes('OculusBrowser') || userAgent.includes('Quest')) {
+                console.log('\x1b[31m[VR] Meta Quest desconectadas\x1b[0m');
+            }
         });
     });
 
