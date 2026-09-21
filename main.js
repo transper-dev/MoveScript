@@ -379,7 +379,7 @@ toggleBtn.addEventListener("click", () => {
 
 let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
 bar.addEventListener("pointerdown", (e) => {
-  if (e.target && e.target.tagName === "BUTTON") return;
+  if (e.target && e.target.closest("button")) return;
   dragging = true; bar.setPointerCapture(e.pointerId);
   const rect = overlay.getBoundingClientRect();
   startX = e.clientX; startY = e.clientY; startLeft = rect.left; startTop = rect.top;

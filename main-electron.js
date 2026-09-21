@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const express = require('express');
 const http = require('http');
@@ -57,22 +57,21 @@ function startServerAndTunnel() {
         });
     });
 
-    // Servidor local y lanzamiento de Túnel
+    // Servidor local 
     server.listen(3000, '0.0.0.0', () => {
         console.log('Servidor local corriendo en http://localhost:3000');
-        console.log('Abriendo terminal para el tunel VR...');
+    });
 
+    // Escuchador limpio
+    ipcMain.on('iniciar-tunel-vr', () => {
         let comando = '';
         const comandoSSH = 'ssh -p 443 -R0:127.0.0.1:3000 -o StrictHostKeyChecking=no qr@a.pinggy.io';
 
-        // Windows
         if (process.platform === 'win32') {
             comando = `start cmd.exe /k "title Tunel VR && color 0A && echo Conectando con Pinggy... && ${comandoSSH}"`;
         } else if (process.platform === 'darwin') {
-            // Mac (AppleScript)
             comando = `osascript -e 'tell app "Terminal" to do script "echo Conectando con Pinggy... && ${comandoSSH}"'`;
         } else {
-            // Linux (gnome-terminal u xterm)
             comando = `x-terminal-emulator -e "bash -c \\"echo Conectando con Pinggy... && ${comandoSSH}; exec bash\\""`;
         }
 

@@ -88,6 +88,7 @@
     #randomBtn,
     #globalPauseBtn,
     #saveBtn,
+    #vrBtn,
     #docsBtn {
       padding: 6px 10px;
       cursor: pointer;
@@ -103,6 +104,7 @@
     #randomBtn:hover,
     #globalPauseBtn:hover,
     #saveBtn:hover,
+    #vrBtn:hover,
     #docsBtn:hover {
       background: rgba(255, 255, 255, 0.10);
     }
@@ -592,6 +594,7 @@
         <button id="run">Run (Ctrl+Enter)</button>
         <button id="toggle">Hide (Esc)</button>
         <button id="globalPauseBtn">Pause (Ctrl+P)</button>
+        <button id="vrBtn">VR <i class="fas fa-vr-cardboard"></i></button>
         <button id="docsBtn">Docs <i class="fas fa-external-link-alt"
             style="font-size: 0.8em; margin-left: 5px;"></i></button>
         <button id="randomBtn" style="display: none;"><i class="fas fa-random"></i> Random</button>
@@ -647,6 +650,23 @@
       if (docsBtn) {
         docsBtn.addEventListener('click', () => {
           window.open('docs.html', '_blank');
+        });
+      }
+
+      const vrBtn = document.getElementById('vrBtn');
+      if (vrBtn) {
+        vrBtn.addEventListener('click', () => {
+          if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            ipcRenderer.send('iniciar-tunel-vr');
+
+            vrBtn.style.color = '#00ffcc';
+            vrBtn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => {
+              vrBtn.style.color = '';
+              vrBtn.innerHTML = 'VR <i class="fas fa-vr-cardboard"></i>';
+            }, 3000);
+          }
         });
       }
 
