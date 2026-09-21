@@ -68,7 +68,7 @@ function startServerAndTunnel() {
         const comandoSSH = 'ssh -p 443 -R0:127.0.0.1:3000 -o StrictHostKeyChecking=no qr@a.pinggy.io';
 
         if (process.platform === 'win32') {
-            comando = `start cmd.exe /k "title Tunel VR && color 0A && echo Conectando con Pinggy... && ${comandoSSH}"`;
+            comando = `start cmd.exe /k "title Tunel VR && color 0A && mode con: cols=90 lines=30 && echo Conectando con Pinggy... && ${comandoSSH}"`;
         } else if (process.platform === 'darwin') {
             comando = `osascript -e 'tell app "Terminal" to do script "echo Conectando con Pinggy... && ${comandoSSH}"'`;
         } else {
