@@ -46,7 +46,8 @@ function startServerAndTunnel() {
         const referer = socket.handshake.headers.referer || '';
 
         if (userAgent.includes('OculusBrowser') || userAgent.includes('Quest')) {
-            console.log('\x1b[32m[VR] >>> Meta Quest conectadas con éxito! (ID: ' + socket.id + ')\x1b[0m');
+            console.log('\x1b[32m[VR] >>> Meta Quest conectadas con exito! (ID: ' + socket.id + ')\x1b[0m');
+            io.emit('vr_status', { status: 'connected' });
         } else if (referer.includes('visor.html')) {
             console.log('\x1b[90m[Local] Visor 3D interno cargado\x1b[0m');
         } else {
@@ -70,6 +71,7 @@ function startServerAndTunnel() {
         socket.on('disconnect', () => {
             if (userAgent.includes('OculusBrowser') || userAgent.includes('Quest')) {
                 console.log('\x1b[31m[VR] Meta Quest desconectadas\x1b[0m');
+                io.emit('vr_status', { status: 'disconnected' });
             }
         });
     });
@@ -79,21 +81,30 @@ function startServerAndTunnel() {
         console.log('Servidor local corriendo en http://localhost:3000');
     });
 
-    // Escuchador limpio
+    // Escuchador
+    let procesoTunel = null;
+
     ipcMain.on('iniciar-tunel-vr', () => {
+        // Si el proceso ya existe, ignoramos los clics repetidos
+        if (procesoTunel) return;
+
         let comando = '';
         const comandoSSH = 'ssh -p 443 -R0:127.0.0.1:3000 -o StrictHostKeyChecking=no qr@a.pinggy.io';
 
         if (process.platform === 'win32') {
-            comando = `start cmd.exe /k "title Tunel VR && color 0A && mode con: cols=90 lines=30 && echo Conectando con Pinggy... && ${comandoSSH}"`;
+            // Usamos 'start /wait' y 'cmd /c' para que Node detecte el cierre de la ventana
+            comando = `start /wait cmd.exe /c "title Tunel VR && color 0A && mode con: cols=90 lines=30 && echo Conectando con Pinggy... && ${comandoSSH}"`;
         } else if (process.platform === 'darwin') {
             comando = `osascript -e 'tell app "Terminal" to do script "echo Conectando con Pinggy... && ${comandoSSH}"'`;
         } else {
             comando = `x-terminal-emulator -e "bash -c \\"echo Conectando con Pinggy... && ${comandoSSH}; exec bash\\""`;
         }
 
-        exec(comando, (error) => {
-            if (error) console.error("Error abriendo la consola:", error);
+        // Ejecutamos y guardamos el proceso en la variable
+        procesoTunel = exec(comando, (error) => {
+            // Esto se ejecuta JUSTO cuando cierras la terminal negra con la 'X'
+            procesoTunel = null; // Vaciamos la variable
+            io.emit('tunel_cerrado'); // Avisamos al frontend
         });
     });
 }

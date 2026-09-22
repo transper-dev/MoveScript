@@ -80,18 +80,31 @@
         .page-section {
             scroll-margin-top: 60px;
             min-height: 50vh;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .page-section:last-child {
+            border-bottom: none;
         }
 
         .sub-nav {
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             gap: 15px;
-            background-color: #151515;
+            background-color: rgba(21, 21, 21, 0.9);
+            backdrop-filter: blur(10px);
             padding: 10px 20px;
-            border-bottom: 1px solid #222;
+            border: 1px solid #333;
+            border-radius: 8px;
             position: sticky;
-            top: var(--nav-height);
+            top: calc(var(--nav-height) + 10px);
             z-index: 999;
+            margin-bottom: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .sub-nav a {
@@ -115,16 +128,47 @@
         }
 
         .content-padding {
-            padding: 40px;
-            padding-bottom: 10vh;
+            padding: 60px 40px 10vh 40px;
             max-width: 1200px;
             margin: 0 auto;
+        }
+
+        .header-text {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header-text p {
+            color: #ccc;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 10px auto 0 auto;
+            line-height: 1.5;
+        }
+
+        .header-text code {
+            background-color: #252525;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #fff;
+        }
+
+        .function-title {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            margin-top: 0;
+            line-height: 1.4;
+        }
+
+        .no-border {
+            border-bottom: none !important;
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
         }
 
         .doc-section {
             padding-bottom: 50px;
             margin-bottom: 50px;
-            border-bottom: 1px solid #222;
             scroll-margin-top: 120px;
             width: 100%;
             max-width: 800px;
@@ -140,13 +184,6 @@
             width: 100%;
             text-align: left;
             margin-bottom: 10px;
-        }
-
-        .function-title {
-            font-size: 1.8rem;
-            color: var(--accent-color);
-            margin-top: 0;
-            line-height: 1.4;
         }
 
         .doc-card {
@@ -215,23 +252,6 @@
             color: #000;
             border-color: var(--accent-color);
             font-weight: bold;
-        }
-
-        .header-text {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .header-text p {
-            color: #ccc;
-            font-size: 1rem;
-        }
-
-        .header-text code {
-            background-color: #252525;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: #fff;
         }
 
         .anim-grid {
@@ -312,6 +332,7 @@
             transform: translateY(-3px);
         }
 
+        /* ESTILOS DE MEDIA (VIDEOS/IMAGENES DEMO) */
         .demo-video-container {
             padding: 20px;
             display: flex;
@@ -348,8 +369,9 @@
         <div class="main-menu">
             <a href="#demo" class="nav-btn">Demo</a>
             <a href="#functions" class="nav-btn">Functions</a>
-            <a href="#movements" class="nav-btn">Movements</a>
             <a href="#videotobvh" class="nav-btn">VideoToBVH</a>
+            <a href="#vr" class="nav-btn">WebXR</a>
+            <a href="#movements" class="nav-btn">Movements</a>
         </div>
         <div style="width: 120px;"></div>
     </nav>
@@ -358,14 +380,12 @@
 
         <section id="demo" class="page-section">
             <div class="content-padding">
-                <div class="header-text" style="margin-bottom: 60px;">
+                <div class="header-text">
                     <h1 class="function-title">Live Demos</h1>
-                    <p>Discover how MoveScript integrates into your local and Mixed Reality workflow.</p>
+                    <p>Write code and see the changes instantly with no load times.</p>
                 </div>
 
-                <section class="doc-section">
-                    <h3 class="function-title">1. Live Coding & Visualization</h3>
-                    <p>Write code and see the changes instantly with no load times.</p>
+                <section class="doc-section no-border">
                     <div class="doc-card">
                         <div class="demo-video-container">
                             <video class="demo-media" controls muted loop>
@@ -374,82 +394,27 @@
                         </div>
                     </div>
                 </section>
-
-                <section class="doc-section">
-                    <h3 class="function-title">2. WebXR Connection (Meta Quest)</h3>
-                    <p style="font-size: 1.1rem;">Follow these steps to expose your local server to the internet and
-                        project the skeleton into your physical environment using the headset.</p>
-                    <div class="doc-card">
-                        <div class="demo-video-container">
-
-                            <div>
-                                <img class="demo-media" src="assets/docs/DemoVR1.png"
-                                    alt="Terminal running Pinggy with QR">
-                                <p class="demo-caption"><strong>Step 1:</strong> Pinggy opens automatically when running
-                                    the software. Simply press 'Enter' when prompted for the password. You will receive
-                                    a public URL and a QR code.</p>
-                            </div>
-
-                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
-
-                            <div>
-                                <img class="demo-media" src="assets/docs/DemoVRConsent.jpg"
-                                    alt="Security warning on Quest">
-                                <p class="demo-caption"><strong>Step 2:</strong> Open the URL in the Meta Quest browser.
-                                    Since it is a free tunnel, you must click "Enter site" to confirm access.</p>
-                            </div>
-
-                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
-
-                            <div>
-                                <img class="demo-media" src="assets/docs/DemoVR2.png"
-                                    alt="Terminal showing HTTP requests">
-                                <p class="demo-caption"><strong>Step 3:</strong> Back in your PC terminal, you will see
-                                    HTTP requests arriving, confirming the headset is successfully connected.</p>
-                            </div>
-
-                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
-
-                            <div>
-                                <video class="demo-media" controls muted loop>
-                                    <source src="assets/docs/DemoVR3.mp4" type="video/mp4">
-                                </video>
-                                <p class="demo-caption"><strong>Step 4:</strong> Load your animations and test the
-                                    movements in the local environment.</p>
-                            </div>
-
-                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
-
-                            <div>
-                                <video class="demo-media" controls muted loop>
-                                    <source src="assets/docs/DemoVR4.mp4" type="video/mp4">
-                                </video>
-                                <p class="demo-caption"><strong>Step 5:</strong> Grant immersive permissions on the Meta
-                                    Quest to see the skeleton projected into your room (Passthrough).</p>
-                            </div>
-
-                        </div>
-                    </div>
-                </section>
             </div>
         </section>
 
         <section id="functions" class="page-section">
-            <nav class="sub-nav">
-                <a href="#bvh">bvh</a>
-                <a href="#dummy">dummy</a>
-                <a href="#joints">joints</a>
-                <a href="#bones">bones</a>
-                <a href="#color">color</a>
-                <a href="#trail">trail</a>
-                <a href="#chaining">chaining</a>
-            </nav>
 
             <div class="content-padding">
-                <div class="header-text" style="margin-bottom: 60px;">
+                <div class="header-text">
                     <h1 class="function-title">Functions Reference</h1>
                     <p>Explore the available methods to load animations, modify the skeleton, and chain movements.</p>
                 </div>
+
+                <nav class="sub-nav">
+                    <a href="#bvh">bvh</a>
+                    <a href="#dummy">dummy</a>
+                    <a href="#joints">joints</a>
+                    <a href="#bones">bones</a>
+                    <a href="#color">color</a>
+                    <a href="#trail">trail</a>
+                    <a href="#chaining">chaining</a>
+                </nav>
+
                 <section id="bvh" class="doc-section">
                     <h3 class="function-title">bvh( "name" )</h3>
                     <p>Loads and initializes a pre-recorded animation to apply it to the skeleton.</p>
@@ -497,8 +462,7 @@
                 </section>
 
                 <section id="bones" class="doc-section">
-                    <h3 class="function-title">.bones( thickness) //default length = 1 <br> .bones(
-                        thickness, length )
+                    <h3 class="function-title">.bones( thickness) //default length = 1 <br> .bones( thickness, length )
                     </h3>
                     <p>Adjusts the thickness and length of the bones connecting the joints.</p>
                     <div class="doc-card">
@@ -541,7 +505,7 @@
                     </div>
                 </section>
 
-                <section id="chaining" class="doc-section">
+                <section id="chaining" class="doc-section no-border">
                     <h3 class="function-title">Chaining ( [] > [] )</h3>
                     <p>Links multiple animation blocks sequentially. When the first animation finishes, the skeleton
                         will automatically transition into the next one.</p>
@@ -558,6 +522,130 @@
             </div>
         </section>
 
+        <section id="videotobvh" class="page-section">
+            <div class="content-padding">
+                <div class="header-text">
+                    <h1 class="function-title">Video to BVH Workflow</h1>
+                    <p>Can't find the exact movement you need? Extract the motion from any <code>.mp4</code> video and
+                        use it in MoveScript.</p>
+                </div>
+
+                <section class="doc-section no-border">
+                    <p style="text-align: center; margin-bottom: 20px; color: #ccc;">Use AI tools like Rokoko Vision to
+                        generate the <code>.bvh</code> file and add it to MoveScript with a single click.</p>
+                    <div class="doc-card">
+                        <div class="demo-video-container">
+
+                            <div>
+                                <video class="demo-media" controls muted loop>
+                                    <source src="assets/docs/VideoToBVH1.mp4" type="video/mp4">
+                                </video>
+                                <p class="demo-caption">1. Processing in Rokoko Vision</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <video class="demo-media" controls muted loop>
+                                    <source src="assets/docs/VideoToBVH2.mp4" type="video/mp4">
+                                </video>
+                                <p class="demo-caption">2. Exporting from Rokoko Studio</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <video class="demo-media" controls muted loop>
+                                    <source src="assets/docs/VideoToBVH3.mp4" type="video/mp4">
+                                </video>
+                                <p class="demo-caption">3. Adding to the local MoveScript catalog</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section id="vr" class="page-section">
+            <div class="content-padding">
+                <div class="header-text">
+                    <h1 class="function-title">WebXR Connection (Meta Quest)</h1>
+                    <p>Follow these steps to expose your local server to the internet and project the skeleton into your
+                        physical environment using the headset.</p>
+                </div>
+
+                <section class="doc-section no-border">
+                    <div class="doc-card">
+                        <div class="demo-video-container">
+
+                            <div>
+                                <img class="demo-media" src="assets/docs/DemoVRButton.png" alt="VR Button in Interface">
+                                <p class="demo-caption"><strong>Step 1:</strong> Click the "Start VR Tunnel" button
+                                    located in the floating panel of the main interface to initialize the connection.
+                                </p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <img class="demo-media" src="assets/docs/DemoVR1.png"
+                                    alt="Terminal running Pinggy with QR">
+                                <p class="demo-caption"><strong>Step 2:</strong> A terminal opens automatically. Press
+                                    'Enter' when prompted for the password to generate your public URL and QR code.</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <img class="demo-media" src="assets/docs/DemoVRConsent.jpg"
+                                    alt="Security warning on Quest">
+                                <p class="demo-caption"><strong>Step 3:</strong> Open the URL in the Meta Quest browser.
+                                    Since it is a free tunnel, you must click "Enter site" to confirm access.</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <img class="demo-media" src="assets/docs/DemoVR2.png"
+                                    alt="Terminal showing HTTP requests">
+                                <p class="demo-caption"><strong>Step 4:</strong> Back in your PC terminal, HTTP requests
+                                    will confirm the headset is connected. The VR button in your interface will turn
+                                    green.</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                                    <div style="flex: 1; min-width: 300px;">
+                                        <video class="demo-media" controls muted loop>
+                                            <source src="assets/docs/DemoVR3.mp4" type="video/mp4">
+                                        </video>
+                                        <p class="demo-caption"
+                                            style="font-size: 0.95rem; color: #888; margin-top: 10px;"><strong>PC
+                                                Programmer View:</strong> Writing code and sending animations locally.
+                                        </p>
+                                    </div>
+                                    <div style="flex: 1; min-width: 300px;">
+                                        <video class="demo-media" controls muted loop>
+                                            <source src="assets/docs/DemoVR4.mp4" type="video/mp4">
+                                        </video>
+                                        <p class="demo-caption"
+                                            style="font-size: 0.95rem; color: #888; margin-top: 10px;"><strong>VR
+                                                Headset View:</strong> Immersive passthrough receiving live updates.</p>
+                                    </div>
+                                </div>
+                                <p class="demo-caption" style="margin-top: 25px;"><strong>Step 5:</strong> Real-time
+                                    synchronization. The PC programmer controls the movement logic, while the Meta Quest
+                                    user experiences the skeleton projected directly into their physical room.</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
 
         <section id="movements" class="page-section">
             <div class="content-padding">
@@ -596,53 +684,6 @@
                         <div class="anim-name">[bvh("surprise")]</div>
                     </div>
                 </div>
-            </div>
-        </section>
-
-
-        <section id="videotobvh" class="page-section">
-            <div class="content-padding" style="padding-bottom: 30vh;">
-                <div class="header-text" style="margin-bottom: 60px;">
-                    <h1 class="function-title">Video to BVH Workflow</h1>
-                    <p>Can't find the exact movement you need? Extract the motion from any <code>.mp4</code> video and
-                        use it in MoveScript.</p>
-                </div>
-
-                <section class="doc-section" style="border-bottom: none; margin-bottom: 0;">
-                    <p style="text-align: center; margin-bottom: 20px; color: #ccc;">Use AI tools like Rokoko Vision to
-                        generate the <code>.bvh</code> file and add it to MoveScript with a single click.</p>
-
-                    <div class="doc-card">
-                        <div class="demo-video-container">
-
-                            <div>
-                                <video class="demo-media" controls muted loop>
-                                    <source src="assets/docs/VideoToBVH1.mp4" type="video/mp4">
-                                </video>
-                                <p class="demo-caption">1. Processing in Rokoko Vision</p>
-                            </div>
-
-                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
-
-                            <div>
-                                <video class="demo-media" controls muted loop>
-                                    <source src="assets/docs/VideoToBVH2.mp4" type="video/mp4">
-                                </video>
-                                <p class="demo-caption">2. Exporting from Rokoko Studio</p>
-                            </div>
-
-                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
-
-                            <div>
-                                <video class="demo-media" controls muted loop>
-                                    <source src="assets/docs/VideoToBVH3.mp4" type="video/mp4">
-                                </video>
-                                <p class="demo-caption">3. Adding to the local MoveScript catalog</p>
-                            </div>
-
-                        </div>
-                    </div>
-                </section>
             </div>
         </section>
 

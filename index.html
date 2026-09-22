@@ -88,7 +88,6 @@
     #randomBtn,
     #globalPauseBtn,
     #saveBtn,
-    #vrBtn,
     #docsBtn {
       padding: 6px 10px;
       cursor: pointer;
@@ -104,7 +103,6 @@
     #randomBtn:hover,
     #globalPauseBtn:hover,
     #saveBtn:hover,
-    #vrBtn:hover,
     #docsBtn:hover {
       background: rgba(255, 255, 255, 0.10);
     }
@@ -594,7 +592,6 @@
         <button id="run">Run (Ctrl+Enter)</button>
         <button id="toggle">Hide (Esc)</button>
         <button id="globalPauseBtn">Pause (Ctrl+P)</button>
-        <button id="vrBtn">VR <i class="fas fa-vr-cardboard"></i></button>
         <button id="docsBtn">Docs <i class="fas fa-external-link-alt"
             style="font-size: 0.8em; margin-left: 5px;"></i></button>
         <button id="randomBtn" style="display: none;"><i class="fas fa-random"></i> Random</button>
@@ -622,6 +619,16 @@
 
   <div id="bvh-drawer">
     <div id="drawer-toggle"><i class="fas fa-chevron-up"></i></div>
+
+    <div id="vr-panel"
+      style="position: absolute; top: -70px; right: 20px; background: rgba(15, 15, 15, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 10px; z-index: 1001;">
+      <button id="vrBtn"
+        style="background: transparent; color: #aaa; border: 1px solid rgba(255, 255, 255, 0.2); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: Consolas, monospace; font-size: 13px; display: flex; align-items: center; gap: 10px; transition: all 0.3s;">
+        <i class="fas fa-vr-cardboard" style="font-size: 16px;"></i>
+        <span id="vr-text">Start VR Tunnel</span>
+      </button>
+    </div>
+
     <div class="drawer-header"><span>Movement Previews</span></div>
     <div class="drawer-carousel" id="bvh-list"></div>
   </div>
@@ -654,20 +661,67 @@
       }
 
       const vrBtn = document.getElementById('vrBtn');
+      const vrText = document.getElementById('vr-text');
+
+      // NUEVO: Bandera de seguridad para evitar dobles clics
+      let isTunnelActive = false;
+
       if (vrBtn) {
+        // Lanzar Pinggy
         vrBtn.addEventListener('click', () => {
+          if (isTunnelActive) return;
+
           if (window.require) {
+            isTunnelActive = true;
             const { ipcRenderer } = window.require('electron');
             ipcRenderer.send('iniciar-tunel-vr');
 
-            vrBtn.style.color = '#00ffcc';
-            vrBtn.innerHTML = '<i class="fas fa-check"></i>';
-            setTimeout(() => {
-              vrBtn.style.color = '';
-              vrBtn.innerHTML = 'VR <i class="fas fa-vr-cardboard"></i>';
-            }, 3000);
+            // Estado: Esperando (Naranja)
+            vrBtn.style.color = 'black';
+            vrBtn.style.backgroundColor = 'orange';
+            vrBtn.style.borderColor = 'orange';
+            vrBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 16px;"></i> <span id="vr-text">Waiting VR Client...</span>';
           }
         });
+
+        // Escuchar los eventos de servidor
+        if (window.socket) {
+          window.socket.on('vr_status', (data) => {
+            if (data.status === 'connected') {
+              // Estado: Conectado (Verde)
+              vrBtn.style.color = 'black';
+              vrBtn.style.backgroundColor = 'green';
+              vrBtn.style.borderColor = 'green';
+              vrBtn.innerHTML = '<i class="fas fa-check" style="font-size: 16px;"></i> <span id="vr-text">VR Client Connected</span>';
+            } else if (data.status === 'disconnected') {
+              // Estado: Desconectado (Rojo)
+              vrBtn.style.color = 'white';
+              vrBtn.style.backgroundColor = 'red';
+              vrBtn.style.borderColor = 'red';
+              vrBtn.innerHTML = '<i class="fas fa-times" style="font-size: 16px;"></i> <span id="vr-text">VR Disconnected</span>';
+
+              setTimeout(() => {
+                if (isTunnelActive) {
+                  vrBtn.style.color = 'black';
+                  vrBtn.style.backgroundColor = 'orange';
+                  vrBtn.style.borderColor = 'orange';
+                  vrBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 16px;"></i> <span id="vr-text">Waiting VR Client...</span>';
+                }
+              }, 4000);
+            }
+          });
+
+          // Clausura terminal negra manualmente
+          window.socket.on('tunel_cerrado', () => {
+            isTunnelActive = false; // Liberamos el botón para poder volver a pulsar
+
+            // Eestado gris original
+            vrBtn.style.color = '#aaa';
+            vrBtn.style.backgroundColor = 'transparent';
+            vrBtn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            vrBtn.innerHTML = '<i class="fas fa-vr-cardboard" style="font-size: 16px;"></i> <span id="vr-text">Start VR Tunnel</span>';
+          });
+        }
       }
 
       // --- ACTIVAR LA INTERFAZ ---
