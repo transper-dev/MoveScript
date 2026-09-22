@@ -141,6 +141,14 @@ const SB = {
           }
         });
       }
+
+      if (r.concentricas) {
+        for (const c of r.concentricas) {
+          scene.remove(c.mesh);
+          c.mesh.geometry.dispose();
+          c.mesh.material.dispose();
+        }
+      }
     }
 
     for (const t of activeTrails) {
@@ -179,7 +187,7 @@ const SB = {
     const handle = {
       _rawFile: fileOrUrl, _url: url, _x: 0, _y: 0, _z: 0, _rotX: 0, _rotY: 0, _rotZ: 0,
       _scale: null, _showSkeleton: null, _speed: null, _reverse: null,
-      _color: null, _color2: null, _trail: null, _delay: null,
+      _color: null, _color2: null, _trail: null, _delay: null, _boxesCount: 0,
 
       _useDummy: false, _reqBones: false, _reqJoints: false, _enforceProportions: false,
       _boneWidth: null, _boneLength: null, _jointSize: null,
@@ -213,6 +221,8 @@ const SB = {
       reverse(v = true) { return this._propagate({ _reverse: v }); },
       color(c1, c2) { return this._propagate({ _color: c1, _color2: c2 }); },
       trail(length) { return this._propagate({ _trail: length }); },
+
+      box(n) { return this._propagate({ _boxesCount: n }); },
 
       dummy(v = true) {
         const estado = !!v;
@@ -253,6 +263,8 @@ const SB = {
         nextHandle._trail = this._trail;
         nextHandle._showSkeleton = this._showSkeleton;
         nextHandle._reverse = this._reverse;
+
+        nextHandle._boxesCount = this._boxesCount;
 
         nextHandle._useDummy = this._useDummy;
         nextHandle._reqBones = this._reqBones;
@@ -559,8 +571,24 @@ const SB = {
           }
         });
 
+        const concentricas = [];
+        if (handle._boxesCount > 0) {
+          for (let i = 1; i <= handle._boxesCount; i++) {
+            const geom = new THREE.BoxGeometry(1, 1, 1);
+            const edges = new THREE.EdgesGeometry(geom);
+            const mat = new THREE.LineBasicMaterial({
+              color: 0x00ffcc,
+              transparent: true,
+              opacity: Math.max(0.1, 1.2 - (i * 0.2)) // Se difuminan según crecen
+            });
+            const boxMesh = new THREE.LineSegments(edges, mat);
+            scene.add(boxMesh);
+            concentricas.push({ mesh: boxMesh, mult: i });
+          }
+        }
+
         rigs.push({
-          handle, group, pivot, root, helper, mixer, action, clip: result.clip, timeAlive: 0,
+          handle, group, pivot, root, helper, mixer, action, clip: result.clip, timeAlive: 0, concentricas,
           opts: { rotX: handle._rotX, rotY: handle._rotY, rotZ: handle._rotZ, speed: (handle._speed ?? 1.0), showSkeleton: (handle._showSkeleton ?? null), scale: (handle._scale ?? null), reverse: handle._reverse, color: handle._color, color2: handle._color2, trail: handle._trail, delay: handle._delay }
         });
         mixers.push(mixer);
@@ -579,7 +607,7 @@ const SB = {
     let newCurrent = this.bvh(startOrig._rawFile, true);
     newCurrent._codeIndex = bvhCounter++;
 
-    const keysToCopy = ["_x", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize", "_isStaticDummy"];
+    const keysToCopy = ["_x", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize", "_isStaticDummy", "_boxesCount"];
     keysToCopy.forEach(k => newCurrent[k] = startOrig[k]);
     const newHead = newCurrent;
 
@@ -626,6 +654,37 @@ const SB = {
       const trailLen = r.opts.trail ?? SB.params.trail;
       const delayTime = r.opts.delay ?? SB.params.delay;
       const isVisible = r.handle._useDummy ? r.root.visible : (r.helper && r.helper.visible);
+
+      if (r.concentricas && r.concentricas.length > 0) {
+        if (isVisible) {
+
+          // FIX: Forzamos a Three.js a recalcular los límites de los vértices en movimiento
+          if (!r.handle._useDummy && r.helper) {
+            r.helper.updateMatrixWorld(true);
+            r.helper.geometry.computeBoundingBox();
+          }
+
+          const box3 = new THREE.Box3().setFromObject(r.handle._useDummy ? r.group : r.helper);
+          const center = new THREE.Vector3();
+          const size = new THREE.Vector3();
+
+          box3.getCenter(center);
+          box3.getSize(size);
+
+          // Si el tamaño es mayor a 0, mostramos y escalamos las cajas
+          if (size.lengthSq() > 0.01) {
+            r.concentricas.forEach(c => {
+              c.mesh.visible = true;
+              c.mesh.position.copy(center);
+              c.mesh.scale.set(size.x * c.mult, size.y * c.mult, size.z * c.mult);
+            });
+          } else {
+            r.concentricas.forEach(c => c.mesh.visible = false);
+          }
+        } else {
+          r.concentricas.forEach(c => c.mesh.visible = false);
+        }
+      }
 
       if (!SB.params.pause && trailLen > 0 && frameCount % 6 === 0 && isVisible && r.timeAlive >= delayTime) {
         const snapGeom = r.helper.geometry.clone(); snapGeom.applyMatrix4(r.helper.matrixWorld);
@@ -901,6 +960,8 @@ class RigNode {
   dummy(v = true) { this.props.calledDummy = true; this.props.dummyValue = v; return this; } bones(w, l) { this.props.calledBones = true; this.props.boneWidth = w; this.props.boneLength = l; return this; }
   joints(s) { this.props.calledJoints = true; this.props.jointSize = s; return this; }
 
+  box(n) { this.props.calledBox = true; this.props.boxCount = n; return this; }
+
   color(c1, c2) { this.props.color1 = c1; this.props.color2 = c2; return this; }
   pos(x, y, z) { this.props.x = x; this.props.y = y; this.props.z = z; return this; }
   rotX(r) { this.props.rotX = r; return this; }
@@ -977,6 +1038,8 @@ function applyPropsToHandle(handle, props) {
   if (props.calledDummy) handle.dummy(props.dummyValue);
   if (props.calledBones) handle.bones(props.boneWidth, props.boneLength);
   if (props.calledJoints) handle.joints(props.jointSize);
+
+  if (props.calledBox) handle.box(props.boxCount);
 
   if (props.calledBones || props.calledJoints) {
     handle._useDummy = true;
