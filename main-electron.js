@@ -58,14 +58,28 @@ function startServerAndTunnel() {
             socket.broadcast.emit('execute_code', data);
         });
 
-        socket.on('vr_data', (data) => {
-            // Posición (X, Y, Z)
-            if (data.c1) oscClient.send('/vr/left_controller/pos', data.c1[0], data.c1[1], data.c1[2]);
-            if (data.c2) oscClient.send('/vr/right_controller/pos', data.c2[0], data.c2[1], data.c2[2]);
+        let lastSentTime = 0;
 
-            // Rotación (Inclinación X, Y, Z en radianes)
-            if (data.rot1) oscClient.send('/vr/left_controller/rot', data.rot1[0], data.rot1[1], data.rot1[2]);
-            if (data.rot2) oscClient.send('/vr/right_controller/rot', data.rot2[0], data.rot2[1], data.rot2[2]);
+        socket.on('vr_data', (data) => {
+            const now = Date.now();
+
+            // Limitar a 60 fps (16 ms por envío máximo)
+            if (now - lastSentTime >= 16) {
+                const groupedData = {};
+
+                // Posición (X, Y, Z) de ambos mandos
+                if (data.c1) groupedData.leftControllerPos = data.c1;
+                if (data.c2) groupedData.rightControllerPos = data.c2;
+
+                // Rotación (X, Y, Z) de ambos mandos
+                if (data.rot1) groupedData.leftControllerRot = data.rot1;
+                if (data.rot2) groupedData.rightControllerRot = data.rot2;
+
+                // Agrupar en un solo envío OSC
+                oscClient.send('/vr/controllers', JSON.stringify(groupedData));
+
+                lastSentTime = now; // Actualizar tiempo de último envío
+            }
         });
 
         socket.on('disconnect', () => {
