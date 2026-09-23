@@ -102,6 +102,8 @@ const SB = {
     const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.9, metalness: 0.1 });
     const mesh = new THREE.Mesh(geom, mat);
     mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = -15;
+    mesh.name = "CustomFloor";
     scene.add(mesh);
     return SB;
   },
@@ -163,6 +165,16 @@ const SB = {
       scene.remove(g);
       g.geometry.dispose();
       g.material.dispose();
+    }
+    const floors = scene.children.filter(obj => obj.name === "CustomFloor");
+    for (const f of floors) {
+      scene.remove(f);
+      f.geometry.dispose();
+      if (Array.isArray(f.material)) {
+        f.material.forEach(m => m.dispose());
+      } else {
+        f.material.dispose();
+      }
     }
 
     controls.autoRotate = false;
@@ -575,15 +587,17 @@ const SB = {
         if (handle._boxesCount > 0) {
           for (let i = 1; i <= handle._boxesCount; i++) {
             const geom = new THREE.BoxGeometry(1, 1, 1);
+            geom.translate(0, 0.5, 0);
             const edges = new THREE.EdgesGeometry(geom);
             const mat = new THREE.LineBasicMaterial({
               color: 0x00ffcc,
               transparent: true,
-              opacity: Math.max(0.1, 1.2 - (i * 0.2)) // Se difuminan según crecen
+              opacity: Math.max(0.1, 1.2 - (i * 0.2))
             });
             const boxMesh = new THREE.LineSegments(edges, mat);
             scene.add(boxMesh);
-            concentricas.push({ mesh: boxMesh, mult: i });
+            const multiplicador = 1 + ((i - 1) * 0.5);
+            concentricas.push({ mesh: boxMesh, mult: multiplicador });
           }
         }
 
@@ -658,7 +672,6 @@ const SB = {
       if (r.concentricas && r.concentricas.length > 0) {
         if (isVisible) {
 
-          // FIX: Forzamos a Three.js a recalcular los límites de los vértices en movimiento
           if (!r.handle._useDummy && r.helper) {
             r.helper.updateMatrixWorld(true);
             r.helper.geometry.computeBoundingBox();
@@ -675,7 +688,12 @@ const SB = {
           if (size.lengthSq() > 0.01) {
             r.concentricas.forEach(c => {
               c.mesh.visible = true;
-              c.mesh.position.copy(center);
+
+              // Calculamos la altura exacta de los pies del muñeco
+              const baseSuelo = center.y - (size.y / 2);
+
+              // Anclamos la caja al suelo. Como su pivote está en la base, no atravesará hacia abajo.
+              c.mesh.position.set(center.x, baseSuelo, center.z);
               c.mesh.scale.set(size.x * c.mult, size.y * c.mult, size.z * c.mult);
             });
           } else {
