@@ -199,7 +199,7 @@ const SB = {
     const handle = {
       _rawFile: fileOrUrl, _url: url, _x: 0, _y: 0, _z: 0, _rotX: 0, _rotY: 0, _rotZ: 0,
       _scale: null, _showSkeleton: null, _speed: null, _reverse: null,
-      _color: null, _color2: null, _trail: null, _delay: null, _boxesCount: 0,
+      _color: null, _color2: null, _trail: null, _delay: null, _boxesCount: 0, _boxDist: 0.5,
 
       _useDummy: false, _reqBones: false, _reqJoints: false, _enforceProportions: false,
       _boneWidth: null, _boneLength: null, _jointSize: null,
@@ -234,7 +234,7 @@ const SB = {
       color(c1, c2) { return this._propagate({ _color: c1, _color2: c2 }); },
       trail(length) { return this._propagate({ _trail: length }); },
 
-      box(n) { return this._propagate({ _boxesCount: n }); },
+      box(n, dist = 0.5) { return this._propagate({ _boxesCount: n, _boxDist: dist }); },
 
       dummy(v = true) {
         const estado = !!v;
@@ -277,6 +277,7 @@ const SB = {
         nextHandle._reverse = this._reverse;
 
         nextHandle._boxesCount = this._boxesCount;
+        nextHandle._boxDist = this._boxDist;
 
         nextHandle._useDummy = this._useDummy;
         nextHandle._reqBones = this._reqBones;
@@ -588,6 +589,7 @@ const SB = {
           for (let i = 1; i <= handle._boxesCount; i++) {
             const geom = new THREE.BoxGeometry(1, 1, 1);
             geom.translate(0, 0.5, 0);
+
             const edges = new THREE.EdgesGeometry(geom);
             const mat = new THREE.LineBasicMaterial({
               color: 0x00ffcc,
@@ -596,7 +598,8 @@ const SB = {
             });
             const boxMesh = new THREE.LineSegments(edges, mat);
             scene.add(boxMesh);
-            const multiplicador = 1 + ((i - 1) * 0.5);
+
+            const multiplicador = 1 + ((i - 1) * handle._boxDist);
             concentricas.push({ mesh: boxMesh, mult: multiplicador });
           }
         }
@@ -621,7 +624,7 @@ const SB = {
     let newCurrent = this.bvh(startOrig._rawFile, true);
     newCurrent._codeIndex = bvhCounter++;
 
-    const keysToCopy = ["_x", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize", "_isStaticDummy", "_boxesCount"];
+    const keysToCopy = ["_x", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize", "_isStaticDummy", "_boxesCount", "_boxDist"];
     keysToCopy.forEach(k => newCurrent[k] = startOrig[k]);
     const newHead = newCurrent;
 
@@ -978,7 +981,7 @@ class RigNode {
   dummy(v = true) { this.props.calledDummy = true; this.props.dummyValue = v; return this; } bones(w, l) { this.props.calledBones = true; this.props.boneWidth = w; this.props.boneLength = l; return this; }
   joints(s) { this.props.calledJoints = true; this.props.jointSize = s; return this; }
 
-  box(n) { this.props.calledBox = true; this.props.boxCount = n; return this; }
+  box(n, dist) { this.props.calledBox = true; this.props.boxCount = n; this.props.boxDist = dist; return this; }
 
   color(c1, c2) { this.props.color1 = c1; this.props.color2 = c2; return this; }
   pos(x, y, z) { this.props.x = x; this.props.y = y; this.props.z = z; return this; }
@@ -1057,7 +1060,7 @@ function applyPropsToHandle(handle, props) {
   if (props.calledBones) handle.bones(props.boneWidth, props.boneLength);
   if (props.calledJoints) handle.joints(props.jointSize);
 
-  if (props.calledBox) handle.box(props.boxCount);
+  if (props.calledBox) handle.box(props.boxCount, props.boxDist);
 
   if (props.calledBones || props.calledJoints) {
     handle._useDummy = true;
