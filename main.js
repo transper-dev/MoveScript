@@ -20,8 +20,10 @@ let errorTimeout;
 let engineReady = false, pendingCode = null, isRigSelected = false, isGlobalPaused = false, isSaved = false;
 let activeChainMarks = {};
 let currentChainSteps = {};
-let colorWidgets = [];
+let colorWidgets = new Set();
 let colorUpdateTimer = null;
+let pendingColorLines = null;
+let _blockIndexCache = [];
 
 const isNewBlock = (lines, idx) => {
   if (!lines[idx].trim().startsWith('[')) return false;
@@ -31,82 +33,120 @@ const isNewBlock = (lines, idx) => {
   return true;
 };
 
-function highlightStep(codeIndex, step) {
+function updateBlockIndexCache() {
   if (!window.editor) return;
-  let lines = window.editor.getValue().split('\n');
-  let currentIdx = 0, blockStartLine = -1;
+  _blockIndexCache = [];
+  const lineCount = window.editor.lineCount();
+  const lines = new Array(lineCount);
+  for (let i = 0; i < lineCount; i++) {
+    lines[i] = window.editor.getLine(i);
+  }
 
-  // 1. Buscamos en qué línea empieza el bloque principal
-  for (let i = 0; i < lines.length; i++) {
+  let blockIndices = [];
+  for (let i = 0; i < lineCount; i++) {
     if (isNewBlock(lines, i)) {
-      if (currentIdx === codeIndex) { blockStartLine = i; break; }
-      currentIdx++;
+      blockIndices.push(i);
     }
   }
 
-  // 2. Buscamos el paso exacto para iluminarlo
-  if (blockStartLine !== -1) {
+  for (let b = 0; b < blockIndices.length; b++) {
+    const blockStartLine = blockIndices[b];
+    const nextBlockStartLine = (b + 1 < blockIndices.length) ? blockIndices[b + 1] : lineCount;
+    const steps = [];
+
     let currentStep = 0;
-    let startPos = null, endPos = null;
+    let startPos = null;
     let l = blockStartLine;
     let c = lines[l].indexOf('[');
+    if (c === -1) c = 0;
 
-    while (l < lines.length) {
-      let lineStr = lines[l];
+    while (l < nextBlockStartLine && l < lineCount) {
+      const lineStr = lines[l];
 
       while (c < lineStr.length) {
-        let char = lineStr[c];
+        const char = lineStr[c];
 
         if (char === '[') {
-          // Si estamos en el paso correcto, marcamos el inicio
-          if (currentStep === step) { startPos = { line: l, ch: c }; }
+          startPos = { line: l, ch: c };
         } else if (char === ']') {
-          // Si estamos en el paso correcto, marcamos el final justo después del corchete
-          if (currentStep === step) { endPos = { line: l, ch: c + 1 }; break; }
+          if (startPos) {
+            steps[currentStep] = {
+              startPos: startPos,
+              endPos: { line: l, ch: c + 1 }
+            };
+            startPos = null;
+          }
         } else if (char === '>') {
-          // Al ver un salto de cadena, avanzamos el contador de pasos
-          if (currentStep < step) currentStep++;
+          currentStep++;
         }
 
         c++;
       }
 
-      if (endPos) break;
-
       l++;
       c = 0;
-
-      // Si llegamos a un bloque nuevo distinto, cortamos la búsqueda
-      if (l < lines.length && isNewBlock(lines, l)) {
+      if (l < lineCount && isNewBlock(lines, l)) {
         break;
       }
     }
 
-    // 3. Aplicamos la luz si encontramos las coordenadas
-    if (startPos && endPos) {
-      if (activeChainMarks[codeIndex]) {
-        activeChainMarks[codeIndex].clear();
-      }
-      activeChainMarks[codeIndex] = window.editor.markText(
-        startPos, endPos, { className: "chain-active-text" }
-      );
-    }
+    _blockIndexCache.push({
+      startLine: blockStartLine,
+      steps: steps
+    });
   }
 }
 
-function updateColorWidgets() {
+function highlightStep(codeIndex, step) {
+  if (!window.editor) return;
+  if (!_blockIndexCache || _blockIndexCache.length === 0) {
+    updateBlockIndexCache();
+  }
+  const block = _blockIndexCache[codeIndex];
+  if (!block || !block.steps) return;
+  const stepInfo = block.steps[step];
+  if (stepInfo && stepInfo.startPos && stepInfo.endPos) {
+    if (activeChainMarks[codeIndex]) {
+      activeChainMarks[codeIndex].clear();
+    }
+    activeChainMarks[codeIndex] = window.editor.markText(
+      stepInfo.startPos, stepInfo.endPos, { className: "chain-active-text" }
+    );
+  }
+}
+
+function updateColorWidgets(fromLine, toLine) {
   if (!window.editor) return;
 
-  colorWidgets.forEach(widget => widget.clear());
-  colorWidgets = [];
+  const lineCount = window.editor.lineCount();
+  const start = (typeof fromLine === 'number') ? Math.max(0, fromLine) : 0;
+  const end = (typeof toLine === 'number') ? Math.min(lineCount - 1, toLine) : lineCount - 1;
+
+  if (typeof fromLine !== 'number') {
+    colorWidgets.forEach(widget => {
+      try { widget.clear(); } catch(e) {}
+    });
+    colorWidgets.clear();
+  }
 
   const colorRegex = /(["'])(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|red|blue|green|yellow|cyan|magenta|white|black|pink|orange|purple|gray)\1/gi;
-  const lineCount = window.editor.lineCount();
 
-  for (let i = 0; i < lineCount; i++) {
+  for (let i = start; i <= end; i++) {
     const lineText = window.editor.getLine(i);
-    let match;
+    if (typeof lineText !== 'string') continue;
 
+    if (typeof fromLine === 'number') {
+      const marks = window.editor.findMarks({ line: i, ch: 0 }, { line: i, ch: lineText.length });
+      for (const m of marks) {
+        if (colorWidgets.has(m)) {
+          m.clear();
+          colorWidgets.delete(m);
+        }
+      }
+    }
+
+    let match;
+    colorRegex.lastIndex = 0;
     while ((match = colorRegex.exec(lineText)) !== null) {
       const colorStr = match[2];
       const pos = { line: i, ch: match.index };
@@ -116,7 +156,7 @@ function updateColorWidgets() {
       colorBox.style.backgroundColor = colorStr;
 
       const widget = window.editor.setBookmark(pos, { widget: colorBox });
-      colorWidgets.push(widget);
+      colorWidgets.add(widget);
     }
   }
 }
@@ -424,14 +464,33 @@ saveBtn.addEventListener('click', () => {
   }
 });
 
-window.editor.on('change', () => {
+window.editor.on('change', (cm, changeObj) => {
   if (isSaved) {
     isSaved = false; saveBtn.textContent = ' Save (Ctrl+S) *'; saveBtn.classList.remove('saved');
   } else if (saveBtn.textContent === ' Save (Ctrl+S)') {
     saveBtn.textContent = ' Save (Ctrl+S) *';
   }
+
+  updateBlockIndexCache();
+
+  const fromLine = changeObj ? changeObj.from.line : 0;
+  const addedLines = changeObj ? changeObj.text.length - 1 : (cm.lineCount() - 1);
+  const toLine = changeObj ? Math.min(cm.lineCount() - 1, changeObj.to.line + addedLines) : (cm.lineCount() - 1);
+
+  if (!pendingColorLines) {
+    pendingColorLines = { from: fromLine, to: toLine };
+  } else {
+    pendingColorLines.from = Math.min(pendingColorLines.from, fromLine);
+    pendingColorLines.to = Math.max(pendingColorLines.to, toLine);
+  }
+
   clearTimeout(colorUpdateTimer);
-  colorUpdateTimer = setTimeout(updateColorWidgets, 200);
+  colorUpdateTimer = setTimeout(() => {
+    if (pendingColorLines) {
+      updateColorWidgets(pendingColorLines.from, pendingColorLines.to);
+      pendingColorLines = null;
+    }
+  }, 100);
 });
 
 function init() {
@@ -444,6 +503,7 @@ function init() {
     isSaved = false; saveBtn.textContent = ' Save (Ctrl+S)'; saveBtn.classList.remove('saved');
   }
   pendingCode = window.editor.getValue();
+  updateBlockIndexCache();
   updateColorWidgets();
 }
 init();

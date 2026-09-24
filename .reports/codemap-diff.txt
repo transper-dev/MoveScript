@@ -1,0 +1,13 @@
+Codemap diff report (2026-09-24)
+
+Previous codemaps not found at start of this run (no `docs/CODEMAPS/*.md` present).
+
+Changes since last scan:
+- Added: docs/CODEMAPS/{architecture.md,backend.md,frontend.md,data.md,dependencies.md}
+- Added: .reports/codemap-diff.txt
+
+Architecture changes:
+- Initial codemap generation; no diff computed.
+
+Staleness warnings:
+- None (no prior docs to compare).

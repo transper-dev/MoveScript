@@ -81,8 +81,20 @@ const clock = new THREE.Clock();
 const rigs = [];
 const mixers = [];
 const activeTrails = [];
+const _trailPool = [];
 let frameCount = 0;
 let runId = 0;
+
+const _oscP1 = new THREE.Vector3();
+const _oscP2 = new THREE.Vector3();
+const _oscQ1 = new THREE.Quaternion();
+const _oscQ2 = new THREE.Quaternion();
+const _oscR1 = new THREE.Euler();
+const _oscR2 = new THREE.Euler();
+
+const _box3 = new THREE.Box3();
+const _boxCenter = new THREE.Vector3();
+const _boxSize = new THREE.Vector3();
 
 let bvhCounter = 0;
 let selectedRig = null;
@@ -158,7 +170,14 @@ const SB = {
       t.mesh.geometry.dispose();
       t.mesh.material.dispose();
     }
-    activeTrails.length = 0; rigs.length = 0; mixers.length = 0;
+    activeTrails.length = 0;
+    for (const mesh of _trailPool) {
+      scene.remove(mesh);
+      mesh.geometry.dispose();
+      mesh.material.dispose();
+    }
+    _trailPool.length = 0;
+    rigs.length = 0; mixers.length = 0;
 
     const grids = scene.children.filter(obj => obj.type === "GridHelper");
     for (const g of grids) {
@@ -271,13 +290,12 @@ const SB = {
         nextHandle._color = this._color;
         nextHandle._color2 = this._color2;
         nextHandle._scale = this._scale;
+        nextHandle._boxesCount = this._boxesCount;
+        nextHandle._boxDist = this._boxDist;
         nextHandle._speed = this._speed;
         nextHandle._trail = this._trail;
         nextHandle._showSkeleton = this._showSkeleton;
         nextHandle._reverse = this._reverse;
-
-        nextHandle._boxesCount = this._boxesCount;
-        nextHandle._boxDist = this._boxDist;
 
         nextHandle._useDummy = this._useDummy;
         nextHandle._reqBones = this._reqBones;
@@ -592,6 +610,8 @@ const SB = {
 
             const edges = new THREE.EdgesGeometry(geom);
 
+            geom.dispose();
+
             const opacidadBase = 0.1;
             const opacidadMaxima = 1.0;
             const opacidadActual = opacidadBase + (i * ((opacidadMaxima - opacidadBase) / handle._boxesCount));
@@ -603,6 +623,7 @@ const SB = {
             });
 
             const boxMesh = new THREE.LineSegments(edges, mat);
+            boxMesh.visible = false;
             scene.add(boxMesh);
 
             const offsetDist = i * (handle._boxDist ?? 0.5);
@@ -680,27 +701,28 @@ const SB = {
 
       if (r.concentricas && r.concentricas.length > 0) {
         if (isVisible) {
-
-          if (!r.handle._useDummy && r.helper) {
+          if (r.helper && !r.handle._useDummy) {
             r.helper.updateMatrixWorld(true);
-            if (r.helper.geometry) r.helper.geometry.computeBoundingBox();
+          }
+          _box3.setFromObject(r.handle._useDummy ? r.group : r.helper);
+          _box3.getCenter(_boxCenter);
+
+          if (!r.boxSize) {
+            _box3.getSize(_boxSize);
+            if (_boxSize.lengthSq() > 0.01) {
+              r.boxSize = new THREE.Vector3().copy(_boxSize);
+            }
           }
 
-          const box3 = new THREE.Box3().setFromObject(r.handle._useDummy ? r.group : r.helper);
-          const center = new THREE.Vector3();
-          const size = new THREE.Vector3();
-          box3.getCenter(center);
-          box3.getSize(size);
-
-          if (size.lengthSq() > 0.01) {
+          const size = r.boxSize;
+          if (size && size.lengthSq() > 0.01) {
             r.concentricas.forEach(c => {
               c.mesh.visible = true;
 
               const margenUniforme = c.offset * 60;
+              const baseSuelo = (_boxCenter.y - (size.y / 2)) - (margenUniforme / 2);
 
-              const baseSuelo = (center.y - (size.y / 2)) - (margenUniforme / 2);
-
-              c.mesh.position.set(center.x, baseSuelo, center.z);
+              c.mesh.position.set(_boxCenter.x, baseSuelo, _boxCenter.z);
               c.mesh.scale.set(
                 size.x + margenUniforme,
                 size.y + margenUniforme,
@@ -716,16 +738,35 @@ const SB = {
       }
 
       if (!SB.params.pause && trailLen > 0 && frameCount % 6 === 0 && isVisible && r.timeAlive >= delayTime) {
-        const snapGeom = r.helper.geometry.clone(); snapGeom.applyMatrix4(r.helper.matrixWorld);
-        const snapMat = r.helper.material.clone(); snapMat.transparent = true; snapMat.opacity = 0.6;
-        const snapLine = new THREE.LineSegments(snapGeom, snapMat); scene.add(snapLine);
+        let snapLine;
+        if (_trailPool.length > 0) {
+          snapLine = _trailPool.pop();
+          snapLine.geometry.copy(r.helper.geometry);
+          snapLine.geometry.applyMatrix4(r.helper.matrixWorld);
+          snapLine.material.opacity = 0.6;
+          snapLine.visible = true;
+        } else {
+          const snapGeom = r.helper.geometry.clone();
+          snapGeom.applyMatrix4(r.helper.matrixWorld);
+          const snapMat = r.helper.material.clone();
+          snapMat.transparent = true;
+          snapMat.opacity = 0.6;
+          snapLine = new THREE.LineSegments(snapGeom, snapMat);
+          scene.add(snapLine);
+        }
         activeTrails.push({ mesh: snapLine, life: 0.6, decay: 0.6 / trailLen });
       }
     }
 
     for (let i = activeTrails.length - 1; i >= 0; i--) {
-      const t = activeTrails[i]; t.life -= t.decay; t.mesh.material.opacity = t.life;
-      if (t.life <= 0) { scene.remove(t.mesh); t.mesh.geometry.dispose(); t.mesh.material.dispose(); activeTrails.splice(i, 1); }
+      const t = activeTrails[i];
+      t.life -= t.decay;
+      t.mesh.material.opacity = t.life;
+      if (t.life <= 0) {
+        t.mesh.visible = false;
+        _trailPool.push(t.mesh);
+        activeTrails.splice(i, 1);
+      }
     }
 
     if (!SB.params.pause) {
@@ -776,26 +817,22 @@ function animate() {
   const session = renderer.xr.getSession();
   if (session && frameCount % 2 === 0) {
     // Posiciones
-    const p1 = new THREE.Vector3();
-    const p2 = new THREE.Vector3();
-    con1.getWorldPosition(p1);
-    con2.getWorldPosition(p2);
+    con1.getWorldPosition(_oscP1);
+    con2.getWorldPosition(_oscP2);
 
     // Rotaciones (Cuaterniones a Ángulos Euler)
-    const q1 = new THREE.Quaternion();
-    const q2 = new THREE.Quaternion();
-    con1.getWorldQuaternion(q1);
-    con2.getWorldQuaternion(q2);
-    const r1 = new THREE.Euler().setFromQuaternion(q1);
-    const r2 = new THREE.Euler().setFromQuaternion(q2);
+    con1.getWorldQuaternion(_oscQ1);
+    con2.getWorldQuaternion(_oscQ2);
+    _oscR1.setFromQuaternion(_oscQ1);
+    _oscR2.setFromQuaternion(_oscQ2);
 
     // Envio
     window.parent.postMessage({
       type: 'osc_data',
-      c1: [p1.x, p1.y, p1.z],
-      c2: [p2.x, p2.y, p2.z],
-      rot1: [r1.x, r1.y, r1.z],
-      rot2: [r2.x, r2.y, r2.z]
+      c1: [_oscP1.x, _oscP1.y, _oscP1.z],
+      c2: [_oscP2.x, _oscP2.y, _oscP2.z],
+      rot1: [_oscR1.x, _oscR1.y, _oscR1.z],
+      rot2: [_oscR2.x, _oscR2.y, _oscR2.z]
     }, '*');
   }
   //ROT y MOV de camara con joysticks

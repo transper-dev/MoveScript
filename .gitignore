@@ -6,3 +6,5 @@ dist/
 
 # Logs de errores
 npm-debug.log*
+
+*.stackdump
