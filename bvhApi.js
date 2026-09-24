@@ -102,7 +102,7 @@ const SB = {
     const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.9, metalness: 0.1 });
     const mesh = new THREE.Mesh(geom, mat);
     mesh.rotation.x = -Math.PI / 2;
-    mesh.position.y = -15;
+    mesh.position.y = -20;
     mesh.name = "CustomFloor";
     scene.add(mesh);
     return SB;
@@ -588,19 +588,25 @@ const SB = {
         if (handle._boxesCount > 0) {
           for (let i = 1; i <= handle._boxesCount; i++) {
             const geom = new THREE.BoxGeometry(1, 1, 1);
-            geom.translate(0, 0.5, 0);
+            geom.translate(0, 0.5, 0); // Pivote en la base
 
             const edges = new THREE.EdgesGeometry(geom);
+
+            const opacidadBase = 0.1;
+            const opacidadMaxima = 1.0;
+            const opacidadActual = opacidadBase + (i * ((opacidadMaxima - opacidadBase) / handle._boxesCount));
+
             const mat = new THREE.LineBasicMaterial({
               color: 0x00ffcc,
               transparent: true,
-              opacity: Math.max(0.1, 1.2 - (i * 0.2))
+              opacity: opacidadActual
             });
+
             const boxMesh = new THREE.LineSegments(edges, mat);
             scene.add(boxMesh);
 
-            const multiplicador = 1 + ((i - 1) * handle._boxDist);
-            concentricas.push({ mesh: boxMesh, mult: multiplicador });
+            const offsetDist = i * (handle._boxDist ?? 0.5);
+            concentricas.push({ mesh: boxMesh, offset: offsetDist });
           }
         }
 
@@ -677,27 +683,29 @@ const SB = {
 
           if (!r.handle._useDummy && r.helper) {
             r.helper.updateMatrixWorld(true);
-            r.helper.geometry.computeBoundingBox();
+            if (r.helper.geometry) r.helper.geometry.computeBoundingBox();
           }
 
           const box3 = new THREE.Box3().setFromObject(r.handle._useDummy ? r.group : r.helper);
           const center = new THREE.Vector3();
           const size = new THREE.Vector3();
-
           box3.getCenter(center);
           box3.getSize(size);
 
-          // Si el tamaño es mayor a 0, mostramos y escalamos las cajas
           if (size.lengthSq() > 0.01) {
             r.concentricas.forEach(c => {
               c.mesh.visible = true;
 
-              // Calculamos la altura exacta de los pies del muñeco
-              const baseSuelo = center.y - (size.y / 2);
+              const margenUniforme = c.offset * 60;
 
-              // Anclamos la caja al suelo. Como su pivote está en la base, no atravesará hacia abajo.
+              const baseSuelo = (center.y - (size.y / 2)) - (margenUniforme / 2);
+
               c.mesh.position.set(center.x, baseSuelo, center.z);
-              c.mesh.scale.set(size.x * c.mult, size.y * c.mult, size.z * c.mult);
+              c.mesh.scale.set(
+                size.x + margenUniforme,
+                size.y + margenUniforme,
+                size.z + margenUniforme
+              );
             });
           } else {
             r.concentricas.forEach(c => c.mesh.visible = false);
