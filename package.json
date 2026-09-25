@@ -8,8 +8,15 @@
     "start": "electron .",
     "prebuild": "node generar-lista.js",
     "build": "electron-builder --win",
+    "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac",
+    "build:all": "electron-builder -mw",
+    "release": "electron-builder --publish always",
     "subir": "node generar-lista.js && git add . && git commit -m \"Actualización de bailes\" && git push"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/UrkiAristu/MoveScript.git"
   },
   "author": "Urki Aristu",
   "license": "ISC",
@@ -20,6 +27,20 @@
   "build": {
     "appId": "com.movescript.app",
     "productName": "MoveScriptVR",
+    "asar": true,
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "UrkiAristu",
+        "repo": "MoveScript"
+      }
+    ],
+    "files": [
+      "**/*",
+      "!MoveScript_BVH/**",
+      "!dist/**",
+      "!**/*.map"
+    ],
     "win": {
       "target": [
         "nsis",
@@ -28,8 +49,12 @@
       "icon": "icons/icon.ico"
     },
     "mac": {
-      "target": "dmg",
-      "icon": "icons/icon.icns"
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "icons/icon.icns",
+      "category": "public.app-category.developer-tools"
     },
     "nsis": {
       "oneClick": false,
@@ -38,6 +63,7 @@
     }
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "express": "^5.2.1",
     "node-osc": "^11.7.0",
     "socket.io": "^4.8.3"

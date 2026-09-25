@@ -720,7 +720,7 @@ const SB = {
               c.mesh.visible = true;
 
               const margenUniforme = c.offset * 60;
-              const baseSuelo = (_boxCenter.y - (size.y / 2)) - (margenUniforme / 2);
+              const baseSuelo = _boxCenter.y - (size.y / 2);
 
               c.mesh.position.set(_boxCenter.x, baseSuelo, _boxCenter.z);
               c.mesh.scale.set(

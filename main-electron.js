@@ -8,6 +8,18 @@ const osc = require('node-osc');
 const oscClient = new osc.Client('127.0.0.1', 12000);
 let mainWindow;
 
+let autoUpdater = null;
+try {
+    ({ autoUpdater } = require('electron-updater'));
+} catch (e) {}
+
+function setupAutoUpdater() {
+    if (!autoUpdater || !app.isPackaged) return;
+    autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+        console.error('[Updater] Error buscando actualizaciones:', err);
+    });
+}
+
 function startServerAndTunnel() {
     const expressApp = express();
     const server = http.createServer(expressApp);
@@ -40,6 +52,27 @@ function startServerAndTunnel() {
     expressApp.use(express.static(__dirname));
     expressApp.use('/build/', express.static(path.join(__dirname, 'node_modules/three/build')));
     expressApp.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/examples/jsm')));
+
+    // Buffer desacoplado para batching de telemetría VR -> OSC
+    let pendingVrData = null;
+    let isVrDataDirty = false;
+
+    const oscFlushTimer = setInterval(() => {
+        if (!isVrDataDirty || !pendingVrData) return;
+        isVrDataDirty = false;
+
+        const groupedData = {};
+        if (pendingVrData.c1) groupedData.leftControllerPos = pendingVrData.c1;
+        if (pendingVrData.c2) groupedData.rightControllerPos = pendingVrData.c2;
+        if (pendingVrData.rot1) groupedData.leftControllerRot = pendingVrData.rot1;
+        if (pendingVrData.rot2) groupedData.rightControllerRot = pendingVrData.rot2;
+
+        oscClient.send('/vr/controllers', JSON.stringify(groupedData), (err) => {
+            if (err) {} // Prevenir excepciones no controladas si el puerto UDP está cerrado
+        });
+    }, 16);
+    oscFlushTimer.unref();
+
     // WebSockets (Comunicación PC -> Gafas)
     io.on('connection', (socket) => {
         const userAgent = socket.handshake.headers['user-agent'] || '';
@@ -58,28 +91,9 @@ function startServerAndTunnel() {
             socket.broadcast.emit('execute_code', data);
         });
 
-        let lastSentTime = 0;
-
         socket.on('vr_data', (data) => {
-            const now = Date.now();
-
-            // Limitar a 60 fps (16 ms por envío máximo)
-            if (now - lastSentTime >= 16) {
-                const groupedData = {};
-
-                // Posición (X, Y, Z) de ambos mandos
-                if (data.c1) groupedData.leftControllerPos = data.c1;
-                if (data.c2) groupedData.rightControllerPos = data.c2;
-
-                // Rotación (X, Y, Z) de ambos mandos
-                if (data.rot1) groupedData.leftControllerRot = data.rot1;
-                if (data.rot2) groupedData.rightControllerRot = data.rot2;
-
-                // Agrupar en un solo envío OSC
-                oscClient.send('/vr/controllers', JSON.stringify(groupedData));
-
-                lastSentTime = now; // Actualizar tiempo de último envío
-            }
+            pendingVrData = data;
+            isVrDataDirty = true;
         });
 
         socket.on('disconnect', () => {
@@ -142,6 +156,7 @@ function createWindow() {
 app.whenReady().then(() => {
     startServerAndTunnel();
     createWindow();
+    setupAutoUpdater();
 });
 
 app.on('window-all-closed', () => {
