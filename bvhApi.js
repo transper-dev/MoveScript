@@ -614,7 +614,7 @@ const SB = {
 
             const opacidadBase = 0.1;
             const opacidadMaxima = 1.0;
-            const opacidadActual = opacidadBase + (i * ((opacidadMaxima - opacidadBase) / handle._boxesCount));
+            const opacidadActual = opacidadMaxima - ((i - 1) * (opacidadMaxima - opacidadBase) / Math.max(handle._boxesCount - 1, 1));
 
             const mat = new THREE.LineBasicMaterial({
               color: 0x00ffcc,
@@ -626,7 +626,7 @@ const SB = {
             boxMesh.visible = false;
             scene.add(boxMesh);
 
-            const offsetDist = i * (handle._boxDist ?? 0.5);
+            const offsetDist = (i - 1) * (handle._boxDist ?? 0.5);
             concentricas.push({ mesh: boxMesh, offset: offsetDist });
           }
         }
@@ -703,25 +703,20 @@ const SB = {
         if (isVisible) {
           if (r.helper && !r.handle._useDummy) {
             r.helper.updateMatrixWorld(true);
+            r.helper.geometry.computeBoundingBox(); // Rompemos la caché estática del raycaster
           }
           _box3.setFromObject(r.handle._useDummy ? r.group : r.helper);
           _box3.getCenter(_boxCenter);
+          _box3.getSize(_boxSize)
 
-          if (!r.boxSize) {
-            _box3.getSize(_boxSize);
-            if (_boxSize.lengthSq() > 0.01) {
-              r.boxSize = new THREE.Vector3().copy(_boxSize);
-            }
-          }
-
-          const size = r.boxSize;
+          _box3.getSize(_boxSize);
+          const size = _boxSize;
           if (size && size.lengthSq() > 0.01) {
             r.concentricas.forEach(c => {
               c.mesh.visible = true;
 
               const margenUniforme = c.offset * 60;
-              const baseSuelo = _boxCenter.y - (size.y / 2);
-
+              const baseSuelo = Math.max(r.group.position.y, _boxCenter.y - (size.y / 2));
               c.mesh.position.set(_boxCenter.x, baseSuelo, _boxCenter.z);
               c.mesh.scale.set(
                 size.x + margenUniforme,
