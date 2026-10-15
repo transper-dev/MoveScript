@@ -11,7 +11,7 @@ let mainWindow;
 let autoUpdater = null;
 try {
     ({ autoUpdater } = require('electron-updater'));
-} catch (e) {}
+} catch (e) { }
 
 function setupAutoUpdater() {
     if (!autoUpdater || !app.isPackaged) return;
@@ -61,15 +61,26 @@ function startServerAndTunnel() {
         if (!isVrDataDirty || !pendingVrData) return;
         isVrDataDirty = false;
 
-        const groupedData = {};
-        if (pendingVrData.c1) groupedData.leftControllerPos = pendingVrData.c1;
-        if (pendingVrData.c2) groupedData.rightControllerPos = pendingVrData.c2;
-        if (pendingVrData.rot1) groupedData.leftControllerRot = pendingVrData.rot1;
-        if (pendingVrData.rot2) groupedData.rightControllerRot = pendingVrData.rot2;
+        // Definimos la ventana de movimiento (60 = cintura, 150 = hombros)
+        const MIN_ALTURA = 60;
+        const MAX_ALTURA = 150;
+        const RANGO = MAX_ALTURA - MIN_ALTURA;
 
-        oscClient.send('/vr/controllers', JSON.stringify(groupedData), (err) => {
-            if (err) {} // Prevenir excepciones no controladas si el puerto UDP está cerrado
-        });
+        if (pendingVrData.c1) {
+            // MANDO IZQUIERDO -> Volumen
+            let y = pendingVrData.c1[1];
+            let porcentaje = Math.max(0, Math.min((y - MIN_ALTURA) / RANGO, 1));
+            let volumen = Math.floor(porcentaje * 127);
+            oscClient.send('/vr/left_y', volumen, (err) => { });
+        }
+
+        if (pendingVrData.c2) {
+            // MANDO DERECHO -> Frecuencia
+            let y = pendingVrData.c2[1];
+            let porcentaje = Math.max(0, Math.min((y - MIN_ALTURA) / RANGO, 1));
+            let frecuencia = Math.floor(1000 + (porcentaje * 4000));
+            oscClient.send('/vr/right_y', frecuencia, (err) => { });
+        }
     }, 16);
     oscFlushTimer.unref();
 

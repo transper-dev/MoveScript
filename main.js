@@ -124,7 +124,7 @@ function updateColorWidgets(fromLine, toLine) {
 
   if (typeof fromLine !== 'number') {
     colorWidgets.forEach(widget => {
-      try { widget.clear(); } catch(e) {}
+      try { widget.clear(); } catch (e) { }
     });
     colorWidgets.clear();
   }
@@ -290,7 +290,12 @@ window.addEventListener('message', (e) => {
     if (overlay) overlay.style.display = '';
     if (bvhDrawer) bvhDrawer.style.display = '';
     if (helpSidebar) helpSidebar.style.display = '';
+  } else if (e.data.type === 'osc_data') {
+    if (window.socket) {
+      window.socket.emit('vr_data', e.data);
+    }
   }
+
 });
 
 function run() {
