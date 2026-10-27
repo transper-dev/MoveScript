@@ -338,7 +338,21 @@ function runCode(code) {
   isGlobalPaused = false;
   if (globalPauseBtn) globalPauseBtn.textContent = 'Pause (Ctrl+P)';
 
-  const numBloques = (code.match(/(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g) || []).length;
+  // LIMPIEZA DE COMENTARIOS
+  let cleanCode = code.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+
+  // VALIDACIÓN PUNTOS
+  if (/\]\s*\./.test(cleanCode)) {
+    if (errorToast && errorText) {
+      errorText.textContent = "Error de sintaxis: No uses punto '.' después del bloque. Usa el pipe '>'";
+      errorToast.classList.add('visible');
+      setTimeout(() => errorToast.classList.remove('visible'), 4000);
+    }
+    return;
+  }
+
+  // 2. VALIDACIÓN MULTIPLE DUMMY
+  const numBloques = (cleanCode.match(/(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g) || []).length;
   if (numBloques > 1) {
     if (errorToast && errorText) {
       errorText.textContent = "Solo se permite una secuencia continua. Une los bloques con >";
@@ -348,8 +362,9 @@ function runCode(code) {
     return;
   }
 
+  // 3. TRANSPILACIÓN
   let blockIndex = 0;
-  let transpiled = code.replace(/(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g, (match) => {
+  let transpiled = cleanCode.replace(/(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g, (match) => {
     let parts = match.split('>');
     let cleanedParts = parts.map((p, pIdx) => {
       let inside = p.trim().replace(/^\[/, '').replace(/\]$/, '').trim();
@@ -363,6 +378,7 @@ function runCode(code) {
     return `CHAIN(${cleanedParts.join(', ')})`;
   });
 
+  // 4. CONFIGURACIÓN OCULTA Y EJECUCIÓN
   const configuracionOculta = `
     clear();
     // cam(0, 150, 350, 0, 100, 0); // La cámara ya está libre
