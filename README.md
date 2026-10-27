@@ -2,6 +2,12 @@
 
 > **Live-code choreography in 3D — from motion capture to WebXR, in real time.**
 
+[![Web Demo](https://img.shields.io/badge/-Play%20Netlify-00C7B7?style=flat&logo=netlify&logoColor=white&labelColor=181717)](https://movescript.netlify.app/)
+[![Latest Release](https://img.shields.io/badge/-Download%20Electron-47848F?style=flat&logo=electron&logoColor=white&labelColor=181717)](https://github.com/transper-dev/MoveScript/releases)
+[![GitHub Repo](https://img.shields.io/badge/-View%20GitHub-181717?style=flat&logo=github&logoColor=white&labelColor=181717)](https://github.com/transper-dev/MoveScript)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/transper-dev/MoveScript)
+[![GitDiagram](https://img.shields.io/badge/-View%20GitDiagram-8B5CF6?style=flat&logo=mermaid&logoColor=white&labelColor=181717)](https://gitdiagram.com/transper-dev/MoveScript)
+
 MoveScript is a creative coding environment that turns human movement into interactive 3D art. Record any motion, convert it to a `.bvh` file, import it, and start sculpting your performance with code: alter time, paint light trails, stack skeletal echoes, and stream the result live to a Meta Quest headset — no graphics engine boilerplate required.
 
 ![Default Editor View](docs/default.png)
@@ -220,6 +226,17 @@ trail(40)     // enable trails globally
 
 ## 🛠️ Developer Guide
 
+### Instant Code Exploration (Zero-Install)
+
+Explore, search, or feed MoveScript into an AI assistant directly from your browser without cloning the repository:
+
+| Tool | Purpose | Link |
+| --- | --- | --- |
+| **VS Code Web** | Open the full codebase in a browser-based VS Code editor | [![VS Code Web](https://img.shields.io/badge/-Open%20github.dev-007ACC?style=flat&logo=github&logoColor=white&labelColor=181717)](https://github.dev/transper-dev/MoveScript) |
+| **DeepWiki** | Ask AI questions about `bvhApi.js`, WebXR, or OSC logic | [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/transper-dev/MoveScript) |
+| **GitDiagram** | Navigate the system architecture via interactive nodes | [![GitDiagram](https://img.shields.io/badge/-View%20GitDiagram-8B5CF6?style=flat&logo=mermaid&logoColor=white&labelColor=181717)](https://gitdiagram.com/transper-dev/MoveScript) |
+| **GitIngest** | Pack the entire repository into a single LLM-ready `.txt` prompt | [![GitIngest](https://img.shields.io/badge/-Extract%20GitIngest-FF6B6B?style=flat&logo=files&logoColor=white&labelColor=181717)](https://gitingest.com/transper-dev/MoveScript) |
+
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) 18+
@@ -229,7 +246,7 @@ trail(40)     // enable trails globally
 
 ```bash
 # 1. Clone
-git clone https://github.com/UrkiAristu/MoveScript.git
+git clone https://github.com/transper-dev/MoveScript.git
 cd MoveScript
 
 # 2. Install dependencies
@@ -266,7 +283,7 @@ Build output lands in `dist/`. The Windows build produces an NSIS one-click inst
 npm run release
 ```
 
-This builds and uploads the packages to the GitHub Releases page of the repo configured in `package.json` (`UrkiAristu/MoveScript`). Users running any previous version will receive a silent background update the next time they open the app.
+This builds and uploads the packages to the GitHub Releases page of the repo configured in `package.json` (`transper-dev/Movescript`). Users running any previous version will receive a silent background update the next time they open the app.
 
 ---
 
