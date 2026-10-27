@@ -308,6 +308,27 @@ function runCode(code) {
   isGlobalPaused = false;
   if (globalPauseBtn) globalPauseBtn.textContent = 'Pause (Ctrl+P)';
 
+  // 1. VALIDACIÓN SINTAXIS: Prevenir [].modificador()
+  if (/\]\s*\./.test(code)) {
+    if (typeof errorToast !== 'undefined' && typeof errorText !== 'undefined') {
+      errorText.textContent = "Error de sintaxis: No uses punto '.' después del bloque. Usa el pipe '>'";
+      errorToast.classList.add('visible');
+      setTimeout(() => errorToast.classList.remove('visible'), 4000);
+    }
+    return;
+  }
+
+  // 2. VALIDACIÓN LÓGICA: Prevenir [] [] (múltiples cadenas desconectadas)
+  const numBloques = (code.match(/(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g) || []).length;
+  if (numBloques > 1) {
+    if (typeof errorToast !== 'undefined' && typeof errorText !== 'undefined') {
+      errorText.textContent = "Solo se permite una secuencia continua. Une los bloques con >";
+      errorToast.classList.add('visible');
+      setTimeout(() => errorToast.classList.remove('visible'), 4000);
+    }
+    return;
+  }
+
   let transpiled = code.replace(/(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g, (match) => {
     let parts = match.split('>');
     let cleanedParts = parts.map(p => {
