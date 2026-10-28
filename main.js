@@ -1,5 +1,3 @@
-import { examples } from './examples.js';
-
 function buildPreviewHtml() {
   return `<!doctype html>
 <html>
@@ -346,6 +344,7 @@ function runCode(code) {
   `;
 
   const codigoFinal = configuracionOculta + "\n" + transpiled;
+  console.log("Código final a ejecutar:\n", codigoFinal);
   iframe.contentWindow.postMessage({ type: 'execute', code: codigoFinal }, '*');
 }
 
@@ -371,15 +370,7 @@ let currentExampleIndex = 0, debounceTimer = null;
 
 if (randomBtn) {
   randomBtn.addEventListener("click", () => {
-    let randomIndex;
-    do { randomIndex = Math.floor(Math.random() * examples.length); } while (randomIndex === currentExampleIndex || randomIndex === 0);
-    currentExampleIndex = randomIndex;
-
-    window.editor.setValue(`///// ${examples[currentExampleIndex].name} /////\n${examples[currentExampleIndex].code}`);
-
-    if (loader) loader.style.display = "block";
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => { run(); if (loader) loader.style.display = "none"; }, 3000);
+    //
   });
 }
 
