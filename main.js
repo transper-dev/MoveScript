@@ -81,11 +81,102 @@ function showError(message, ms = 4000) {
   errorTimeout = setTimeout(() => errorToast.classList.remove("visible"), ms);
 }
 
+// Tokenizador robusto que respeta comentarios, strings y paréntesis
+const parseBlocks = (code) => {
+  const blocks = [];
+  const lines = code.split("\n");
+  let i = 0;
+  let currentBlock = { startLine: -1, parts: [] };
+  let inBlock = false;
+  let inString = false;
+  let stringChar = null;
+  let inComment = false;
+  let depth = 0;
+  let currentPart = "";
+
+  while (i < code.length) {
+    const char = code[i];
+    const nextChar = code[i + 1];
+
+    // Saltar líneas de comentario
+    if (!inString && char === "/" && nextChar === "/") {
+      inComment = true;
+      i++;
+      continue;
+    }
+    if (char === "\n") {
+      inComment = false;
+    }
+    if (inComment) {
+      i++;
+      continue;
+    }
+
+    // Strings
+    if (!inComment && (char === '"' || char === "'")) {
+      if (!inString) {
+        inString = true;
+        stringChar = char;
+      } else if (char === stringChar && code[i - 1] !== "\\") {
+        inString = false;
+        stringChar = null;
+      }
+    }
+
+    if (!inString && !inComment) {
+      if (char === "[") {
+        if (!inBlock) {
+          inBlock = true;
+          currentBlock = { startLine: lines.slice(0, i).join("\n").split("\n").length - 1, parts: [] };
+          currentPart = "[";
+        } else {
+          currentPart += char;
+        }
+        depth++;
+        i++;
+        continue;
+      } else if (char === "]") {
+        currentPart += char;
+        depth--;
+        if (depth === 0) {
+          // Fin de una parte [...]
+          currentBlock.parts.push(currentPart.trim());
+          currentPart = "";
+          // Buscar si hay un > después (puede haber espacios/newlines)
+          let j = i + 1;
+          while (j < code.length && (code[j] === " " || code[j] === "\t" || code[j] === "\n")) j++;
+          if (code[j] === ">") {
+            // Continuación: consumir el > y seguir esperando el siguiente [
+            i = j;
+          } else {
+            // Fin del bloque
+            if (currentBlock.parts.length > 0) {
+              blocks.push(currentBlock);
+            }
+            inBlock = false;
+            currentBlock = { startLine: -1, parts: [] };
+          }
+        }
+        i++;
+        continue;
+      }
+    }
+
+    if (inBlock) {
+      currentPart += char;
+    }
+    i++;
+  }
+
+  return blocks;
+};
+
+// Versión simple para isNewBlock (usa el mismo tokenizer)
 const isNewBlock = (lines, idx) => {
   if (!lines[idx].trim().startsWith("[")) return false;
   let prev = idx - 1;
   while (prev >= 0 && lines[prev].trim() === "") prev--;
-  if (prev >= 0 && lines[prev].trim().endsWith(">")) return false; // continuación, no cortamos
+  if (prev >= 0 && lines[prev].trim().endsWith(">")) return false;
   return true;
 };
 
@@ -805,27 +896,39 @@ function runCode(sb, code) {
   setGlobalPauseUI(false);
   sb.paused = false; sb.syncUI();
 
-  // 1. VALIDACIÓN SINTAXIS: prevenir [].modificador()
-  if (/\]\s*\./.test(code)) {
-    showError(`[Sandbox ${sb.label}] Error de sintaxis: No uses punto '.' después del bloque. Usa el pipe '>'`);
+  // 1. VALIDACIÓN SINTAXIS: prevenir [].modificador() - carácter a carácter para no fallar con strings/comentarios
+  let inStrVal = false, strChVal = null;
+  for (let ci = 0; ci < code.length - 1; ci++) {
+    const ch = code[ci];
+    if ((ch === '"' || ch === "'") && !inStrVal) { inStrVal = true; strChVal = ch; }
+    else if (inStrVal && ch === strChVal && code[ci - 1] !== "\\") { inStrVal = false; }
+    if (!inStrVal && ch === "]" && /\s/.test(code[ci + 1]?.replace(/\s/g, "") === "" ? "x" : code.slice(ci + 1).trimStart()[0] || "") === false && code.slice(ci + 1).trimStart().startsWith(".")) {
+      showError(`[Sandbox ${sb.label}] Error de sintaxis: No uses punto '.' después del bloque. Usa el pipe '>'`);
+      return;
+    }
+  }
+
+  // 2. VALIDACIÓN LÓGICA y TRANSPILACIÓN usando el tokenizador robusto
+  const blocks = parseBlocks(code);
+  if (blocks.length > 1) {
+    showError(`[Sandbox ${sb.label}] Solo se permite una secuencia continua por sandbox. Une los bloques con '>'`);
     return;
   }
 
-  // 2. VALIDACIÓN LÓGICA: una única secuencia continua por sandbox
-  const numBloques = (code.match(/(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g) || []).length;
-  if (numBloques > 1) {
-    showError(`[Sandbox ${sb.label}] Solo se permite una secuencia continua por sandbox. Une los bloques con >`);
-    return;
-  }
-
-  const transpiled = code.replace(/(?:\[[\s\S]*?\](?:\s*>\s*\[[\s\S]*?\])*)/g, (match) => {
-    const parts = match.split(">");
-    const cleanedParts = parts.map(p => {
-      const inside = p.trim().replace(/^\[/, "").replace(/\]$/, "").trim();
-      return inside === "" ? `$B()` : `$B().${inside}`;
+  let transpiled = code;
+  if (blocks.length === 1) {
+    const block = blocks[0];
+    const chainParts = block.parts.map(part => {
+      const inside = part.replace(/^\[/, "").replace(/\]$/, "").trim();
+      return inside === "" ? "$B()" : `$B().${inside}`;
     });
-    return `CHAIN(${cleanedParts.join(", ")})`;
-  });
+    // Reemplazar el bloque completo (desde el primer [ al último ]) con CHAIN(...)
+    const firstBracket = code.indexOf("[");
+    const lastBracket = code.lastIndexOf("]");
+    transpiled = code.substring(0, firstBracket) +
+                 `CHAIN(${chainParts.join(", ")})` +
+                 code.substring(lastBracket + 1);
+  }
 
   // clear() limpia SOLO este sandbox; grid/cámara/fondo son globales y no se reinician
   const configuracionOculta = `
@@ -834,7 +937,6 @@ function runCode(sb, code) {
   `;
 
   const codigoFinal = configuracionOculta + "\n" + transpiled;
-  console.log(`Código final a ejecutar (sandbox ${sb.id}):\n`, codigoFinal);
   // order = posición por número de sandbox (independiente de en qué ventana esté); define la X por defecto
   const order = sortedByLabel().indexOf(sb);
   iframe.contentWindow.postMessage({ type: "execute", sandboxId: sb.id, order, code: codigoFinal }, "*");
@@ -851,9 +953,38 @@ function runAll() {
 if (runAllBtn) runAllBtn.addEventListener("click", runAll);
 
 // ====================================================
+// UTILIDAD: elimina llamadas de método con paréntesis anidados
+// e.g. removeMethodCall(".pos(Math.round(5), 0, 0)") → ""
+// El regex [^)]+ falla con argumentos que contienen funciones anidadas
+// (Auditoría: punto #3 – bug regex .pos())
+// ====================================================
+function removeMethodCall(str, methodName) {
+  let result = "";
+  let i = 0;
+  const prefix = "." + methodName + "(";
+  while (i < str.length) {
+    const idx = str.indexOf(prefix, i);
+    if (idx === -1) { result += str.slice(i); break; }
+    result += str.slice(i, idx);
+    // avanzar hasta el ( inicial y contar anidamiento
+    let depth = 0;
+    let j = idx + prefix.length - 1; // apunta al '('
+    while (j < str.length) {
+      if (str[j] === "(") depth++;
+      else if (str[j] === ")") { depth--; if (depth === 0) { j++; break; } }
+      j++;
+    }
+    i = j; // saltar toda la llamada
+  }
+  return result;
+}
+
+// ====================================================
 // MENSAJES DEL MOTOR (enrutados por sandboxId)
 // ====================================================
 window.addEventListener("message", (e) => {
+  // Sólo aceptamos mensajes del iframe interno (seguridad)
+  if (e.source !== iframe.contentWindow) return;
   const d = e.data;
   if (!d || !d.type) return;
 
@@ -864,13 +995,6 @@ window.addEventListener("message", (e) => {
       if (sb) runCode(sb, sb.cm.getValue());
     }
     pendingRuns.clear();
-    return;
-  }
-
-  if (d.type === "globalHotkey") {
-    if (d.key === "enter" && activeSandbox) runSandbox(activeSandbox);
-    if (d.key === "s" && activeSandbox) activeSandbox.toggleSave();
-    if (d.key === "p" && globalPauseBtn) globalPauseBtn.click();
     return;
   }
 
@@ -886,12 +1010,17 @@ window.addEventListener("message", (e) => {
 
   if (d.type === "rigMoved") {
     sb.updateEditor(d.codeIndex, (st, bIdx) => {
-      const inside = st.substring(0, bIdx).replace(/\.pos\([^)]+\)/g, "").replace(/\.x\([^)]+\)/g, "").replace(/\.z\([^)]+\)/g, "");
+      let inside = st.substring(0, bIdx);
+      inside = removeMethodCall(inside, "pos");
+      inside = removeMethodCall(inside, "x");
+      inside = removeMethodCall(inside, "z");
       return inside + `.pos(${Math.round(d.x)}, 0, ${Math.round(d.z)})` + st.substring(bIdx);
     });
   } else if (d.type === "rigRotated") {
     sb.updateEditor(d.codeIndex, (st, bIdx) => {
-      const inside = st.substring(0, bIdx).replace(/\.rotX\([^)]+\)/g, "").replace(/\.rotY\([^)]+\)/g, "");
+      let inside = st.substring(0, bIdx);
+      inside = removeMethodCall(inside, "rotX");
+      inside = removeMethodCall(inside, "rotY");
       let rStr = "";
       if (Math.abs(d.rotX) > 0.01) rStr += `.rotX(${d.rotX.toFixed(2)})`;
       if (Math.abs(d.rotY) > 0.01) rStr += `.rotY(${d.rotY.toFixed(2)})`;

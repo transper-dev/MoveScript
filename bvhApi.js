@@ -178,7 +178,8 @@ class SandboxContext {
   tick(dt) {
     const paused = globalPause || this.paused;
     for (const r of this.rigs) {
-      if (r.group) r.group.scale.setScalar(r.opts.scale ?? this.params.globalScale);
+      // Aplica autoScale si fue calculado al crear el rig (bug: antes se perdía cada frame)
+      if (r.group) r.group.scale.setScalar((r.autoScale || 1) * (r.opts.scale ?? this.params.globalScale));
 
       const trailLen = r.opts.trail ?? this.params.trail;
       const delayTime = r.opts.delay ?? this.params.delay;
@@ -624,7 +625,7 @@ function createBvh(ctx, fileOrUrl, isChained = false) {
       });
 
       ctx.rigs.push({
-        ctx, handle, group, pivot, root, helper, mixer, action, clip: result.clip, timeAlive: 0,
+        ctx, handle, group, pivot, root, helper, mixer, action, clip: result.clip, timeAlive: 0, autoScale,
         opts: { rotX: handle._rotX, rotY: handle._rotY, rotZ: handle._rotZ, speed: (handle._speed ?? 1.0), showSkeleton: (handle._showSkeleton ?? null), scale: (handle._scale ?? null), reverse: handle._reverse, color: handle._color, color2: handle._color2, trail: handle._trail, delay: handle._delay }
       });
     }, undefined, () => {

@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- TODO Seguridad: CDN sin integrity attributes (riesgo: si el CDN es comprometido, se sirve código alterado) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <title>MoveScript</title>
   <link rel="icon" type="image/png" href="./icons/icon.png">
@@ -376,23 +377,6 @@
       box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
     }
 
-    #loader {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #00ffff;
-      font-family: Consolas, monospace;
-      font-size: 24px;
-      background: rgba(0, 0, 0, 0.8);
-      padding: 15px 30px;
-      border-radius: 8px;
-      border: 1px solid #00ffff;
-      display: none;
-      pointer-events: none;
-      z-index: 9999;
-    }
-
     /* --- CAJÓN DE ANIMACIONES BVH --- */
     #bvh-drawer {
       position: fixed;
@@ -634,6 +618,7 @@
   <div id="loader">Loading... ⏳</div>
 
   <div id="app">
+    <!-- Sandbox con allow-same-origin necesario para srcdoc + postMessage entre parent e iframe -->
     <iframe id="preview" sandbox="allow-scripts allow-same-origin"></iframe>
 
     <!-- Los sandboxes (editores) se crean desde main.js -->
