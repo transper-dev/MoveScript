@@ -38,7 +38,7 @@
       z-index: 0;
     }
 
-    /* --- CONTENEDOR DE SANDBOXES (no intercepta el ratón; cada sandbox sí) --- */
+    /* ===== VENTANAS DE SANDBOX (con pestañas) ===== */
     #sandboxes {
       position: fixed;
       inset: 0;
@@ -46,7 +46,16 @@
       pointer-events: none;
     }
 
-    /* --- UN SANDBOX (EDITOR FLOTANTE) --- */
+    /* mientras se arrastra una pestaña, el iframe 3D no debe capturar el ratón */
+    body.dragging #preview {
+      pointer-events: none;
+    }
+
+    body.dragging {
+      user-select: none;
+      cursor: grabbing;
+    }
+
     .sandbox {
       position: fixed;
       top: 16px;
@@ -72,50 +81,146 @@
       border-color: rgba(0, 255, 204, 0.55);
     }
 
+    .sandbox.ghost {
+      opacity: 0.55;
+    }
+
     .sandbox.minimized {
       min-height: 0;
     }
 
-    .sandbox.minimized .CodeMirror,
+    .sandbox.minimized .sb-body,
     .sandbox.minimized .sb-resize {
       display: none;
     }
 
     .sb-bar,
-    .sandbox .CodeMirror,
+    .sb-body,
     .sb-resize {
       pointer-events: auto;
     }
 
+    /* barra: pestañas + botón nueva pestaña + acciones de la pestaña activa */
     .sb-bar {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
-      padding: 10px 10px;
+      padding: 8px 8px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-      background: transparent;
       user-select: none;
-      overflow-x: auto;
-      scrollbar-width: none;
       cursor: grab;
+      transition: background 0.15s, box-shadow 0.15s;
     }
 
     .sb-bar:active {
       cursor: grabbing;
     }
 
-    .sb-bar::-webkit-scrollbar {
+    .sb-bar.drop-target {
+      background: rgba(0, 255, 204, 0.18);
+      box-shadow: inset 0 0 0 2px #00ffcc;
+    }
+
+    .sb-tabs {
+      display: flex;
+      gap: 4px;
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .sb-tabs::-webkit-scrollbar {
       display: none;
     }
 
-    .sb-title {
-      color: #00ffcc;
-      font: bold 12px sans-serif;
-      letter-spacing: 1px;
+    .sb-tab {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 150px;
+      padding: 5px 6px 5px 10px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.04);
+      color: #aaa;
+      font: 12px sans-serif;
       white-space: nowrap;
-      padding-right: 4px;
+      cursor: pointer;
     }
 
+    .sb-tab:hover {
+      background: rgba(255, 255, 255, 0.10);
+    }
+
+    .sb-tab.active {
+      background: rgba(0, 255, 204, 0.12);
+      border-color: rgba(0, 255, 204, 0.45);
+      color: #eafff9;
+    }
+
+    .sb-tab-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sb-tab.dirty .sb-tab-title::after {
+      content: " \2022";
+      color: #ffcc00;
+    }
+
+    .sb-tab-pause {
+      display: none;
+      font-size: 9px;
+      color: #ffcc66;
+    }
+
+    .sb-tab.paused .sb-tab-pause {
+      display: inline;
+    }
+
+    .sb-tab-close {
+      border: none;
+      background: transparent;
+      color: #888;
+      font-size: 15px;
+      line-height: 1;
+      padding: 1px 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .sb-tab-close:hover {
+      background: rgba(255, 51, 102, 0.4);
+      color: #fff;
+    }
+
+    .only-one .sb-tab-close {
+      display: none;
+    }
+
+    .sb-actions {
+      display: flex;
+      gap: 6px;
+      flex: none;
+      margin-left: auto;
+    }
+
+    .sb-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sb-editor {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+    }
+
+    /* botones */
     .sb-btn,
     .global-btn {
       padding: 6px 10px;
@@ -133,14 +238,6 @@
       background: rgba(255, 255, 255, 0.10);
     }
 
-    .sb-btn.saved {
-      background-color: #00ffcc !important;
-      color: #000 !important;
-      border-color: #00ffcc !important;
-      font-weight: bold;
-    }
-
-    /* botones solo-icono de la barra de cada sandbox */
     .sb-icon {
       min-width: 32px;
       padding: 6px 8px;
@@ -148,9 +245,11 @@
       line-height: 1;
     }
 
-    .sb-toggle {
-      font-size: 16px;
-      font-weight: bold;
+    .sb-addtab {
+      flex: none;
+      min-width: 28px;
+      padding: 5px 6px;
+      font-size: 11px;
     }
 
     .sb-btn i,
@@ -160,6 +259,13 @@
 
     .sb-run i {
       color: #00ffcc;
+    }
+
+    .sb-btn.saved {
+      background-color: #00ffcc !important;
+      color: #000 !important;
+      border-color: #00ffcc !important;
+      font-weight: bold;
     }
 
     /* cambios sin guardar: punto amarillo sobre el icono de guardar */
@@ -178,25 +284,12 @@
       background: #ffcc00;
     }
 
-    /* pausado (local o global): tono ámbar con icono play */
+    /* pausado (local o global): tono ámbar */
     .sb-btn.paused,
     #global-bar .global-btn.paused {
       background: rgba(255, 170, 0, 0.25);
       border-color: rgba(255, 170, 0, 0.7);
       color: #ffcc66;
-    }
-
-    .sb-del {
-      margin-left: auto;
-      font-weight: bold;
-    }
-
-    .sb-del:hover {
-      background: rgba(255, 51, 102, 0.35) !important;
-    }
-
-    .only-one .sb-del {
-      display: none;
     }
 
     .sb-resize {
@@ -226,6 +319,10 @@
       background: rgba(15, 15, 15, 0.85);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
+    }
+
+    #global-bar .btn-label {
+      margin-left: 6px;
     }
 
     #global-bar .global-btn:hover {
@@ -543,11 +640,12 @@
     <div id="sandboxes"></div>
 
     <div id="global-bar">
-      <button id="addSandboxBtn" class="global-btn" title="Nuevo sandbox"><i class="fas fa-plus"></i> Add
-        Sandbox</button>
+      <button id="addSandboxBtn" class="global-btn" title="Nueva ventana con un sandbox"><i
+          class="fas fa-window-restore"></i><span class="btn-label">New window</span></button>
       <button id="runAllBtn" class="global-btn" title="Ejecutar todos los sandboxes (Ctrl+Shift+Enter)"><i
-          class="fas fa-play"></i> Run all</button>
-      <button id="globalPauseBtn" class="global-btn" title="Pausar todo (Ctrl+P)"><i class="fas fa-pause"></i></button>
+          class="fas fa-forward"></i><span class="btn-label">Run all</span></button>
+      <button id="globalPauseBtn" class="global-btn" title="Pausar todo (Ctrl+P)"><i class="fas fa-pause"></i><span
+          class="btn-label">Pause All</span></button>
     </div>
   </div>
 

@@ -24,7 +24,7 @@ function buildPreviewHtml() {
 }
 
 // ====================================================
-// ELEMENTOS GLOBALES (compartidos por todos los sandboxes)
+// ELEMENTOS Y ESTADO GLOBAL
 // ====================================================
 const iframe = document.getElementById("preview");
 const container = document.getElementById("sandboxes");
@@ -36,7 +36,7 @@ const errorText = document.getElementById("error-text");
 
 const MAX_SANDBOXES = 8;
 const LEGACY_KEY = "movescript_saved_code";   // esquema antiguo (un solo editor)
-const LIST_KEY = "movescript_sandboxes";      // { seq, items: [{ id, label, left, top, width, height, minimized }] }
+const LIST_KEY = "movescript_sandboxes";      // { windows: [{ left, top, width, height, minimized, tabs: [{id,label}], active }] }
 const codeKey = (id) => `movescript_sandbox_${id}`;
 
 // localStorage con protección (modo privado, cuota, etc.)
@@ -46,7 +46,8 @@ const ls = {
   remove(k) { try { localStorage.removeItem(k); } catch (e) { /* nada */ } }
 };
 
-const sandboxes = new Map();      // sandboxId -> SandboxUI
+const sandboxes = new Map();      // sandboxId -> Sandbox (una pestaña), esté en la ventana que esté
+const windows = [];               // SandboxWindow[]
 const pendingRuns = new Set();    // sandboxIds a ejecutar cuando el motor esté listo
 let activeSandbox = null;
 let engineReady = false;
@@ -54,8 +55,7 @@ let isGlobalPaused = false;
 let zCounter = 1;
 let errorTimeout;
 
-// Compatibilidad: el resto de la UI (sidebar de ayuda y cajón de BVH) usa window.editor.
-// Ahora apunta siempre al CodeMirror del sandbox ACTIVO.
+// Compatibilidad: sidebar de ayuda y cajón de BVH usan window.editor => CodeMirror del sandbox ACTIVO
 Object.defineProperty(window, "editor", {
   get: () => (activeSandbox ? activeSandbox.cm : null),
   configurable: true
@@ -66,7 +66,9 @@ function setGlobalPauseUI(paused) {
   isGlobalPaused = paused;
   if (!globalPauseBtn) return;
   const icon = globalPauseBtn.querySelector("i");
+  const label = globalPauseBtn.querySelector(".btn-label");
   if (icon) icon.className = paused ? "fas fa-play" : "fas fa-pause";
+  if (label) label.textContent = paused ? "Play All" : "Pause All";
   globalPauseBtn.classList.toggle("paused", paused);
   globalPauseBtn.title = paused ? "Reanudar todo (Ctrl+P)" : "Pausar todo (Ctrl+P)";
 }
@@ -87,53 +89,33 @@ const isNewBlock = (lines, idx) => {
   return true;
 };
 
+const sortedByLabel = () => [...sandboxes.values()].sort((a, b) => a.label - b.label);
+
 // ====================================================
-// SandboxUI: un editor flotante independiente
+// Sandbox: una PESTAÑA (editor + estado). Vive dentro de una SandboxWindow.
 // ====================================================
-class SandboxUI {
-  constructor(id, label, { code = "", left = 16, top = 16, width = "", height = "", hasStored = false } = {}) {
+class Sandbox {
+  constructor(id, label, { code = "", hasStored = false } = {}) {
     this.id = id;
     this.label = label;
+    this.win = null;
     this.activeChainMarks = {};
     this.currentChainSteps = {};
     this.colorWidgets = [];
     this.colorUpdateTimer = null;
     this.isRigSelected = false;
     this.isSaved = false;
-    this.prevSize = null;
-    this.hasStored = hasStored; // hay código guardado en localStorage para este sandbox
-    this.dirty = false;         // editado desde el último guardado
-    this.paused = false;        // pausa local de este sandbox
+    this.dirty = false;          // editado desde el último guardado
+    this.paused = false;         // pausa local
+    this.hasStored = hasStored;  // hay código guardado en localStorage
 
-    this.el = document.createElement("div");
-    this.el.className = "sandbox";
-    this.el.dataset.sandboxId = id;
-    this.el.style.left = `${left}px`;
-    this.el.style.top = `${top}px`;
-    if (width) this.el.style.width = width;
-    if (height) this.el.style.height = height;
-    this.el.innerHTML = `
-      <div class="sb-bar">
-        <span class="sb-title">Sandbox ${label}</span>
-        <button class="sb-btn sb-icon sb-run" title="Ejecutar (Ctrl+Enter)"><i class="fas fa-play"></i></button>
-        <button class="sb-btn sb-icon sb-pause" title="Pausar este sandbox"><i class="fas fa-pause"></i></button>
-        <button class="sb-btn sb-icon sb-save" title="Guardar (Ctrl+S)"><i class="fas fa-save"></i></button>
-        <button class="sb-btn sb-icon sb-toggle" title="Ocultar (Esc)">&minus;</button>
-        <button class="sb-btn sb-icon sb-del" title="Eliminar sandbox">&times;</button>
-      </div>
-      <textarea spellcheck="false"></textarea>
-      <div class="sb-resize"></div>`;
-    container.appendChild(this.el);
-
-    this.bar = this.el.querySelector(".sb-bar");
-    this.runBtn = this.el.querySelector(".sb-run");
-    this.toggleBtn = this.el.querySelector(".sb-toggle");
-    this.saveBtn = this.el.querySelector(".sb-save");
-    this.delBtn = this.el.querySelector(".sb-del");
-    this.pauseBtn = this.el.querySelector(".sb-pause");
-    this.resizeHandle = this.el.querySelector(".sb-resize");
-
-    this.cm = CodeMirror.fromTextArea(this.el.querySelector("textarea"), {
+    // El holder permite mover el editor entero entre ventanas
+    this.holder = document.createElement("div");
+    this.holder.className = "sb-editor";
+    const textarea = document.createElement("textarea");
+    textarea.spellcheck = false;
+    this.holder.appendChild(textarea);
+    this.cm = CodeMirror.fromTextArea(textarea, {
       mode: "javascript",
       theme: "monokai",
       lineNumbers: false,
@@ -142,32 +124,40 @@ class SandboxUI {
     });
     this.cm.setValue(code);
 
+    // Pestaña
+    this.tabEl = document.createElement("div");
+    this.tabEl.className = "sb-tab";
+    this.tabEl.innerHTML =
+      `<i class="fas fa-pause sb-tab-pause"></i>` +
+      `<span class="sb-tab-title">Sandbox ${label}</span>` +
+      `<button class="sb-tab-close" title="Cerrar sandbox">&times;</button>`;
+
     this._wireCodeMirror();
-    this._wireButtons();
-    this._wireDrag();
-    this._wireResize();
+    this._wireTab();
     this.updateColorWidgets();
-    this._renderToggle(false);
-    this._renderPause();
-    this._renderSave();
   }
 
   // ---------- activación ----------
   activate() {
-    if (activeSandbox && activeSandbox !== this) activeSandbox.el.classList.remove("active");
+    const w = this.win;
+    if (activeSandbox && activeSandbox.win && activeSandbox.win !== w) {
+      activeSandbox.win.el.classList.remove("active");
+    }
     activeSandbox = this;
-    this.el.classList.add("active");
-    this.el.style.zIndex = ++zCounter;
+    if (w) {
+      w.el.classList.add("active");
+      w.el.style.zIndex = ++zCounter;
+      if (w.activeSb !== this) w.selectTab(this);
+    }
   }
 
   // ---------- CodeMirror ----------
   _wireCodeMirror() {
     this.cm.on("focus", () => this.activate());
-    this.el.addEventListener("pointerdown", () => this.activate(), true);
 
     this.cm.on("keydown", (cm, e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-        e.preventDefault(); e.stopPropagation(); this.saveBtn.click();
+        e.preventDefault(); e.stopPropagation(); this.toggleSave();
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
         e.preventDefault(); e.stopPropagation(); globalPauseBtn.click();
@@ -185,57 +175,42 @@ class SandboxUI {
     this.cm.on("change", () => {
       this.isSaved = false;
       this.dirty = true;
-      this._renderSave();
+      this.syncUI();
       clearTimeout(this.colorUpdateTimer);
       this.colorUpdateTimer = setTimeout(() => this.updateColorWidgets(), 200);
     });
   }
 
-  // ---------- botones ----------
-  _wireButtons() {
-    this.runBtn.addEventListener("click", () => runSandbox(this));
-    this.toggleBtn.addEventListener("click", () => this.toggleMinimized());
-    this.saveBtn.addEventListener("click", () => this.toggleSave());
-    this.pauseBtn.addEventListener("click", () => this.togglePause());
-    this.delBtn.addEventListener("click", () => removeSandbox(this));
+  // ---------- pestaña (clic, arrastre, cerrar) ----------
+  _wireTab() {
+    this.tabEl.addEventListener("pointerdown", (e) => {
+      if (e.button === 1) { e.preventDefault(); return; }         // clic central: se cierra en auxclick
+      if (e.button !== 0 || e.target.closest(".sb-tab-close")) return;
+      this.activate();
+      startTabGesture(e, this);
+    });
+    this.tabEl.addEventListener("auxclick", (e) => { if (e.button === 1) removeSandbox(this); });
+    this.tabEl.querySelector(".sb-tab-close").addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeSandbox(this);
+    });
   }
 
-  toggleMinimized() {
-    if (this.el.classList.toggle("minimized")) {
-      this.prevSize = { width: this.el.style.width || "", height: this.el.style.height || "" };
-      this.el.style.height = this.bar.offsetHeight + "px";
-      this._renderToggle(true);
-    } else {
-      this.el.style.width = this.prevSize?.width || "";
-      this.el.style.height = this.prevSize?.height || "";
-      this._renderToggle(false);
-      this.cm.refresh();
-    }
-    scheduleLayoutSave();
+  // Refleja el estado en la pestaña y, si es la activa, en la barra de la ventana
+  syncUI() {
+    this.tabEl.classList.toggle("dirty", this.dirty);
+    this.tabEl.classList.toggle("paused", this.paused);
+    if (this.win) this.win.syncToolbar(this);
   }
 
-  _renderToggle(minimized) {
-    this.toggleBtn.textContent = minimized ? "+" : "\u2212";
-    this.toggleBtn.title = minimized ? "Mostrar (Esc)" : "Ocultar (Esc)";
-  }
-
-  _renderSave() {
-    this.saveBtn.classList.toggle("saved", this.isSaved);
-    this.saveBtn.classList.toggle("dirty", this.dirty);
-    this.saveBtn.title = this.isSaved
-      ? "Guardado: clic para quitar el guardado (Ctrl+S)"
-      : (this.dirty ? "Guardar cambios (Ctrl+S)" : "Guardar (Ctrl+S)");
-  }
-
-  markSaved() {
-    this.isSaved = true; this.dirty = false; this._renderSave();
-  }
+  // ---------- guardar ----------
+  markSaved() { this.isSaved = true; this.dirty = false; this.syncUI(); }
 
   toggleSave() {
     if (this.isSaved) {
       ls.remove(codeKey(this.id));
       this.hasStored = false;
-      this.isSaved = false; this.dirty = false; this._renderSave();
+      this.isSaved = false; this.dirty = false; this.syncUI();
     } else {
       ls.set(codeKey(this.id), this.cm.getValue());
       this.hasStored = true;
@@ -245,71 +220,12 @@ class SandboxUI {
   }
 
   // ---------- pausa local ----------
-  _renderPause() {
-    const icon = this.pauseBtn.querySelector("i");
-    if (icon) icon.className = this.paused ? "fas fa-play" : "fas fa-pause";
-    this.pauseBtn.classList.toggle("paused", this.paused);
-    this.pauseBtn.title = this.paused ? "Reanudar este sandbox" : "Pausar este sandbox";
-  }
-
   setPaused(value) {
     this.paused = !!value;
-    this._renderPause();
+    this.syncUI();
     iframe.contentWindow.postMessage({ type: "pauseSandbox", sandboxId: this.id, paused: this.paused }, "*");
   }
-
   togglePause() { this.setPaused(!this.paused); }
-
-  // Geometría actual (para restaurar al recargar)
-  getLayout() {
-    const minimized = this.el.classList.contains("minimized");
-    const size = minimized ? this.prevSize : { width: this.el.style.width, height: this.el.style.height };
-    return {
-      id: this.id,
-      label: this.label,
-      left: parseInt(this.el.style.left, 10) || 0,
-      top: parseInt(this.el.style.top, 10) || 0,
-      width: size?.width || "",
-      height: size?.height || "",
-      minimized
-    };
-  }
-
-  // ---------- arrastrar / redimensionar (por instancia) ----------
-  _wireDrag() {
-    let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
-    this.bar.addEventListener("pointerdown", (e) => {
-      if (e.target.closest("button")) return;
-      dragging = true; this.bar.setPointerCapture(e.pointerId);
-      const rect = this.el.getBoundingClientRect();
-      startX = e.clientX; startY = e.clientY; startLeft = rect.left; startTop = rect.top;
-    });
-    this.bar.addEventListener("pointermove", (e) => {
-      if (!dragging) return;
-      this.el.style.left = `${Math.max(8, Math.min(window.innerWidth - this.el.offsetWidth - 8, startLeft + (e.clientX - startX)))}px`;
-      this.el.style.top = `${Math.max(8, Math.min(window.innerHeight - this.el.offsetHeight - 8, startTop + (e.clientY - startY)))}px`;
-    });
-    const stop = () => { if (dragging) scheduleLayoutSave(); dragging = false; };
-    this.bar.addEventListener("pointerup", stop);
-    this.bar.addEventListener("pointercancel", stop);
-  }
-
-  _wireResize() {
-    let resizing = false, startW = 0, startH = 0, startRX = 0, startRY = 0;
-    this.resizeHandle.addEventListener("pointerdown", (e) => {
-      resizing = true; this.resizeHandle.setPointerCapture(e.pointerId);
-      startW = this.el.offsetWidth; startH = this.el.offsetHeight;
-      startRX = e.clientX; startRY = e.clientY; e.preventDefault();
-    });
-    this.resizeHandle.addEventListener("pointermove", (e) => {
-      if (!resizing) return;
-      this.el.style.width = `${Math.max(420, Math.min(window.innerWidth - 16, startW + (e.clientX - startRX)))}px`;
-      this.el.style.height = `${Math.max(220, Math.min(window.innerHeight - 16, startH + (e.clientY - startRY)))}px`;
-    });
-    const stop = () => { if (resizing) scheduleLayoutSave(); resizing = false; };
-    this.resizeHandle.addEventListener("pointerup", stop);
-    this.resizeHandle.addEventListener("pointercancel", stop);
-  }
 
   // ---------- widgets de color ----------
   updateColorWidgets() {
@@ -347,7 +263,6 @@ class SandboxUI {
         currentIdx++;
       }
     }
-
     if (blockStartLine === -1) return;
 
     let currentStep = 0;
@@ -420,45 +335,379 @@ class SandboxUI {
     }
   }
 
-  // ---------- destrucción ----------
   destroy() {
     clearTimeout(this.colorUpdateTimer);
     this.clearChainMarks();
     this.colorWidgets.forEach(w => w.clear());
-    this.el.remove();
+    this.tabEl.remove();
+    this.holder.remove();
   }
 }
 
 // ====================================================
-// CREAR / ELIMINAR SANDBOXES
+// SandboxWindow: ventana flotante con barra de pestañas (1..n sandboxes apilados)
 // ====================================================
-function refreshOnlyOne() {
-  document.body.classList.toggle("only-one", sandboxes.size <= 1);
+class SandboxWindow {
+  constructor({ left = 16, top = 16, width = "", height = "" } = {}) {
+    this.tabs = [];
+    this.activeSb = null;
+    this.prevSize = null;
+
+    this.el = document.createElement("div");
+    this.el.className = "sandbox";
+    this.el.style.left = `${left}px`;
+    this.el.style.top = `${top}px`;
+    if (width) this.el.style.width = width;
+    if (height) this.el.style.height = height;
+    this.el.style.zIndex = ++zCounter;
+    this.el.innerHTML = `
+      <div class="sb-bar">
+        <div class="sb-tabs"></div>
+        <button class="sb-btn sb-icon sb-addtab" title="Nueva pestaña"><i class="fas fa-plus"></i></button>
+        <div class="sb-actions">
+          <button class="sb-btn sb-icon sb-run" title="Ejecutar (Ctrl+Enter)"><i class="fas fa-play"></i></button>
+          <button class="sb-btn sb-icon sb-pause" title="Pausar este sandbox"><i class="fas fa-pause"></i></button>
+          <button class="sb-btn sb-icon sb-save" title="Guardar (Ctrl+S)"><i class="fas fa-save"></i></button>
+          <button class="sb-btn sb-icon sb-toggle" title="Ocultar (Esc)"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="sb-body"></div>
+      <div class="sb-resize"></div>`;
+
+    this.barEl = this.el.querySelector(".sb-bar");
+    this.tabsEl = this.el.querySelector(".sb-tabs");
+    this.bodyEl = this.el.querySelector(".sb-body");
+    this.addBtn = this.el.querySelector(".sb-addtab");
+    this.runBtn = this.el.querySelector(".sb-run");
+    this.pauseBtn = this.el.querySelector(".sb-pause");
+    this.saveBtn = this.el.querySelector(".sb-save");
+    this.toggleBtn = this.el.querySelector(".sb-toggle");
+    this.resizeHandle = this.el.querySelector(".sb-resize");
+
+    this.el.addEventListener("pointerdown", () => { if (this.activeSb) this.activeSb.activate(); }, true);
+    this.addBtn.addEventListener("click", () => {
+      const sb = createSandbox();
+      if (!sb) return;
+      this.addTab(sb);
+      sb.activate();
+      sb.cm.focus();
+      scheduleLayoutSave();
+    });
+    this.runBtn.addEventListener("click", () => { if (this.activeSb) runSandbox(this.activeSb); });
+    this.pauseBtn.addEventListener("click", () => { if (this.activeSb) this.activeSb.togglePause(); });
+    this.saveBtn.addEventListener("click", () => { if (this.activeSb) this.activeSb.toggleSave(); });
+    this.toggleBtn.addEventListener("click", () => this.toggleMinimized());
+
+    this._wireBarDrag();
+    this._wireResize();
+  }
+
+  // ---------- pestañas ----------
+  addTab(sb, index = this.tabs.length) {
+    index = Math.max(0, Math.min(index, this.tabs.length));
+    sb.win = this;
+    this.tabs.splice(index, 0, sb);
+    this.tabsEl.insertBefore(sb.tabEl, this.tabsEl.children[index] || null);
+    sb.holder.style.display = "none";
+    this.bodyEl.appendChild(sb.holder);
+    this.selectTab(sb);
+    sb.syncUI();
+  }
+
+  // Saca la pestaña de esta ventana (NO destruye el sandbox)
+  detachTab(sb) {
+    const i = this.tabs.indexOf(sb);
+    if (i < 0) return;
+    this.tabs.splice(i, 1);
+    sb.tabEl.remove();
+    sb.holder.remove();
+    sb.win = null;
+    if (this.activeSb === sb) {
+      this.activeSb = null;
+      const next = this.tabs[Math.min(i, this.tabs.length - 1)];
+      if (next) this.selectTab(next);
+    }
+  }
+
+  selectTab(sb) {
+    this.activeSb = sb;
+    for (const t of this.tabs) {
+      const on = t === sb;
+      t.tabEl.classList.toggle("active", on);
+      t.holder.style.display = on ? "" : "none";
+    }
+    sb.cm.refresh();
+    this.syncToolbar(sb);
+    try { sb.tabEl.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) { /* nada */ }
+  }
+
+  // Reordena arrastrando dentro de la misma barra
+  reorderByX(sb, x) {
+    const cur = this.tabs.indexOf(sb);
+    let pos = this.tabs.length;
+    for (let i = 0; i < this.tabs.length; i++) {
+      const r = this.tabs[i].tabEl.getBoundingClientRect();
+      if (x < r.left + r.width / 2) { pos = i; break; }
+    }
+    if (pos > cur) pos--;
+    if (pos === cur) return;
+    this.tabs.splice(cur, 1);
+    this.tabs.splice(pos, 0, sb);
+    this.tabs.forEach(t => this.tabsEl.appendChild(t.tabEl));
+  }
+
+  indexForX(x) {
+    for (let i = 0; i < this.tabs.length; i++) {
+      const r = this.tabs[i].tabEl.getBoundingClientRect();
+      if (x < r.left + r.width / 2) return i;
+    }
+    return this.tabs.length;
+  }
+
+  hitBar(x, y) {
+    const r = this.barEl.getBoundingClientRect();
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  }
+  setDrop(on) { this.barEl.classList.toggle("drop-target", on); }
+
+  // ---------- barra de acciones (actúa sobre la pestaña activa) ----------
+  syncToolbar(sb = this.activeSb) {
+    if (!sb || sb !== this.activeSb) return;
+    this.saveBtn.classList.toggle("saved", sb.isSaved);
+    this.saveBtn.classList.toggle("dirty", sb.dirty);
+    this.saveBtn.title = sb.isSaved
+      ? "Guardado: clic para quitar el guardado (Ctrl+S)"
+      : (sb.dirty ? "Guardar cambios (Ctrl+S)" : "Guardar (Ctrl+S)");
+
+    const icon = this.pauseBtn.querySelector("i");
+    if (icon) icon.className = sb.paused ? "fas fa-play-circle" : "fas fa-pause";
+    this.pauseBtn.classList.toggle("paused", sb.paused);
+    this.pauseBtn.title = sb.paused ? "Reanudar este sandbox" : "Pausar este sandbox";
+  }
+
+  // ---------- minimizar ----------
+  toggleMinimized() {
+    if (this.el.classList.toggle("minimized")) {
+      this.prevSize = { width: this.el.style.width || "", height: this.el.style.height || "" };
+      this.el.style.height = this.barEl.offsetHeight + "px";
+      this.toggleBtn.innerHTML = '<i class="fas fa-expand-alt"></i>';
+      this.toggleBtn.title = "Mostrar (Esc)";
+    } else {
+      this.el.style.width = this.prevSize?.width || "";
+      this.el.style.height = this.prevSize?.height || "";
+      this.toggleBtn.innerHTML = '<i class="fas fa-minus"></i>';
+      this.toggleBtn.title = "Ocultar (Esc)";
+      if (this.activeSb) this.activeSb.cm.refresh();
+    }
+    scheduleLayoutSave();
+  }
+
+  sizeStrings() {
+    if (this.el.classList.contains("minimized")) return this.prevSize || { width: "", height: "" };
+    return { width: this.el.style.width, height: this.el.style.height };
+  }
+
+  // ---------- posición / tamaño ----------
+  moveTo(x, y) {
+    this.el.style.left = `${Math.max(8, Math.min(window.innerWidth - this.el.offsetWidth - 8, x))}px`;
+    this.el.style.top = `${Math.max(8, Math.min(window.innerHeight - this.el.offsetHeight - 8, y))}px`;
+  }
+
+  _wireBarDrag() {
+    let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+    this.barEl.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || e.target.closest(".sb-tab, button")) return;
+      dragging = true; this.barEl.setPointerCapture(e.pointerId);
+      const rect = this.el.getBoundingClientRect();
+      startX = e.clientX; startY = e.clientY; startLeft = rect.left; startTop = rect.top;
+    });
+    this.barEl.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      this.moveTo(startLeft + (e.clientX - startX), startTop + (e.clientY - startY));
+    });
+    const stop = () => { if (dragging) scheduleLayoutSave(); dragging = false; };
+    this.barEl.addEventListener("pointerup", stop);
+    this.barEl.addEventListener("pointercancel", stop);
+  }
+
+  _wireResize() {
+    let resizing = false, startW = 0, startH = 0, startRX = 0, startRY = 0;
+    this.resizeHandle.addEventListener("pointerdown", (e) => {
+      resizing = true; this.resizeHandle.setPointerCapture(e.pointerId);
+      startW = this.el.offsetWidth; startH = this.el.offsetHeight;
+      startRX = e.clientX; startRY = e.clientY; e.preventDefault();
+    });
+    this.resizeHandle.addEventListener("pointermove", (e) => {
+      if (!resizing) return;
+      this.el.style.width = `${Math.max(420, Math.min(window.innerWidth - 16, startW + (e.clientX - startRX)))}px`;
+      this.el.style.height = `${Math.max(220, Math.min(window.innerHeight - 16, startH + (e.clientY - startRY)))}px`;
+    });
+    const stop = () => { if (resizing) scheduleLayoutSave(); resizing = false; };
+    this.resizeHandle.addEventListener("pointerup", stop);
+    this.resizeHandle.addEventListener("pointercancel", stop);
+  }
+
+  // Solo se persisten las pestañas con código guardado
+  getLayout() {
+    const stored = this.tabs.filter(t => t.hasStored);
+    if (stored.length === 0) return null;
+    const size = this.sizeStrings();
+    const active = this.activeSb && this.activeSb.hasStored ? this.activeSb : stored[0];
+    return {
+      left: parseInt(this.el.style.left, 10) || 0,
+      top: parseInt(this.el.style.top, 10) || 0,
+      width: size.width || "",
+      height: size.height || "",
+      minimized: this.el.classList.contains("minimized"),
+      tabs: stored.map(t => ({ id: t.id, label: t.label })),
+      active: active.id
+    };
+  }
+
+  destroy() {
+    const i = windows.indexOf(this);
+    if (i >= 0) windows.splice(i, 1);
+    this.el.remove();
+  }
 }
 
-// ---------- persistencia ----------
+function createWindow(opts) {
+  const w = new SandboxWindow(opts);
+  windows.push(w);
+  container.appendChild(w.el);
+  return w;
+}
+
+// ====================================================
+// ARRASTRE DE PESTAÑAS (reordenar / sacar a nueva ventana / apilar en otra)
+// ====================================================
+function startTabGesture(e, sb) {
+  const startX = e.clientX, startY = e.clientY;
+  let mode = "pending";   // pending -> reorder (varias pestañas) | move (ventana de una pestaña)
+  let moving = null, offX = 0, offY = 0, dropTarget = null, lastX = startX;
+
+  document.body.classList.add("dragging"); // el iframe deja de capturar el ratón
+
+  const setDrop = (target) => {
+    if (target === dropTarget) return;
+    if (dropTarget) dropTarget.setDrop(false);
+    dropTarget = target;
+    if (dropTarget) dropTarget.setDrop(true);
+  };
+
+  const onMove = (ev) => {
+    lastX = ev.clientX;
+
+    if (mode === "pending") {
+      if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < 5) return;
+      const w = sb.win;
+      if (w.tabs.length > 1) {
+        mode = "reorder";
+      } else {
+        mode = "move"; moving = w;
+        const r = w.el.getBoundingClientRect();
+        offX = startX - r.left; offY = startY - r.top;
+        w.el.classList.add("ghost");
+      }
+    }
+
+    if (mode === "reorder") {
+      const w = sb.win;
+      const strip = w.barEl.getBoundingClientRect();
+      const outside = ev.clientY < strip.top - 28 || ev.clientY > strip.bottom + 28 ||
+        ev.clientX < strip.left - 40 || ev.clientX > strip.right + 40;
+      if (!outside) { w.reorderByX(sb, ev.clientX); return; }
+
+      // Sacar la pestaña a una ventana nueva que sigue al puntero
+      const size = w.sizeStrings();
+      w.detachTab(sb);
+      moving = createWindow({ left: ev.clientX - 60, top: ev.clientY - 18, width: size.width, height: size.height });
+      moving.addTab(sb);
+      moving.el.classList.add("ghost");
+      sb.activate();
+      offX = 60; offY = 18;
+      mode = "move";
+    }
+
+    if (mode === "move") {
+      moving.moveTo(ev.clientX - offX, ev.clientY - offY);
+      const target = windows.find(w => w !== moving && w.hitBar(ev.clientX, ev.clientY)) || null;
+      setDrop(target);
+    }
+  };
+
+  const finish = (apply) => {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onCancel);
+    document.body.classList.remove("dragging");
+
+    if (mode === "move" && moving) {
+      moving.el.classList.remove("ghost");
+      const target = dropTarget;
+      setDrop(null);
+      if (apply && target && windows.includes(target) && moving.tabs.length === 1) {
+        // Apilar: la pestaña pasa a la ventana destino y la ventana de origen desaparece
+        const index = target.indexForX(lastX);
+        moving.detachTab(sb);
+        moving.destroy();
+        target.addTab(sb, index);
+        sb.activate();
+      } else {
+        sb.activate();
+      }
+    }
+    writeLayout();
+  };
+  const onUp = () => finish(true);
+  const onCancel = () => finish(false);
+
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onCancel);
+}
+
+// ====================================================
+// PERSISTENCIA
+// ====================================================
 let layoutTimer = null;
 
 function writeLayout() {
   clearTimeout(layoutTimer);
-  const items = [...sandboxes.values()].filter(sb => sb.hasStored).map(sb => sb.getLayout());
-  if (items.length === 0) ls.remove(LIST_KEY);
-  else ls.set(LIST_KEY, JSON.stringify({ items }));
+  const wins = windows.map(w => w.getLayout()).filter(Boolean);
+  if (wins.length === 0) ls.remove(LIST_KEY);
+  else ls.set(LIST_KEY, JSON.stringify({ windows: wins }));
 }
 function scheduleLayoutSave() {
   clearTimeout(layoutTimer);
   layoutTimer = setTimeout(writeLayout, 300);
 }
 function readLayout() {
-  try {
-    const o = JSON.parse(ls.get(LIST_KEY));
-    if (o && Array.isArray(o.items)) return o;
-  } catch (e) { /* lista corrupta: se ignora */ }
+  let o = null;
+  try { o = JSON.parse(ls.get(LIST_KEY)); } catch (e) { return null; }
+  if (!o) return null;
+  if (Array.isArray(o.windows)) return o;
+  // Formato anterior (una ventana por sandbox): se migra a ventanas de una pestaña
+  if (Array.isArray(o.items)) {
+    return {
+      windows: o.items.map(it => ({
+        left: it.left, top: it.top, width: it.width, height: it.height, minimized: it.minimized,
+        tabs: [{ id: it.id, label: it.label }], active: it.id
+      }))
+    };
+  }
   return null;
 }
 window.addEventListener("beforeunload", writeLayout);
 
-// Etiquetas "Sandbox N": se reutiliza el menor número libre (si borras el 2, el siguiente nuevo es el 2)
+// ====================================================
+// CREAR / ELIMINAR
+// ====================================================
+function refreshOnlyOne() {
+  document.body.classList.toggle("only-one", sandboxes.size <= 1);
+}
+
+// Etiquetas "Sandbox N": se reutiliza el menor número libre
 const labelInUse = (n) => [...sandboxes.values()].some(sb => sb.label === n);
 function nextFreeLabel() {
   let n = 1;
@@ -466,7 +715,7 @@ function nextFreeLabel() {
   return n;
 }
 
-function createSandbox({ id, label, code = "", layout = null, hasStored = false, activate = true } = {}) {
+function createSandbox({ id, label, code = "", hasStored = false } = {}) {
   if (sandboxes.size >= MAX_SANDBOXES) {
     showError(`Máximo ${MAX_SANDBOXES} sandboxes a la vez.`);
     return null;
@@ -476,22 +725,23 @@ function createSandbox({ id, label, code = "", layout = null, hasStored = false,
   let sbId = id || `s${lbl}`;
   while (sandboxes.has(sbId)) sbId += "_";
 
-  let left, top, width = "", height = "";
-  if (layout) {
-    left = Math.max(8, Math.min(window.innerWidth - 120, Number(layout.left) || 16));
-    top = Math.max(8, Math.min(window.innerHeight - 60, Number(layout.top) || 16));
-    width = layout.width || ""; height = layout.height || "";
-  } else {
-    const offset = (sandboxes.size % 8) * 36; // escalonado para no solapar
-    left = Math.min(16 + offset, Math.max(8, window.innerWidth - 475 - 8));
-    top = Math.min(16 + offset, Math.max(8, window.innerHeight - 220 - 8));
-  }
-
-  const sb = new SandboxUI(sbId, lbl, { code, left, top, width, height, hasStored });
+  const sb = new Sandbox(sbId, lbl, { code, hasStored });
   sandboxes.set(sbId, sb);
   refreshOnlyOne();
-  if (layout && layout.minimized) sb.toggleMinimized();
-  if (activate) sb.activate();
+  return sb;
+}
+
+// Nueva ventana (escalonada) con un sandbox nuevo
+function openNewWindow() {
+  const sb = createSandbox();
+  if (!sb) return null;
+  const offset = (windows.length % 8) * 36;
+  const left = Math.min(16 + offset, Math.max(8, window.innerWidth - 475 - 8));
+  const top = Math.min(16 + offset, Math.max(8, window.innerHeight - 220 - 8));
+  const win = createWindow({ left, top });
+  win.addTab(sb);
+  sb.activate();
+  writeLayout();
   return sb;
 }
 
@@ -502,18 +752,26 @@ function removeSandbox(sb) {
   pendingRuns.delete(sb.id);
   sandboxes.delete(sb.id);
   ls.remove(codeKey(sb.id));
+
+  const win = sb.win;
+  const wasActive = activeSandbox === sb;
+  if (win) {
+    win.detachTab(sb);
+    if (win.tabs.length === 0) win.destroy();
+  }
   sb.destroy();
-  if (activeSandbox === sb) {
+
+  if (wasActive) {
     activeSandbox = null;
-    const last = [...sandboxes.values()].pop();
-    if (last) last.activate();
+    const w = (win && windows.includes(win)) ? win : windows[windows.length - 1];
+    if (w && w.activeSb) w.activeSb.activate();
   }
   refreshOnlyOne();
   writeLayout();
 }
 
 addSandboxBtn.addEventListener("click", () => {
-  const sb = createSandbox();
+  const sb = openNewWindow();
   if (sb) sb.cm.focus();
 });
 
@@ -545,7 +803,7 @@ function runCode(sb, code) {
 
   // Run reanuda la reproducción global y la de ESTE sandbox (y sincroniza los botones)
   setGlobalPauseUI(false);
-  sb.paused = false; sb._renderPause();
+  sb.paused = false; sb.syncUI();
 
   // 1. VALIDACIÓN SINTAXIS: prevenir [].modificador()
   if (/\]\s*\./.test(code)) {
@@ -569,7 +827,7 @@ function runCode(sb, code) {
     return `CHAIN(${cleanedParts.join(", ")})`;
   });
 
-  // clear() limpia SOLO este sandbox; grid/cámara/fondo ya son globales y no se reinician
+  // clear() limpia SOLO este sandbox; grid/cámara/fondo son globales y no se reinician
   const configuracionOculta = `
     clear();
     pause(false);
@@ -577,15 +835,15 @@ function runCode(sb, code) {
 
   const codigoFinal = configuracionOculta + "\n" + transpiled;
   console.log(`Código final a ejecutar (sandbox ${sb.id}):\n`, codigoFinal);
-  // order = posición del sandbox en la UI; el motor lo usa para el desplazamiento X por defecto
-  const order = [...sandboxes.keys()].indexOf(sb.id);
+  // order = posición por número de sandbox (independiente de en qué ventana esté); define la X por defecto
+  const order = sortedByLabel().indexOf(sb);
   iframe.contentWindow.postMessage({ type: "execute", sandboxId: sb.id, order, code: codigoFinal }, "*");
 }
 
-// Ejecuta todos los sandboxes en el orden de la UI
+// Ejecuta todos los sandboxes por orden de número
 function runAll() {
   if (errorToast) errorToast.classList.remove("visible");
-  for (const sb of sandboxes.values()) {
+  for (const sb of sortedByLabel()) {
     if (!engineReady) pendingRuns.add(sb.id);
     else runCode(sb, sb.cm.getValue());
   }
@@ -611,7 +869,7 @@ window.addEventListener("message", (e) => {
 
   if (d.type === "globalHotkey") {
     if (d.key === "enter" && activeSandbox) runSandbox(activeSandbox);
-    if (d.key === "s" && activeSandbox) activeSandbox.saveBtn.click();
+    if (d.key === "s" && activeSandbox) activeSandbox.toggleSave();
     if (d.key === "p" && globalPauseBtn) globalPauseBtn.click();
     return;
   }
@@ -640,7 +898,7 @@ window.addEventListener("message", (e) => {
       return inside + rStr + st.substring(bIdx);
     });
   } else if (d.type === "rigSelected") {
-    // Solo un rig seleccionado en toda la escena
+    // Solo un rig seleccionado en toda la escena. activate() muestra su pestaña y sube su ventana.
     sandboxes.forEach(other => { if (other !== sb) other.isRigSelected = false; });
     sb.isRigSelected = true;
     sb.activate();
@@ -660,9 +918,9 @@ window.addEventListener("message", (e) => {
 // ====================================================
 window.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); if (e.shiftKey) runAll(); else if (activeSandbox) runSandbox(activeSandbox); }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (activeSandbox) activeSandbox.saveBtn.click(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (activeSandbox) activeSandbox.toggleSave(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); if (globalPauseBtn) globalPauseBtn.click(); }
-  if (e.key === "Escape") { e.preventDefault(); if (activeSandbox) activeSandbox.toggleBtn.click(); }
+  if (e.key === "Escape") { e.preventDefault(); if (activeSandbox && activeSandbox.win) activeSandbox.win.toggleMinimized(); }
 });
 
 if (globalPauseBtn) {
@@ -678,17 +936,37 @@ if (globalPauseBtn) {
 function init() {
   iframe.srcdoc = buildPreviewHtml();
 
-  // 1. Restaurar sandboxes guardados (lista de ids + geometría; el código está en movescript_sandbox_<id>)
+  // 1. Restaurar ventanas y pestañas guardadas (el código está en movescript_sandbox_<id>)
   let restored = 0;
   const layout = readLayout();
   if (layout) {
-    for (const it of layout.items) {
-      if (restored >= MAX_SANDBOXES) break;
-      if (!it || typeof it.id !== "string" || sandboxes.has(it.id)) continue;
-      const stored = ls.get(codeKey(it.id));
-      if (stored === null) continue; // entrada huérfana: sin código guardado
-      const sb = createSandbox({ id: it.id, label: it.label, code: stored, layout: it, hasStored: true, activate: false });
-      if (sb) { sb.markSaved(); pendingRuns.add(sb.id); restored++; }
+    for (const w of layout.windows) {
+      if (!w || !Array.isArray(w.tabs)) continue;
+      let win = null;
+      for (const t of w.tabs) {
+        if (restored >= MAX_SANDBOXES) break;
+        if (!t || typeof t.id !== "string" || sandboxes.has(t.id)) continue;
+        const stored = ls.get(codeKey(t.id));
+        if (stored === null) continue; // entrada huérfana: sin código guardado
+        const sb = createSandbox({ id: t.id, label: t.label, code: stored, hasStored: true });
+        if (!sb) continue;
+        if (!win) {
+          win = createWindow({
+            left: Math.max(8, Math.min(window.innerWidth - 120, Number(w.left) || 16)),
+            top: Math.max(8, Math.min(window.innerHeight - 60, Number(w.top) || 16)),
+            width: w.width || "", height: w.height || ""
+          });
+        }
+        win.addTab(sb);
+        sb.markSaved();
+        pendingRuns.add(sb.id);
+        restored++;
+      }
+      if (win) {
+        const act = win.tabs.find(t => t.id === w.active) || win.tabs[0];
+        win.selectTab(act);
+        if (w.minimized) win.toggleMinimized();
+      }
     }
   }
 
@@ -696,15 +974,18 @@ function init() {
   const legacy = ls.get(LEGACY_KEY);
   if (restored === 0) {
     const first = createSandbox({ id: "default", label: 1, code: legacy || "", hasStored: legacy !== null });
+    const win = createWindow({ left: 16, top: 16 });
+    win.addTab(first);
     if (legacy !== null) {
       ls.set(codeKey(first.id), legacy);
       first.markSaved();
       writeLayout();
       ls.remove(LEGACY_KEY);
     }
+    first.activate();
     pendingRuns.add(first.id);
-  } else {
-    [...sandboxes.values()][0].activate();
+  } else if (windows.length > 0 && windows[0].activeSb) {
+    windows[0].activeSb.activate();
   }
 }
 init();
