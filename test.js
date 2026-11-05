@@ -39,7 +39,7 @@ test('DSL Transpiler - transpileBlock', (_t) => {
     parts: ['[bvh("walk")]', '[pos(1,2,3)]']
   };
   const code = transpileBlock(block);
-  assert.strictEqual(code, 'CHAIN([bvh("walk")]).pos(1,2,3)');
+  assert.strictEqual(code, 'CHAIN($B().bvh("walk"), $B().pos(1,2,3))');
 });
 
 test('Protocol - Message Types', (_t) => {

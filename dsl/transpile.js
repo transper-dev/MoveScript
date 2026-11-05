@@ -130,12 +130,12 @@ export function transpileBlock(block) {
     return block.parts[0];
   }
 
-  // Múltiples partes: CHAIN(part1).part2.part3...
-  const [first, ...rest] = block.parts;
-  const chainedMethods = rest.map(part => {
+  // Múltiples partes: CHAIN($B().part1, $B().part2...)
+  const chainArguments = block.parts.map(part => {
     // Remover el [ inicial y ] final de cada parte
-    return part.replace(/^\[/, '').replace(/\]$/, '');
-  }).join('.');
+    const inside = part.replace(/^\[/, '').replace(/\]$/, '');
+    return inside.startsWith("bvh") || inside.startsWith("duplicate") ? `$B().${inside}` : `$B().${inside}`;
+  }).join(', ');
 
-  return `CHAIN(${first}).${chainedMethods}`;
+  return `CHAIN(${chainArguments})`;
 }
