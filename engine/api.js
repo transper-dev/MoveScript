@@ -47,9 +47,14 @@ const API_NAMES = ["clear", "bvh", "duplicate", "speed", "skeleton", "scale", "r
  * Usa new Function para evitar contaminar el scope global
  */
 export function executeInSandbox(ctx, code) {
-  if (/\b(window|document|eval|fetch|XMLHttpRequest|localStorage|sessionStorage)\b/.test(code)) {
-    throw new Error("SecurityError: Uso de APIs globales prohibidas en el sandbox.");
-  }
-  const fn = new Function(...API_NAMES, code);
-  fn(...API_NAMES.map(n => ctx.api[n]));
+  const proxyAPI = new Proxy(ctx.api, {
+    has: (target, prop) => true,
+    get: (target, prop) => {
+      if (prop === Symbol.unscopables) return undefined;
+      if (prop in target) return target[prop];
+      throw new Error(`SecurityError: Acceso restringido a '${String(prop)}'. Las APIs del navegador no están permitidas.`);
+    }
+  });
+  const fn = new Function('api', `with(api) { ${code} }`);
+  fn(proxyAPI);
 }
