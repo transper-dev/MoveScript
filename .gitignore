@@ -6,3 +6,6 @@ dist/
 
 # Logs de errores
 npm-debug.log*
+
+# Archivos de volcado de pila
+.stackdump
