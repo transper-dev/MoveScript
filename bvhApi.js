@@ -1,3 +1,4 @@
+import { MessageTypes } from './shared/protocol.js';
 import { canvas, renderer, scene, camera, controls, clock, setGlobalPause } from './engine/scene.js';
 import {
   DEFAULT_SANDBOX, send,
@@ -92,7 +93,7 @@ window.addEventListener("pointerdown", (e) => {
       if (selectedRig === newlySelectedRig) {
         editMode = (editMode === "position") ? "rotation" : "position";
       } else {
-        if (selectedRig && selectedRig.ctx !== newlySelectedRig.ctx) send("rigDeselected", selectedRig.ctx.id);
+        if (selectedRig && selectedRig.ctx !== newlySelectedRig.ctx) send(MessageTypes.RIG_DESELECTED, selectedRig.ctx.id);
         setSelectedRig(newlySelectedRig);
         editMode = "position";
       }
@@ -109,7 +110,7 @@ window.addEventListener("pointerdown", (e) => {
       selectionBox.visible = true;
       controls.enabled = false;
 
-      send("rigSelected", currentSelected.ctx.id, { codeIndex: currentSelected.handle._codeIndex });
+      send(MessageTypes.RIG_SELECTED, currentSelected.ctx.id, { codeIndex: currentSelected.handle._codeIndex });
     }
   } else {
     deselect(true);
@@ -144,7 +145,7 @@ window.addEventListener("keydown", (e) => {
         r.handle._xExplicit = true;
       });
 
-      send("rigMoved", ctx.id, {
+      send(MessageTypes.RIG_MOVED, ctx.id, {
         codeIndex: selectedRig.handle._codeIndex,
         x: selectedRig.group.position.x,
         z: selectedRig.group.position.z
@@ -168,7 +169,7 @@ window.addEventListener("keydown", (e) => {
         r.handle._rotY = r.pivot.rotation.y;
       });
 
-      send("rigRotated", ctx.id, {
+      send(MessageTypes.RIG_ROTATED, ctx.id, {
         codeIndex: selectedRig.handle._codeIndex,
         rotX: selectedRig.pivot.rotation.x,
         rotY: selectedRig.pivot.rotation.y
@@ -181,7 +182,7 @@ window.addEventListener("keydown", (e) => {
 // MENSAJERÍA CON EL PARENT (todo con sandboxId)
 // ====================================================
 window.addEventListener("error", (event) => {
-  send("error", null, { message: event.message });
+  send(MessageTypes.ERROR, null, { message: event.message });
 });
 
 window.addEventListener("message", (event) => {
@@ -189,22 +190,22 @@ window.addEventListener("message", (event) => {
   if (!d || !d.type) return;
   const id = d.sandboxId ?? DEFAULT_SANDBOX;
 
-  if (d.type === "execute") {
+  if (d.type === MessageTypes.EXECUTE) {
     const ctx = getCtx(id, buildApi);
     if (Number.isInteger(d.order)) ctx.order = d.order;
     try { executeInSandbox(ctx, d.code); }
-    catch (error) { send("error", id, { message: error.stack || error.message }); }
-  } else if (d.type === "pause") {
+    catch (error) { send(MessageTypes.ERROR, id, { message: error.stack || error.message }); }
+  } else if (d.type === MessageTypes.PAUSE) {
     setGlobalPause(!!d.paused);
-  } else if (d.type === "pauseSandbox") {
+  } else if (d.type === MessageTypes.PAUSE_SANDBOX) {
     const ctx = contexts.get(id);
     if (ctx) ctx.paused = !!d.paused;
-  } else if (d.type === "removeSandbox") {
+  } else if (d.type === MessageTypes.REMOVE_SANDBOX) {
     const ctx = contexts.get(id);
     if (ctx) ctx.destroy();
-  } else if (d.type === "remoteKey") {
+  } else if (d.type === MessageTypes.REMOTE_KEY) {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: d.key, shiftKey: d.shiftKey }));
   }
 });
 
-window.parent.postMessage({ type: "ready" }, "*");
+window.parent.postMessage({ type: MessageTypes.READY }, "*");

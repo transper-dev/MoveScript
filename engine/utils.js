@@ -5,6 +5,7 @@
 
 import * as THREE from "three";
 import { scene } from './scene.js';
+import { MessageTypes } from '../shared/protocol.js';
 
 export const DEFAULT_SANDBOX = "default";
 export const SANDBOX_SPACING = 150; // separación en X entre sandboxes sin .pos() explícito
@@ -50,7 +51,7 @@ export function deselect(notify = true) {
   const id = selectedRig.ctx.id;
   selectedRig = null;
   selectionBox.visible = false;
-  if (notify) send("rigDeselected", id);
+  if (notify) send(MessageTypes.RIG_DESELECTED, id);
 }
 
 /**

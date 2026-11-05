@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { BVHLoader } from "three/addons/loaders/BVHLoader.js";
 import { scene } from './scene.js';
 import { send } from './utils.js';
+import { MessageTypes } from '../shared/protocol.js';
 
 /**
  * Crea un handle para cargar y controlar una animación BVH
@@ -394,7 +395,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
               }, waitTime);
             }
 
-            send("chainStep", ctx.id, { codeIndex: nextRig.handle._codeIndex, step: nextRig.handle._chainStep });
+            send(MessageTypes.CHAIN_STEP, ctx.id, { codeIndex: nextRig.handle._codeIndex, step: nextRig.handle._chainStep });
           };
 
           const nextRig = ctx.rigs.find(r => r.handle === handle._nextHandle);
@@ -542,7 +543,7 @@ export function makeChain(ctx) {
       headHandle.play();
     }
 
-    send("chainStep", ctx.id, { codeIndex: headHandle._codeIndex, step: 0 });
+    send(MessageTypes.CHAIN_STEP, ctx.id, { codeIndex: headHandle._codeIndex, step: 0 });
 
     let currentHandle = headHandle;
     for (let i = 1; i < nodes.length; i++) {

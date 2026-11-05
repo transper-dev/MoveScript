@@ -267,7 +267,7 @@ window.addEventListener("message", (e) => {
   const d = e.data;
   if (!d || !d.type) return;
 
-  if (d.type === "ready") {
+  if (d.type === MessageTypes.READY) {
     engineReady = true;
     for (const id of [...pendingRuns]) {
       const sb = sandboxes.get(id);
@@ -279,7 +279,7 @@ window.addEventListener("message", (e) => {
 
   const sb = sandboxes.get(d.sandboxId);
 
-  if (d.type === "error") {
+  if (d.type === MessageTypes.ERROR) {
     const msg = String(d.message || "").split("\n")[0];
     showError(sb ? `[Sandbox ${sb.label}] ${msg}` : msg, 6000);
     return;
@@ -287,7 +287,7 @@ window.addEventListener("message", (e) => {
 
   if (!sb) return;
 
-  if (d.type === "rigMoved") {
+  if (d.type === MessageTypes.RIG_MOVED) {
     sb.updateEditor(d.codeIndex, (st, bIdx) => {
       let inside = st.substring(0, bIdx);
       inside = removeMethodCall(inside, "pos");
@@ -295,7 +295,7 @@ window.addEventListener("message", (e) => {
       inside = removeMethodCall(inside, "z");
       return inside + `.pos(${Math.round(d.x)}, 0, ${Math.round(d.z)})` + st.substring(bIdx);
     });
-  } else if (d.type === "rigRotated") {
+  } else if (d.type === MessageTypes.RIG_ROTATED) {
     sb.updateEditor(d.codeIndex, (st, bIdx) => {
       let inside = st.substring(0, bIdx);
       inside = removeMethodCall(inside, "rotX");
@@ -305,16 +305,16 @@ window.addEventListener("message", (e) => {
       if (Math.abs(d.rotY) > 0.01) rStr += `.rotY(${d.rotY.toFixed(2)})`;
       return inside + rStr + st.substring(bIdx);
     });
-  } else if (d.type === "rigSelected") {
+  } else if (d.type === MessageTypes.RIG_SELECTED) {
     sandboxes.forEach(other => { if (other !== sb) other.isRigSelected = false; });
     sb.isRigSelected = true;
     sb.activate();
     sb.updateEditor(d.codeIndex, null);
-  } else if (d.type === "rigDeselected") {
+  } else if (d.type === MessageTypes.RIG_DESELECTED) {
     sb.isRigSelected = false;
     const cursor = sb.cm.getCursor();
     sb.cm.setSelection(cursor, cursor);
-  } else if (d.type === "chainStep") {
+  } else if (d.type === MessageTypes.CHAIN_STEP) {
     sb.currentChainSteps[d.codeIndex] = d.step;
     sb.highlightStep(d.codeIndex, d.step);
   }

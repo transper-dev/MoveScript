@@ -14,8 +14,11 @@ export const MessageTypes = {
   // De iframe -> main.js
   READY: 'ready',               // Motor 3D listo
   ERROR: 'error',               // Error de ejecución { sandboxId, message }
-  CHAIN_UPDATE: 'chainUpdate',  // Actualización de cadena activa { sandboxId, step, total }
-  RIG_SELECT: 'rigSelect'       // Selección de rig { sandboxId, selected }
+  RIG_MOVED: 'rigMoved',         // Rig movido
+  RIG_ROTATED: 'rigRotated',     // Rig rotado
+  RIG_SELECTED: 'rigSelected',   // Rig seleccionado
+  RIG_DESELECTED: 'rigDeselected', // Rig deseleccionado
+  CHAIN_STEP: 'chainStep'        // Paso de cadena
 };
 
 /**
