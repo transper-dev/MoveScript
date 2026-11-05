@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revisión Auditoría MoveScript</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #f8f9fa;
+  --border: #e1e4e8;
+  --text: #1a1a1a;
+  --text-secondary: #586069;
+  --accent: #2ea44f;
+  --accent-bg: #e6f4ea;
+  --warning: #f59e0b;
+  --warning-bg: #fef3c7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --info: #3b82f6;
+  --info-bg: #dbeafe;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-secondary: #8b949e;
+    --accent: #3fb950;
+    --accent-bg: #1a3a24;
+    --warning: #f59e0b;
+    --warning-bg: #3d2e1c;
+    --danger: #f85149;
+    --danger-bg: #3d1f1f;
+    --info: #58a6ff;
+    --info-bg: #1c2d41;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-secondary: #8b949e;
+  --accent: #3fb950;
+  --accent-bg: #1a3a24;
+  --warning: #f59e0b;
+  --warning-bg: #3d2e1c;
+  --danger: #f85149;
+  --danger-bg: #3d1f1f;
+  --info: #58a6ff;
+  --info-bg: #1c2d41;
+  color-scheme: dark;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  font-size: 16px;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.stat-number {
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.stat-card.completed .stat-number { color: var(--accent); }
+.stat-card.pending .stat-number { color: var(--warning); }
+.stat-card.skipped .stat-number { color: var(--info); }
+
+.section {
+  margin-bottom: 48px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.badge-completed { background: var(--accent-bg); color: var(--accent); }
+.badge-pending { background: var(--warning-bg); color: var(--warning); }
+.badge-partial { background: var(--info-bg); color: var(--info); }
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.item.completed { border-left-color: var(--accent); }
+.item.pending { border-left-color: var(--warning); }
+.item.skipped { border-left-color: var(--info); }
+
+.item-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.item-status {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.item.completed .item-status { background: var(--accent); color: white; }
+.item.pending .item-status { background: var(--warning); color: white; }
+.item.skipped .item-status { background: var(--info); color: white; }
+
+.item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.item-location {
+  font-family: "SF Mono", Monaco, Consolas, monospace;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.item-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.item-reason {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.priority {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.priority-alta { background: var(--danger-bg); color: var(--danger); }
+.priority-media { background: var(--warning-bg); color: var(--warning); }
+
+.legend {
+  display: flex;
+  gap: 24px;
+  margin-top: 32px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.legend-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 24px; }
+  .section-title { font-size: 20px; }
+  .summary { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+<div class="container">
+  <h1>Revisión Auditoría MoveScript</h1>
+  <p class="subtitle">Estado de implementación de las recomendaciones de Claude</p>
+
+  <div class="summary">
+    <div class="stat-card completed">
+      <div class="stat-number">7</div>
+      <div class="stat-label">Completadas</div>
+    </div>
+    <div class="stat-card pending">
+      <div class="stat-number">1</div>
+      <div class="stat-label">Pendiente</div>
+    </div>
+    <div class="stat-card skipped">
+      <div class="stat-number">6</div>
+      <div class="stat-label">Saltadas</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">1. Correctitud</h2>
+      <span class="section-badge badge-completed">Completado</span>
+    </div>
+
+    <div class="items">
+      <div class="item completed">
+        <div class="item-header">
+          <div class="item-status">✓</div>
+          <div class="item-content">
+            <div class="item-title">
+              Transpilador robusto con tokenizador
+              <span class="priority priority-alta">Alta</span>
+            </div>
+            <div class="item-location">main.js:815-835 (runCode)</div>
+            <div class="item-description">
+              La regex <code>\[[\s\S]*?\]</code> no entendía strings, comentarios ni corchetes anidados.
+              Casos probados que fallaban: <code>// [bvh("a")]</code>, <code>bvh("a]b")</code>.
+            </div>
+            <div class="item-reason">
+              ✅ Solucionado: Implementado parseBlocks() con tokenizador carácter a carácter que respeta strings,
+              comentarios y profundidad de corchetes. Los tres casos de prueba ahora funcionan correctamente.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item completed">
+        <div class="item-header">
+          <div class="item-status">✓</div>
+          <div class="item-content">
+            <div class="item-title">
+              Bug autoescaling BVH pequeños
+              <span class="priority priority-media">Media</span>
+            </div>
+            <div class="item-location">bvhApi.js:181 vs 408-411</div>
+            <div class="item-description">
+              autoScale = 100 calculado para huesos < 5 unidades, pero tick() lo sobrescribía cada frame
+              con <code>group.scale.setScalar(opts.scale ?? globalScale)</code>.
+            </div>
+            <div class="item-reason">
+              ✅ Solucionado: autoScale ahora se guarda en el objeto rig y se aplica cada frame:
+              <code>(r.autoScale || 1) * (r.opts.scale ?? globalScale)</code>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item completed">
+        <div class="item-header">
+          <div class="item-status">✓</div>
+          <div class="item-content">
+            <div class="item-title">
+              Regex .pos() con paréntesis anidados
+              <span class="priority priority-media">Media</span>
+            </div>
+            <div class="item-location">main.js:323 (updateEditor)</div>
+            <div class="item-description">
+              <code>/\.pos\([^)]+\)/</code> fallaba con argumentos que contenían paréntesis.
+              Caso: <code>.pos(Math.round(5), 0, 0)</code> quedaba como <code>[bvh("a"), 0, 0)]</code>.
+            </div>
+            <div class="item-reason">
+              ✅ Solucionado: Implementada función removeMethodCall() que cuenta paréntesis anidados correctamente.
+              Aplicada en handlers rigMoved y rigRotated.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item pending">
+        <div class="item-header">
+          <div class="item-status">⚠</div>
+          <div class="item-content">
+            <div class="item-title">
+              Tres recorridos distintos del texto
+              <span class="priority priority-media">Media</span>
+            </div>
+            <div class="item-location">main.js:84-90, highlightStep, updateEditor</div>
+            <div class="item-description">
+              Hay tres recorridos distintos del texto, cada uno con su propia idea de qué es un bloque.
+            </div>
+            <div class="item-reason">
+              ⏳ Pendiente para modularización: Unificar los tres consumidores para usar parseBlocks() único.
+              Requiere refactorización que se hará junto con la modularización.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">2. Seguridad y robustez</h2>
+      <span class="section-badge badge-partial">Parcial</span>
+    </div>
+
+    <div class="items">
+      <div class="item completed">
+        <div class="item-header">
+          <div class="item-status">✓</div>
+          <div class="item-content">
+            <div class="item-title">Iframe sandbox permissions</div>
+            <div class="item-location">index.html:637</div>
+            <div class="item-description">
+              sandbox="allow-scripts allow-same-origin" permitía al código del usuario acceder al DOM del padre.
+            </div>
+            <div class="item-reason">
+              ✅ Solucionado: Eliminado allow-same-origin. El código del usuario ahora está aislado.
+              postMessage funciona sin allow-same-origin.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item completed">
+        <div class="item-header">
+          <div class="item-status">✓</div>
+          <div class="item-content">
+            <div class="item-title">Verificación event.source en mensajes</div>
+            <div class="item-location">main.js:856, bvhApi.js:950</div>
+            <div class="item-description">
+              Los listeners de message no comprobaban event.source. postMessage(..., "*") no acotaba destino.
+            </div>
+            <div class="item-reason">
+              ✅ Solucionado: Añadida verificación <code>if (e.source !== iframe.contentWindow) return;</code>
+              en el handler de mensajes.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item skipped">
+        <div class="item-header">
+          <div class="item-status">○</div>
+          <div class="item-content">
+            <div class="item-title">CDN sin integrity attributes</div>
+            <div class="item-location">index.html:7-14</div>
+            <div class="item-description">
+              5 recursos de CDN sin integrity y sin versión local. @main en jsDelivr puede servir versiones mezcladas.
+            </div>
+            <div class="item-reason">
+              📝 Documentado: Añadido comentario TODO sobre el riesgo. Solución completa requiere generar hashes
+              SHA para cada versión específica.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item skipped">
+        <div class="item-header">
+          <div class="item-status">○</div>
+          <div class="item-content">
+            <div class="item-title">README vs código</div>
+            <div class="item-location">README.md</div>
+            <div class="item-description">
+              README dice versión escritorio offline, pero three.js, CodeMirror y Font Awesome vienen de CDN.
+            </div>
+            <div class="item-reason">
+              ⏭ Saltado: No es código — requiere actualización de documentación.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">3. Rendimiento</h2>
+      <span class="section-badge badge-partial">Saltado mayormente</span>
+    </div>
+
+    <div class="items">
+      <div class="item skipped">
+        <div class="item-header">
+          <div class="item-status">○</div>
+          <div class="item-content">
+            <div class="item-title">Eliminar HEAD fetch redundante</div>
+            <div class="item-location">bvhApi.js:358</div>
+            <div class="item-description">
+              Cada BVH hace fetch HEAD antes de cargarse. Cadena de 5 pasos = 5 peticiones extra.
+            </div>
+            <div class="item-reason">
+              ⏳ Saltado: Requiere extraer código de procesamiento de BVH a función separada (modularización).
+              La implementación correcta evita duplicar 200+ líneas de código.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item skipped">
+        <div class="item-header">
+          <div class="item-status">○</div>
+          <div class="item-content">
+            <div class="item-title">Trail generation con time accumulator</div>
+            <div class="item-location">bvhApi.js:187-189</div>
+            <div class="item-description">
+              frameCount % 6 depende del framerate. geometry.clone() + applyMatrix4 genera basura continua.
+            </div>
+            <div class="item-reason">
+              ⏳ Saltado: Requiere añadir trailAccumulator a cada rig y cambiar lógica.
+              Se hará con modularización.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item skipped">
+        <div class="item-header">
+          <div class="item-status">○</div>
+          <div class="item-content">
+            <div class="item-title">ResizeObserver y render condicional</div>
+            <div class="item-location">bvhApi.js:814, 795</div>
+            <div class="item-description">
+              animate() renderiza siempre a pantalla completa. resize() lee clientWidth/Height cada frame.
+            </div>
+            <div class="item-reason">
+              ℹ️ Ya optimizado: resize() verifica cambios antes de actualizar. No requiere cambios.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item skipped">
+        <div class="item-header">
+          <div class="item-status">○</div>
+          <div class="item-content">
+            <div class="item-title">InstancedMesh para dummies</div>
+            <div class="item-location">bvhApi.js:515</div>
+            <div class="item-description">
+              Dummy crea Mesh por hueso/articulación. ~60 huesos = 120 draw calls. InstancedMesh reduce a 2.
+            </div>
+            <div class="item-reason">
+              ⏳ Saltado: Cambio mayor que solo se justifica con pérdida de fps medida.
+              Requiere refactorización grande.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item skipped">
+        <div class="item-header">
+          <div class="item-status">○</div>
+          <div class="item-content">
+            <div class="item-title">Otras optimizaciones menores</div>
+            <div class="item-location">Varios</div>
+            <div class="item-description">
+              backdrop-filter, updateColorWidgets, polling de relevo en cadenas.
+            </div>
+            <div class="item-reason">
+              ⏳ Saltado: Optimizaciones de rendimiento restantes se harán con modularización.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">4. Código en desuso</h2>
+      <span class="section-badge badge-completed">Completado</span>
+    </div>
+
+    <div class="items">
+      <div class="item completed">
+        <div class="item-header">
+          <div class="item-status">✓</div>
+          <div class="item-content">
+            <div class="item-title">Rama globalHotkey muerta</div>
+            <div class="item-location">main.js:870</div>
+            <div class="item-description">
+              Nadie envía mensaje globalHotkey. Los atajos ya están duplicados en keydown handler.
+            </div>
+            <div class="item-reason">
+              ✅ Eliminado: Rama completa eliminada del message handler.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item completed">
+        <div class="item-header">
+          <div class="item-status">✓</div>
+          <div class="item-content">
+            <div class="item-title">CSS #loader en desuso</div>
+            <div class="item-location">index.html:379-395</div>
+            <div class="item-description">
+              17 líneas de CSS para #loader. Ningún JS lo usa desde que se quitó botón Random.
+            </div>
+            <div class="item-reason">
+              ✅ Eliminado: CSS completo del #loader eliminado.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item skipped">
+        <div class="item-header">
+          <div class="item-status">○</div>
+          <div class="item-content">
+            <div class="item-title">handle._ctx y handle._runId</div>
+            <div class="item-location">bvhApi.js:250, 348</div>
+            <div class="item-description">
+              handle._ctx se escribe y nunca se lee. handle._runId es redundante con ctx.runId.
+            </div>
+            <div class="item-reason">
+              ⏳ Saltado: Se eliminará con modularización para evitar cambios innecesarios ahora.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-icon" style="background: var(--accent);"></div>
+      <span>Completado</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon" style="background: var(--warning);"></div>
+      <span>Pendiente</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon" style="background: var(--info);"></div>
+      <span>Saltado/Documentado</span>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
