@@ -40,6 +40,12 @@ test('DSL Transpiler - transpileBlock', (_t) => {
   };
   const code = transpileBlock(block);
   assert.strictEqual(code, 'CHAIN($B().bvh("walk"), $B().pos(1,2,3))');
+
+  const singleBlock = {
+    parts: ['[bvh("headbutt")]']
+  };
+  const singleCode = transpileBlock(singleBlock);
+  assert.strictEqual(singleCode, 'CHAIN($B().bvh("headbutt"))');
 });
 
 test('Protocol - Message Types', (_t) => {

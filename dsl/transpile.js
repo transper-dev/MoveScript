@@ -125,9 +125,10 @@ export function isNewBlock(lines, idx) {
 export function transpileBlock(block) {
   if (!block || !block.parts || block.parts.length === 0) return "";
 
-  // Si solo hay una parte, no necesita CHAIN
+  // Si solo hay una parte, usar CHAIN($B().part1) para consistencia
   if (block.parts.length === 1) {
-    return block.parts[0];
+    const inside = block.parts[0].replace(/^\[/, '').replace(/\]$/, '');
+    return `CHAIN($B().${inside})`;
   }
 
   // Múltiples partes: CHAIN($B().part1, $B().part2...)
