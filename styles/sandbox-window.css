@@ -1,0 +1,321 @@
+/* ===== VENTANAS DE SANDBOX (con pestañas) ===== */
+
+.sandbox {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: min(475px, calc(100vw - 32px));
+  height: min(220px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  min-width: 475px;
+  min-height: 220px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  pointer-events: none;
+}
+
+.sandbox.active {
+  border-color: rgba(0, 255, 204, 0.55);
+}
+
+.sandbox.ghost {
+  opacity: 0.55;
+}
+
+.sandbox.minimized {
+  min-height: 0;
+}
+
+.sandbox.minimized .sb-body,
+.sandbox.minimized .sb-resize {
+  display: none;
+}
+
+.sb-bar,
+.sb-body,
+.sb-resize {
+  pointer-events: auto;
+}
+
+/* barra: pestañas + botón nueva pestaña + acciones de la pestaña activa */
+.sb-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  user-select: none;
+  cursor: grab;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.sb-bar:active {
+  cursor: grabbing;
+}
+
+.sb-bar.drop-target {
+  background: rgba(0, 255, 204, 0.18);
+  box-shadow: inset 0 0 0 2px #00ffcc;
+}
+
+.sb-tabs {
+  display: flex;
+  gap: 4px;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sb-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.sb-tab {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 150px;
+  padding: 5px 6px 5px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  color: #aaa;
+  font: 12px sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sb-tab:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.sb-tab.active {
+  background: rgba(0, 255, 204, 0.12);
+  border-color: rgba(0, 255, 204, 0.45);
+  color: #eafff9;
+}
+
+.sb-tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sb-tab.dirty .sb-tab-title::after {
+  content: " \2022";
+  color: #ffcc00;
+}
+
+.sb-tab-pause {
+  display: none;
+  font-size: 9px;
+  color: #ffcc66;
+}
+
+.sb-tab.paused .sb-tab-pause {
+  display: inline;
+}
+
+.sb-tab-close {
+  border: none;
+  background: transparent;
+  color: #888;
+  font-size: 15px;
+  line-height: 1;
+  padding: 1px 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.sb-tab-close:hover {
+  background: rgba(255, 51, 102, 0.4);
+  color: #fff;
+}
+
+.only-one .sb-tab-close {
+  display: none;
+}
+
+.sb-actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+  margin-left: auto;
+}
+
+.sb-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sb-editor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* botones */
+.sb-btn,
+.global-btn {
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #eaeaea;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.sb-btn:hover,
+.global-btn:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.sb-icon {
+  min-width: 32px;
+  padding: 6px 8px;
+  text-align: center;
+  line-height: 1;
+}
+
+.sb-addtab {
+  flex: none;
+  min-width: 28px;
+  padding: 5px 6px;
+  font-size: 11px;
+}
+
+.sb-btn i,
+.global-btn i {
+  pointer-events: none;
+}
+
+.sb-run i {
+  color: #00ffcc;
+}
+
+.sb-btn.saved {
+  background-color: #00ffcc !important;
+  color: #000 !important;
+  border-color: #00ffcc !important;
+  font-weight: bold;
+}
+
+/* cambios sin guardar: punto amarillo sobre el icono de guardar */
+.sb-btn.dirty {
+  position: relative;
+}
+
+.sb-btn.dirty::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffcc00;
+}
+
+/* pausado (local o global): tono ámbar */
+.sb-btn.paused,
+#global-bar .global-btn.paused {
+  background: rgba(255, 170, 0, 0.25);
+  border-color: rgba(255, 170, 0, 0.7);
+  color: #ffcc66;
+}
+
+.sb-resize {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  border-right: 2px solid rgba(255, 255, 255, 0.35);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.35);
+  opacity: 0.9;
+}
+
+/* --- BARRA GLOBAL (nuevo sandbox, run all, pausa) --- */
+#global-bar {
+  position: fixed;
+  top: 16px;
+  right: 60px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+}
+
+#global-bar .global-btn {
+  padding: 8px 12px;
+  background: rgba(15, 15, 15, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+#global-bar .btn-label {
+  margin-left: 6px;
+}
+
+#global-bar .global-btn:hover {
+  background: rgba(40, 40, 40, 0.9);
+}
+
+/* --- ESTILOS DE CODEMIRROR SOBREESCRITOS --- */
+.CodeMirror {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box !important;
+  max-width: 100%;
+  min-width: 0;
+  background: transparent !important;
+  color: #e8e8e8;
+  font: 14px/1.45 Consolas, monospace;
+  text-shadow: 0 0 4px black;
+  padding: 12px;
+}
+
+.CodeMirror-wrap pre.CodeMirror-line,
+.CodeMirror-wrap pre.CodeMirror-line-like {
+  word-break: break-all !important;
+}
+
+.CodeMirror-gutters {
+  background: transparent !important;
+  border-right: none !important;
+}
+
+.flash-line {
+  background-color: rgba(0, 255, 204, 0.4) !important;
+  transition: background-color 0.4s ease-out;
+}
+
+.chain-active-text {
+  background-color: rgba(0, 255, 204, 0.3) !important;
+  border-radius: 3px;
+  box-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
+}
+
+.color-widget {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 3px;
+  margin-right: 4px;
+  vertical-align: middle;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}

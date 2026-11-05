@@ -1,0 +1,43 @@
+/* ===== BASE: html, body, #app, #preview, #sandboxes ===== */
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+}
+
+#app {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+#preview {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  background: #000;
+  z-index: 0;
+}
+
+/* ===== CONTENEDOR DE VENTANAS DE SANDBOX ===== */
+#sandboxes {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* mientras se arrastra una pestaña, el iframe 3D no debe capturar el ratón */
+body.dragging #preview {
+  pointer-events: none;
+}
+
+body.dragging {
+  user-select: none;
+  cursor: grabbing;
+}
