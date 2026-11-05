@@ -9,3 +9,6 @@ npm-debug.log*
 
 # Archivos de volcado de pila
 .stackdump
+
+# Archivos de configuración de entorno
+.claude
