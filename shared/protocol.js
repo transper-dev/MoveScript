@@ -21,6 +21,12 @@ export const MessageTypes = {
   CHAIN_STEP: 'chainStep'        // Paso de cadena
 };
 
+export function getTargetOrigin() {
+  return (typeof window !== 'undefined' && window.location && window.location.origin !== "null")
+    ? window.location.origin
+    : "*";
+}
+
 /**
  * Crea un mensaje para enviar al iframe
  */

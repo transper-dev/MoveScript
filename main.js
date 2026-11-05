@@ -1,5 +1,5 @@
 import { parseBlocks, transpileBlock } from './dsl/transpile.js';
-import { MessageTypes } from './shared/protocol.js';
+import { MessageTypes, getTargetOrigin } from './shared/protocol.js';
 import { Sandbox } from './ui/sandbox.js';
 import { SandboxWindow } from './ui/sandboxWindow.js';
 import { ls, LIST_KEY, LEGACY_KEY, codeKey } from './ui/storage.js';
@@ -167,7 +167,7 @@ function openNewWindow() {
 
 export function removeSandbox(sb) {
   if (sandboxes.size <= 1) return;
-  iframe.contentWindow.postMessage({ type: MessageTypes.REMOVE_SANDBOX, sandboxId: sb.id }, window.location.origin);
+  iframe.contentWindow.postMessage({ type: MessageTypes.REMOVE_SANDBOX, sandboxId: sb.id }, getTargetOrigin());
   pendingRuns.delete(sb.id);
   sandboxes.delete(sb.id);
   ls.remove(codeKey(sb.id));
@@ -248,7 +248,7 @@ function runCode(sb, code) {
 
   const codigoFinal = configuracionOculta + "\n" + transpiled;
   const order = sortedByLabel().indexOf(sb);
-  iframe.contentWindow.postMessage({ type: MessageTypes.EXECUTE, sandboxId: sb.id, order, code: codigoFinal }, window.location.origin);
+  iframe.contentWindow.postMessage({ type: MessageTypes.EXECUTE, sandboxId: sb.id, order, code: codigoFinal }, getTargetOrigin());
 }
 
 export function runAll() {
@@ -354,7 +354,7 @@ window.addEventListener("keydown", (e) => {
 if (globalPauseBtn) {
   globalPauseBtn.addEventListener("click", () => {
     setGlobalPauseUI(!isGlobalPaused);
-    iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE, paused: isGlobalPaused }, window.location.origin);
+    iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE, paused: isGlobalPaused }, getTargetOrigin());
   });
 }
 

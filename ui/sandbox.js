@@ -1,5 +1,5 @@
 import { isNewBlock } from '../dsl/transpile.js';
-import { MessageTypes } from '../shared/protocol.js';
+import { MessageTypes, TARGET_ORIGIN } from '../shared/protocol.js';
 import { ls, codeKey } from './storage.js';
 import { startTabGesture } from './sandboxWindow.js';
 import { emit } from './events.js';
@@ -93,7 +93,7 @@ export class Sandbox {
       if (this.isRigSelected && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         e.preventDefault(); e.stopPropagation();
         if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage({ type: MessageTypes.REMOTE_KEY, sandboxId: this.id, key: e.key, shiftKey: e.shiftKey }, window.location.origin);
+          iframe.contentWindow.postMessage({ type: MessageTypes.REMOTE_KEY, sandboxId: this.id, key: e.key, shiftKey: e.shiftKey }, TARGET_ORIGIN);
         }
       }
     });
@@ -151,7 +151,7 @@ export class Sandbox {
     this.syncUI();
     const iframe = document.getElementById("preview");
     if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE_SANDBOX, sandboxId: this.id, paused: this.paused }, window.location.origin);
+      iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE_SANDBOX, sandboxId: this.id, paused: this.paused }, TARGET_ORIGIN);
     }
   }
   togglePause() { this.setPaused(!this.paused); }

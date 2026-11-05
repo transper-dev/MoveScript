@@ -5,7 +5,7 @@
 
 import * as THREE from "three";
 import { scene } from './scene.js';
-import { MessageTypes } from '../shared/protocol.js';
+import { MessageTypes, getTargetOrigin } from '../shared/protocol.js';
 
 export const DEFAULT_SANDBOX = "default";
 export const SANDBOX_SPACING = 150; // separación en X entre sandboxes sin .pos() explícito
@@ -14,7 +14,7 @@ export const SANDBOX_SPACING = 150; // separación en X entre sandboxes sin .pos
  * Envía un mensaje postMessage al parent window (main.js)
  */
 export const send = (type, sandboxId, extra = {}) =>
-  window.parent.postMessage({ type, sandboxId: sandboxId ?? null, ...extra }, window.location.origin);
+  window.parent.postMessage({ type, sandboxId: sandboxId ?? null, ...extra }, getTargetOrigin());
 
 /**
  * Parámetros por defecto para cada contexto

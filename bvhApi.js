@@ -1,4 +1,4 @@
-import { MessageTypes } from './shared/protocol.js';
+import { MessageTypes, getTargetOrigin } from './shared/protocol.js';
 import { canvas, renderer, scene, camera, controls, clock, setGlobalPause } from './engine/scene.js';
 import {
   DEFAULT_SANDBOX, send,
@@ -208,4 +208,4 @@ window.addEventListener("message", (event) => {
   }
 });
 
-window.parent.postMessage({ type: MessageTypes.READY }, window.location.origin);
+window.parent.postMessage({ type: MessageTypes.READY }, getTargetOrigin());
