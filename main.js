@@ -1,4 +1,4 @@
-import { parseBlocks } from './dsl/transpile.js';
+import { parseBlocks, transpileBlock } from './dsl/transpile.js';
 import { MessageTypes } from './shared/protocol.js';
 import { Sandbox } from './ui/sandbox.js';
 import { SandboxWindow } from './ui/sandboxWindow.js';
@@ -238,19 +238,7 @@ function runCode(sb, code) {
     return;
   }
 
-  let transpiled = code;
-  if (blocks.length === 1) {
-    const block = blocks[0];
-    const chainParts = block.parts.map(part => {
-      const inside = part.replace(/^\[/, "").replace(/\]$/, "").trim();
-      return inside === "" ? "$B()" : `$B().${inside}`;
-    });
-    const firstBracket = code.indexOf("[");
-    const lastBracket = code.lastIndexOf("]");
-    transpiled = code.substring(0, firstBracket) +
-                 `CHAIN(${chainParts.join(", ")})` +
-                 code.substring(lastBracket + 1);
-  }
+  const transpiled = blocks.length === 1 ? transpileBlock(blocks[0]) : code;
 
   const configuracionOculta = `
     clear();
