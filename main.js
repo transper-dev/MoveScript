@@ -54,10 +54,10 @@ export function incrementZCounter() { return state.incrementZCounter(); }
 
 // Compatibilidad
 Object.defineProperty(window, "editor", {
-  get: () => (activeSandbox ? activeSandbox.cm : null),
+  get: () => (state.activeSandbox ? state.activeSandbox.cm : null),
   configurable: true
 });
-window.runActiveSandbox = () => { if (activeSandbox) runSandbox(activeSandbox); };
+window.runActiveSandbox = () => { if (state.activeSandbox) runSandbox(state.activeSandbox); };
 
 function setGlobalPauseUI(paused) {
   isGlobalPaused = paused;
@@ -268,7 +268,7 @@ window.addEventListener("message", (e) => {
   if (d.type === MessageTypes.READY) {
     engineReady = true;
     for (const id of [...pendingRuns]) {
-      const sb = sandboxes.get(id);
+      const sb = state.sandboxes.get(id);
       if (sb) runCode(sb, sb.cm.getValue());
     }
     pendingRuns.clear();
@@ -342,10 +342,10 @@ function removeMethodCall(str, methodName) {
 // ATAJOS GLOBALES
 // ====================================================
 window.addEventListener("keydown", (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); if (e.shiftKey) runAll(); else if (activeSandbox) runSandbox(activeSandbox); }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (activeSandbox) activeSandbox.toggleSave(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); if (e.shiftKey) runAll(); else if (state.activeSandbox) runSandbox(state.activeSandbox); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (state.activeSandbox) state.activeSandbox.toggleSave(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); if (globalPauseBtn) globalPauseBtn.click(); }
-  if (e.key === "Escape") { e.preventDefault(); if (activeSandbox && activeSandbox.win) activeSandbox.win.toggleMinimized(); }
+  if (e.key === "Escape") { e.preventDefault(); if (state.activeSandbox && state.activeSandbox.win) state.activeSandbox.win.toggleMinimized(); }
 });
 
 if (globalPauseBtn) {
