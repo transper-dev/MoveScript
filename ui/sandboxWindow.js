@@ -4,10 +4,8 @@ import {
   incrementZCounter,
   createSandbox,
   runSandbox,
-  removeSandbox,
   writeLayout,
-  scheduleLayoutSave,
-  activeSandbox
+  scheduleLayoutSave
 } from '../main.js';
 
 export class SandboxWindow {

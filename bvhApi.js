@@ -3,7 +3,7 @@ import {
   DEFAULT_SANDBOX, send,
   raycaster, mouse, selectionBox,
   getSelectedRig, setSelectedRig, deselect,
-  frameCount, incrementFrameCount
+  incrementFrameCount
 } from './engine/utils.js';
 import { contexts, getCtx, allRigs } from './engine/context.js';
 import { buildApi, executeInSandbox } from './engine/api.js';

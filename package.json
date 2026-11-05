@@ -1,0 +1,13 @@
+{
+  "name": "movescript",
+  "version": "1.0.0",
+  "description": "Modularized MoveScript project",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  }
+}

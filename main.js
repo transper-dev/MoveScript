@@ -1,4 +1,4 @@
-import { parseBlocks, isNewBlock } from './dsl/transpile.js';
+import { parseBlocks } from './dsl/transpile.js';
 import { MessageTypes } from './shared/protocol.js';
 import { Sandbox } from './ui/sandbox.js';
 import { SandboxWindow } from './ui/sandboxWindow.js';
