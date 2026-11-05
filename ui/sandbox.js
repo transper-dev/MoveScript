@@ -4,13 +4,15 @@ import { ls, codeKey } from './storage.js';
 import { startTabGesture } from './sandboxWindow.js';
 import { emit } from './events.js';
 import {
-  activeSandbox,
-  setActiveSandbox,
-  incrementZCounter,
   runSandbox,
   runAll,
   writeLayout
 } from '../main.js';
+import {
+  activeSandbox,
+  setActiveSandbox,
+  incrementZCounter
+} from '../core/state.js';
 
 // Compatibilidad: sidebar de ayuda y cajón de BVH usan window.editor => CodeMirror del sandbox ACTIVO
 // Para mantener el comportamiento exacto, window.editor se define/actualiza en main.js o mediante la propiedad activa.

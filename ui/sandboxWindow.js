@@ -1,12 +1,14 @@
 import {
-  windows,
   createWindow,
-  incrementZCounter,
   createSandbox,
   runSandbox,
   writeLayout,
   scheduleLayoutSave
 } from '../main.js';
+import {
+  windows,
+  incrementZCounter
+} from '../core/state.js';
 
 export class SandboxWindow {
   constructor({ left = 16, top = 16, width = "", height = "" } = {}) {

@@ -1,6 +1,6 @@
 /**
- * BVH - Motor de carga y gestión de animaciones BVH
- * createBvh(), duplicateHandle(), makeChain() y utilidades relacionadas
+ * BVH - BVH Loader and animation management engine
+ * createBvh(), duplicateHandle(), makeChain() and related utilities
  */
 
 import * as THREE from "three";
@@ -519,26 +519,26 @@ export function makeChain(ctx) {
 
     const headNode = nodes[0];
     let file = headNode.props.file;
-    let esManiquiEstatico = false;
+    let isStaticDummy = false;
 
     if (!file && !headNode.props.duplicate) {
       file = "deep_breath";
-      esManiquiEstatico = true;
+      isStaticDummy = true;
     }
 
     const headHandle = headNode.props.duplicate
       ? duplicateHandle(ctx, headNode.props.duplicate)
       : createBvh(ctx, file);
 
-    headHandle._isStaticDummy = esManiquiEstatico;
+    headHandle._isStaticDummy = isStaticDummy;
     applyPropsToHandle(headHandle, headNode.props);
 
-    if (esManiquiEstatico) {
-      const tiempoEspera = (headNode.props.delay ?? 3) * 1000;
+    if (isStaticDummy) {
+      const waitTime = (headNode.props.delay ?? 3) * 1000;
       ctx.later(() => {
         const rig = ctx.rigs.find(r => r.handle === headHandle);
         if (rig) rig.mixer.dispatchEvent({ type: "finished", action: rig.action });
-      }, tiempoEspera);
+      }, waitTime);
     } else {
       headHandle.play();
     }

@@ -4,6 +4,7 @@ import { Sandbox } from './ui/sandbox.js';
 import { SandboxWindow } from './ui/sandboxWindow.js';
 import { ls, LIST_KEY, LEGACY_KEY, codeKey } from './ui/storage.js';
 import { on } from './ui/events.js';
+import * as state from './core/state.js';
 
 function buildPreviewHtml() {
   return `<!doctype html>
@@ -43,17 +44,13 @@ const errorText = document.getElementById("error-text");
 
 const MAX_SANDBOXES = 8;
 
-export const sandboxes = new Map();      // sandboxId -> Sandbox
-export const windows = [];               // SandboxWindow[]
 const pendingRuns = new Set();    // sandboxIds a ejecutar cuando el motor esté listo
-export let activeSandbox = null;
 let engineReady = false;
 let isGlobalPaused = false;
-let zCounter = 1;
 let errorTimeout;
 
-export function setActiveSandbox(sb) { activeSandbox = sb; }
-export function incrementZCounter() { return ++zCounter; }
+export function setActiveSandbox(sb) { state.setActiveSandbox(sb); }
+export function incrementZCounter() { return state.incrementZCounter(); }
 
 // Compatibilidad
 Object.defineProperty(window, "editor", {
@@ -81,7 +78,7 @@ function showError(message, ms = 4000) {
   errorTimeout = setTimeout(() => errorToast.classList.remove("visible"), ms);
 }
 
-const sortedByLabel = () => [...sandboxes.values()].sort((a, b) => a.label - b.label);
+const sortedByLabel = () => [...state.sandboxes.values()].sort((a, b) => a.label - b.label);
 
 // ====================================================
 // PERSISTENCIA (exports)
@@ -90,7 +87,7 @@ let layoutTimer = null;
 
 export function writeLayout() {
   clearTimeout(layoutTimer);
-  const wins = windows.map(w => w.getLayout()).filter(Boolean);
+  const wins = state.windows.map(w => w.getLayout()).filter(Boolean);
   if (wins.length === 0) ls.remove(LIST_KEY);
   else ls.set(LIST_KEY, JSON.stringify({ windows: wins }));
 }
@@ -119,10 +116,10 @@ window.addEventListener("beforeunload", writeLayout);
 // CREAR / ELIMINAR (exports)
 // ====================================================
 function refreshOnlyOne() {
-  document.body.classList.toggle("only-one", sandboxes.size <= 1);
+  document.body.classList.toggle("only-one", state.sandboxes.size <= 1);
 }
 
-const labelInUse = (n) => [...sandboxes.values()].some(sb => sb.label === n);
+const labelInUse = (n) => [...state.sandboxes.values()].some(sb => sb.label === n);
 function nextFreeLabel() {
   let n = 1;
   while (labelInUse(n)) n++;
@@ -130,24 +127,24 @@ function nextFreeLabel() {
 }
 
 export function createSandbox({ id, label, code = "", hasStored = false } = {}) {
-  if (sandboxes.size >= MAX_SANDBOXES) {
+  if (state.sandboxes.size >= MAX_SANDBOXES) {
     showError(`Máximo ${MAX_SANDBOXES} sandboxes a la vez.`);
     return null;
   }
   let lbl = Number(label);
   if (!Number.isInteger(lbl) || lbl < 1 || labelInUse(lbl)) lbl = nextFreeLabel();
   let sbId = id || `s${lbl}`;
-  while (sandboxes.has(sbId)) sbId += "_";
+  while (state.sandboxes.has(sbId)) sbId += "_";
 
   const sb = new Sandbox(sbId, lbl, { code, hasStored });
-  sandboxes.set(sbId, sb);
+  state.sandboxes.set(sbId, sb);
   refreshOnlyOne();
   return sb;
 }
 
 export function createWindow(opts) {
   const w = new SandboxWindow(opts);
-  windows.push(w);
+  state.windows.push(w);
   container.appendChild(w.el);
   return w;
 }
@@ -155,7 +152,7 @@ export function createWindow(opts) {
 function openNewWindow() {
   const sb = createSandbox();
   if (!sb) return null;
-  const offset = (windows.length % 8) * 36;
+  const offset = (state.windows.length % 8) * 36;
   const left = Math.min(16 + offset, Math.max(8, window.innerWidth - 475 - 8));
   const top = Math.min(16 + offset, Math.max(8, window.innerHeight - 220 - 8));
   const win = createWindow({ left, top });
@@ -166,14 +163,14 @@ function openNewWindow() {
 }
 
 export function removeSandbox(sb) {
-  if (sandboxes.size <= 1) return;
+  if (state.sandboxes.size <= 1) return;
   iframe.contentWindow.postMessage({ type: MessageTypes.REMOVE_SANDBOX, sandboxId: sb.id }, getTargetOrigin());
   pendingRuns.delete(sb.id);
-  sandboxes.delete(sb.id);
+  state.sandboxes.delete(sb.id);
   ls.remove(codeKey(sb.id));
 
   const win = sb.win;
-  const wasActive = activeSandbox === sb;
+  const wasActive = state.activeSandbox === sb;
   if (win) {
     win.detachTab(sb);
     if (win.tabs.length === 0) win.destroy();
@@ -181,8 +178,8 @@ export function removeSandbox(sb) {
   sb.destroy();
 
   if (wasActive) {
-    activeSandbox = null;
-    const w = (win && windows.includes(win)) ? win : windows[windows.length - 1];
+    state.activeSandbox = null;
+    const w = (win && state.windows.includes(win)) ? win : state.windows[state.windows.length - 1];
     if (w && w.activeSb) w.activeSb.activate();
   }
   refreshOnlyOne();
@@ -278,7 +275,7 @@ window.addEventListener("message", (e) => {
     return;
   }
 
-  const sb = sandboxes.get(d.sandboxId);
+  const sb = state.sandboxes.get(d.sandboxId);
 
   if (d.type === MessageTypes.ERROR) {
     const msg = String(d.message || "").split("\n")[0];
@@ -307,7 +304,7 @@ window.addEventListener("message", (e) => {
       return inside + rStr + st.substring(bIdx);
     });
   } else if (d.type === MessageTypes.RIG_SELECTED) {
-    sandboxes.forEach(other => { if (other !== sb) other.isRigSelected = false; });
+    state.sandboxes.forEach(other => { if (other !== sb) other.isRigSelected = false; });
     sb.isRigSelected = true;
     sb.activate();
     sb.updateEditor(d.codeIndex, null);
@@ -374,7 +371,7 @@ function init() {
       let win = null;
       for (const t of w.tabs) {
         if (restored >= MAX_SANDBOXES) break;
-        if (!t || typeof t.id !== "string" || sandboxes.has(t.id)) continue;
+        if (!t || typeof t.id !== "string" || state.sandboxes.has(t.id)) continue;
         const stored = ls.get(codeKey(t.id));
         if (stored === null) continue;
         const sb = createSandbox({ id: t.id, label: t.label, code: stored, hasStored: true });
@@ -412,8 +409,8 @@ function init() {
     }
     first.activate();
     pendingRuns.add(first.id);
-  } else if (windows.length > 0 && windows[0].activeSb) {
-    windows[0].activeSb.activate();
+  } else if (state.windows.length > 0 && state.windows[0].activeSb) {
+    state.windows[0].activeSb.activate();
   }
 }
 init();
