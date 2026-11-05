@@ -26,7 +26,7 @@ For the best performance, offline use, and the ability to load your own local `.
 
 ## For Developers (Local Build)
 
-If you want to modify the source code, add new features, or compile your own versions, you can run the project locally using Node.js:
+If you want to modify the source code or add new features, you can run the project locally using a static server:
 
 ```bash
 # 1. Clone the repository
@@ -36,11 +36,9 @@ cd MoveScript
 # 2. Install dependencies
 npm install
 
-# 3. Run locally (Development mode)
-npm start 
-
-# 4. Build for Windows (.exe)
-npm run build
+# 3. Run locally
+# Use a static server to serve the files
+npx serve .
 ```
 
 ## Quick Start & Usage
