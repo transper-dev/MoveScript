@@ -47,6 +47,9 @@ const API_NAMES = ["clear", "bvh", "duplicate", "speed", "skeleton", "scale", "r
  * Usa new Function para evitar contaminar el scope global
  */
 export function executeInSandbox(ctx, code) {
+  if (/\b(window|document|eval|fetch|XMLHttpRequest|localStorage|sessionStorage)\b/.test(code)) {
+    throw new Error("SecurityError: Uso de APIs globales prohibidas en el sandbox.");
+  }
   const fn = new Function(...API_NAMES, code);
   fn(...API_NAMES.map(n => ctx.api[n]));
 }
