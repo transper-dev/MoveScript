@@ -1,3 +1,6 @@
+import { parseBlocks, isNewBlock } from './dsl/transpile.js';
+import { MessageTypes } from './shared/protocol.js';
+
 function buildPreviewHtml() {
   return `<!doctype html>
 <html>
@@ -81,105 +84,6 @@ function showError(message, ms = 4000) {
   errorTimeout = setTimeout(() => errorToast.classList.remove("visible"), ms);
 }
 
-// Tokenizador robusto que respeta comentarios, strings y paréntesis
-const parseBlocks = (code) => {
-  const blocks = [];
-  const lines = code.split("\n");
-  let i = 0;
-  let currentBlock = { startLine: -1, parts: [] };
-  let inBlock = false;
-  let inString = false;
-  let stringChar = null;
-  let inComment = false;
-  let depth = 0;
-  let currentPart = "";
-
-  while (i < code.length) {
-    const char = code[i];
-    const nextChar = code[i + 1];
-
-    // Saltar líneas de comentario
-    if (!inString && char === "/" && nextChar === "/") {
-      inComment = true;
-      i++;
-      continue;
-    }
-    if (char === "\n") {
-      inComment = false;
-    }
-    if (inComment) {
-      i++;
-      continue;
-    }
-
-    // Strings
-    if (!inComment && (char === '"' || char === "'")) {
-      if (!inString) {
-        inString = true;
-        stringChar = char;
-      } else if (char === stringChar && code[i - 1] !== "\\") {
-        inString = false;
-        stringChar = null;
-      }
-    }
-
-    if (!inString && !inComment) {
-      if (char === "[") {
-        if (!inBlock) {
-          inBlock = true;
-          currentBlock = { startLine: lines.slice(0, i).join("\n").split("\n").length - 1, parts: [] };
-          currentPart = "[";
-        } else {
-          currentPart += char;
-        }
-        depth++;
-        i++;
-        continue;
-      } else if (char === "]") {
-        currentPart += char;
-        depth--;
-        if (depth === 0) {
-          // Fin de una parte [...]
-          currentBlock.parts.push(currentPart.trim());
-          currentPart = "";
-          // Buscar si hay un > después (puede haber espacios/newlines)
-          let j = i + 1;
-          while (j < code.length && (code[j] === " " || code[j] === "\t" || code[j] === "\n")) j++;
-          if (code[j] === ">") {
-            // Continuación: consumir el > y seguir esperando el siguiente [
-            i = j;
-          } else {
-            // Fin del bloque
-            if (currentBlock.parts.length > 0) {
-              blocks.push(currentBlock);
-            }
-            inBlock = false;
-            currentBlock = { startLine: -1, parts: [] };
-          }
-        }
-        i++;
-        continue;
-      }
-    }
-
-    if (inBlock) {
-      currentPart += char;
-    }
-    i++;
-  }
-
-  return blocks;
-};
-
-// Versión simple para isNewBlock (usa el mismo tokenizer)
-const isNewBlock = (lines, idx) => {
-  if (!lines[idx].trim().startsWith("[")) return false;
-  let prev = idx - 1;
-  while (prev >= 0 && lines[prev].trim() === "") prev--;
-  if (prev >= 0 && lines[prev].trim().endsWith(">")) return false;
-  return true;
-};
-
 const sortedByLabel = () => [...sandboxes.values()].sort((a, b) => a.label - b.label);
 
 // ====================================================
@@ -259,7 +163,7 @@ class Sandbox {
       }
       if (this.isRigSelected && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         e.preventDefault(); e.stopPropagation();
-        iframe.contentWindow.postMessage({ type: "remoteKey", sandboxId: this.id, key: e.key, shiftKey: e.shiftKey }, "*");
+        iframe.contentWindow.postMessage({ type: MessageTypes.REMOTE_KEY, sandboxId: this.id, key: e.key, shiftKey: e.shiftKey }, "*");
       }
     });
 
@@ -314,7 +218,7 @@ class Sandbox {
   setPaused(value) {
     this.paused = !!value;
     this.syncUI();
-    iframe.contentWindow.postMessage({ type: "pauseSandbox", sandboxId: this.id, paused: this.paused }, "*");
+    iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE_SANDBOX, sandboxId: this.id, paused: this.paused }, "*");
   }
   togglePause() { this.setPaused(!this.paused); }
 
@@ -839,7 +743,7 @@ function openNewWindow() {
 function removeSandbox(sb) {
   if (sandboxes.size <= 1) return; // siempre queda al menos uno
   // El motor destruye los rigs, trails y timers de este sandbox
-  iframe.contentWindow.postMessage({ type: "removeSandbox", sandboxId: sb.id }, "*");
+  iframe.contentWindow.postMessage({ type: MessageTypes.REMOVE_SANDBOX, sandboxId: sb.id }, "*");
   pendingRuns.delete(sb.id);
   sandboxes.delete(sb.id);
   ls.remove(codeKey(sb.id));
@@ -939,7 +843,7 @@ function runCode(sb, code) {
   const codigoFinal = configuracionOculta + "\n" + transpiled;
   // order = posición por número de sandbox (independiente de en qué ventana esté); define la X por defecto
   const order = sortedByLabel().indexOf(sb);
-  iframe.contentWindow.postMessage({ type: "execute", sandboxId: sb.id, order, code: codigoFinal }, "*");
+  iframe.contentWindow.postMessage({ type: MessageTypes.EXECUTE, sandboxId: sb.id, order, code: codigoFinal }, "*");
 }
 
 // Ejecuta todos los sandboxes por orden de número
@@ -1055,7 +959,7 @@ window.addEventListener("keydown", (e) => {
 if (globalPauseBtn) {
   globalPauseBtn.addEventListener("click", () => {
     setGlobalPauseUI(!isGlobalPaused);
-    iframe.contentWindow.postMessage({ type: "pause", paused: isGlobalPaused }, "*");
+    iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE, paused: isGlobalPaused }, "*");
   });
 }
 
