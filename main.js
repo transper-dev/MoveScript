@@ -166,7 +166,7 @@ function openNewWindow() {
 
 export function removeSandbox(sb) {
   if (sandboxes.size <= 1) return;
-  iframe.contentWindow.postMessage({ type: MessageTypes.REMOVE_SANDBOX, sandboxId: sb.id }, "*");
+  iframe.contentWindow.postMessage({ type: MessageTypes.REMOVE_SANDBOX, sandboxId: sb.id }, window.location.origin);
   pendingRuns.delete(sb.id);
   sandboxes.delete(sb.id);
   ls.remove(codeKey(sb.id));
@@ -247,7 +247,7 @@ function runCode(sb, code) {
 
   const codigoFinal = configuracionOculta + "\n" + transpiled;
   const order = sortedByLabel().indexOf(sb);
-  iframe.contentWindow.postMessage({ type: MessageTypes.EXECUTE, sandboxId: sb.id, order, code: codigoFinal }, "*");
+  iframe.contentWindow.postMessage({ type: MessageTypes.EXECUTE, sandboxId: sb.id, order, code: codigoFinal }, window.location.origin);
 }
 
 export function runAll() {
@@ -353,7 +353,7 @@ window.addEventListener("keydown", (e) => {
 if (globalPauseBtn) {
   globalPauseBtn.addEventListener("click", () => {
     setGlobalPauseUI(!isGlobalPaused);
-    iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE, paused: isGlobalPaused }, "*");
+    iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE, paused: isGlobalPaused }, window.location.origin);
   });
 }
 

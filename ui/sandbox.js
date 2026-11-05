@@ -93,7 +93,7 @@ export class Sandbox {
       if (this.isRigSelected && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         e.preventDefault(); e.stopPropagation();
         if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage({ type: MessageTypes.REMOTE_KEY, sandboxId: this.id, key: e.key, shiftKey: e.shiftKey }, "*");
+          iframe.contentWindow.postMessage({ type: MessageTypes.REMOTE_KEY, sandboxId: this.id, key: e.key, shiftKey: e.shiftKey }, window.location.origin);
         }
       }
     });
@@ -151,7 +151,7 @@ export class Sandbox {
     this.syncUI();
     const iframe = document.getElementById("preview");
     if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE_SANDBOX, sandboxId: this.id, paused: this.paused }, "*");
+      iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE_SANDBOX, sandboxId: this.id, paused: this.paused }, window.location.origin);
     }
   }
   togglePause() { this.setPaused(!this.paused); }

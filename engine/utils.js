@@ -14,7 +14,7 @@ export const SANDBOX_SPACING = 150; // separación en X entre sandboxes sin .pos
  * Envía un mensaje postMessage al parent window (main.js)
  */
 export const send = (type, sandboxId, extra = {}) =>
-  window.parent.postMessage({ type, sandboxId: sandboxId ?? null, ...extra }, "*");
+  window.parent.postMessage({ type, sandboxId: sandboxId ?? null, ...extra }, window.location.origin);
 
 /**
  * Parámetros por defecto para cada contexto

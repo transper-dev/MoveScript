@@ -208,4 +208,4 @@ window.addEventListener("message", (event) => {
   }
 });
 
-window.parent.postMessage({ type: MessageTypes.READY }, "*");
+window.parent.postMessage({ type: MessageTypes.READY }, window.location.origin);
