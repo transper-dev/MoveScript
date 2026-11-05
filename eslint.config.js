@@ -16,6 +16,8 @@ export default [
         localStorage: "readonly",
         CodeMirror: "readonly",
         KeyboardEvent: "readonly",
+        EventTarget: "readonly",
+        CustomEvent: "readonly",
         fetch: "readonly",
         navigator: "readonly",
         devicePixelRatio: "readonly",

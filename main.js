@@ -3,6 +3,7 @@ import { MessageTypes } from './shared/protocol.js';
 import { Sandbox } from './ui/sandbox.js';
 import { SandboxWindow } from './ui/sandboxWindow.js';
 import { ls, LIST_KEY, LEGACY_KEY, codeKey } from './ui/storage.js';
+import { on } from './ui/events.js';
 
 function buildPreviewHtml() {
   return `<!doctype html>
@@ -360,6 +361,8 @@ if (globalPauseBtn) {
 // ====================================================
 // INICIO
 // ====================================================
+on("REMOVE_SANDBOX", removeSandbox);
+
 function init() {
   iframe.srcdoc = buildPreviewHtml();
 

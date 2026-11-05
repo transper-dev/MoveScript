@@ -2,11 +2,11 @@ import { isNewBlock } from '../dsl/transpile.js';
 import { MessageTypes } from '../shared/protocol.js';
 import { ls, codeKey } from './storage.js';
 import { startTabGesture } from './sandboxWindow.js';
+import { emit } from './events.js';
 import {
   activeSandbox,
   setActiveSandbox,
   incrementZCounter,
-  removeSandbox,
   runSandbox,
   runAll,
   writeLayout
@@ -115,10 +115,10 @@ export class Sandbox {
       this.activate();
       startTabGesture(e, this);
     });
-    this.tabEl.addEventListener("auxclick", (e) => { if (e.button === 1) removeSandbox(this); });
+    this.tabEl.addEventListener("auxclick", (e) => { if (e.button === 1) emit("REMOVE_SANDBOX", this); });
     this.tabEl.querySelector(".sb-tab-close").addEventListener("click", (e) => {
       e.stopPropagation();
-      removeSandbox(this);
+      emit("REMOVE_SANDBOX", this);
     });
   }
 
