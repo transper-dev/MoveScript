@@ -40,15 +40,13 @@ export function buildApi(ctx) {
   return api;
 }
 
-const API_NAMES = ["clear", "bvh", "duplicate", "speed", "skeleton", "scale", "reverse", "color", "trail", "delay", "pause", "grid", "cam", "background", "bg", "rot", "$B", "CHAIN"];
-
 /**
  * Ejecuta código de usuario en un sandbox con la API inyectada como parámetros
  * Usa new Function para evitar contaminar el scope global
  */
 export function executeInSandbox(ctx, code) {
   const proxyAPI = new Proxy(ctx.api, {
-    has: (target, prop) => true,
+    has: (_target, _prop) => true,
     get: (target, prop) => {
       if (prop === Symbol.unscopables) return undefined;
       if (prop in target) return target[prop];

@@ -18,9 +18,9 @@ test('executeInSandbox - security check', () => {
     };
 
     // New implementation (secure)
-    const secureExecute = (ctx, code) => {
-        const proxyAPI = new Proxy(ctx.api, {
-            has: (target, prop) => true,
+    const secureExecute = (_ctx, code) => {
+        const proxyAPI = new Proxy(_ctx.api, {
+            has: (_target, _prop) => true,
             get: (target, prop) => {
                 if (prop === Symbol.unscopables) return undefined;
                 if (prop in target) return target[prop];
