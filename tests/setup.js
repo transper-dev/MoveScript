@@ -1,18 +1,4 @@
 import { JSDOM } from 'jsdom';
-import * as THREE from 'three';
-
-// Mock WebGLRenderer to be compatible with Node
-THREE.WebGLRenderer = class MockRenderer {
-  constructor(opts) {
-    this.domElement = opts.canvas || document.createElement('canvas');
-  }
-  setPixelRatio() {}
-  setSize() {}
-  setClearColor() {}
-  render() {}
-  // Add other methods that WebGLRenderer might call in scene.js
-  dispose() {}
-};
 
 const dom = new JSDOM('<!DOCTYPE html><html><body><canvas id="c"></canvas></body></html>', {
   pretendToBeVisual: true

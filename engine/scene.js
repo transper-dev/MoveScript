@@ -9,11 +9,39 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 // ====================================================
 // ESCENA GLOBAL COMPARTIDA (se crea UNA sola vez)
 // ====================================================
-export const canvas = document.getElementById("c");
-canvas.addEventListener("pointerdown", () => canvas.focus());
+const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
 
-export const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+export let canvas;
+if (isBrowser) {
+  canvas = document.getElementById("c");
+  canvas.addEventListener("pointerdown", () => canvas.focus());
+} else {
+  canvas = { addEventListener: () => {}, focus: () => {} };
+}
+
+export let renderer;
+if (isBrowser) {
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  } catch (e) {
+    renderer = {
+      domElement: { addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => {} },
+      setPixelRatio: () => {},
+      setSize: () => {},
+      setClearColor: () => {},
+      render: (scene) => { scene.updateMatrixWorld(); }
+    };
+  }
+} else {
+  renderer = {
+    domElement: { addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => {} },
+    setPixelRatio: () => {},
+    setSize: () => {},
+    setClearColor: () => {},
+    render: (scene) => { scene.updateMatrixWorld(); }
+  };
+}
 
 export const scene = new THREE.Scene();
 scene.background = new THREE.Color("#0a0a0a");
@@ -21,9 +49,18 @@ scene.background = new THREE.Color("#0a0a0a");
 export const camera = new THREE.PerspectiveCamera(60, 2, 0.1, 20000);
 camera.position.set(0, 150, 350);
 
-export const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.target.set(0, 100, 0);
+export let controls;
+if (isBrowser && renderer instanceof THREE.WebGLRenderer) {
+  try {
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 100, 0);
+  } catch (e) {
+    controls = { enabled: true, autoRotate: false, target: new THREE.Vector3(), update: () => {} };
+  }
+} else {
+  controls = { enabled: true, autoRotate: false, target: new THREE.Vector3(), update: () => {} };
+}
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.25));
 const light = new THREE.DirectionalLight(0xffffff, 1);

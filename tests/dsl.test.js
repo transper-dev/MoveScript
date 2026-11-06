@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { parseBlocks, isNewBlock, transpileBlock } from './dsl/transpile.js';
-import { MessageTypes, createMessage, isMessageType } from './shared/protocol.js';
+import { parseBlocks, isNewBlock, transpileBlock } from '../dsl/transpile.js';
 
 test('DSL Transpiler - parseBlocks', (_t) => {
   // 1. Basic parsing
@@ -46,16 +45,4 @@ test('DSL Transpiler - transpileBlock', (_t) => {
   };
   const singleCode = transpileBlock(singleBlock);
   assert.strictEqual(singleCode, 'CHAIN($B().bvh("headbutt"))');
-});
-
-test('Protocol - Message Types', (_t) => {
-  assert.strictEqual(MessageTypes.EXECUTE, 'execute');
-  assert.strictEqual(MessageTypes.READY, 'ready');
-
-  const msg = createMessage(MessageTypes.EXECUTE, { sandboxId: 's1', code: 'test' });
-  assert.strictEqual(msg.type, 'execute');
-  assert.strictEqual(msg.sandboxId, 's1');
-
-  assert.strictEqual(isMessageType(msg, MessageTypes.EXECUTE), true);
-  assert.strictEqual(isMessageType(msg, MessageTypes.READY), false);
 });

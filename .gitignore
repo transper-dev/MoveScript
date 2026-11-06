@@ -12,3 +12,4 @@ npm-debug.log*
 
 # Archivos de configuración de entorno
 .claude
+.superpowers
