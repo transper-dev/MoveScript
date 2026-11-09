@@ -79,7 +79,7 @@ export async function initAnimationList() {
       if (regexBusqueda.test(code)) {
         code = code.replace(regexBusqueda, `[bvh("${nombre}")]\n>$&`);
       } else {
-        let salto = code.trim() !== "" ? "\n\n" : "";
+        const salto = code.trim() !== "" ? "\n\n" : "";
         code += `${salto}[bvh("${nombre}")]`;
       }
 

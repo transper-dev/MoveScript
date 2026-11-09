@@ -8,7 +8,7 @@ function isValidDslStart(code, index) {
   let strCh = null;
   let inLineComm = false;
   let inMultiComm = false;
-  let tokens = [];
+  const tokens = [];
   let currentWord = '';
 
   for (let c = 0; c < index; c++) {

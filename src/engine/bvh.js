@@ -159,13 +159,13 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
       let maxBoneLength = 0;
       root.traverse(b => {
         if (b.isBone) {
-          let len = b.position.length();
+          const len = b.position.length();
           if (len > maxBoneLength) maxBoneLength = len;
         }
       });
 
-      let autoScale = (maxBoneLength < 5) ? 100 : 1;
-      let finalScale = autoScale * (handle._scale ?? ctx.params.globalScale);
+      const autoScale = (maxBoneLength < 5) ? 100 : 1;
+      const finalScale = autoScale * (handle._scale ?? ctx.params.globalScale);
 
       group.scale.setScalar(finalScale);
       group.position.set(0, 0, 0);
@@ -174,7 +174,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
       group.updateMatrixWorld(true);
 
       let lowestY = Infinity;
-      let rootWorldPos = new THREE.Vector3();
+      const rootWorldPos = new THREE.Vector3();
 
       let hipsBone = root;
       if (root.children.length === 1 && root.position.lengthSq() < 0.001) {
@@ -184,15 +184,15 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
 
       root.traverse(b => {
         if (b.isBone && b !== root) {
-          let pos = new THREE.Vector3();
+          const pos = new THREE.Vector3();
           b.getWorldPosition(pos);
           if (pos.y < lowestY) lowestY = pos.y;
         }
       });
 
       const targetX = handle._xExplicit ? handle._x : ctx.defaultX;
-      let offsetX = targetX - rootWorldPos.x;
-      let offsetZ = handle._z - rootWorldPos.z;
+      const offsetX = targetX - rootWorldPos.x;
+      const offsetZ = handle._z - rootWorldPos.z;
 
       let offsetY = handle._y;
       if (handle._y === 0 && lowestY !== Infinity) {
@@ -309,7 +309,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
 
             if (handle._reqJoints) {
               let jointSize = handle._jointSize;
-              let limiteNatural = hasChildren ? Math.max(0.5, maxChildLength * 0.35) : Math.max(0.5, bone.position.length() * 0.2);
+              const limiteNatural = hasChildren ? Math.max(0.5, maxChildLength * 0.35) : Math.max(0.5, bone.position.length() * 0.2);
 
               if (jointSize === null || jointSize === undefined) {
                 jointSize = limiteNatural;

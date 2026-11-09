@@ -32,15 +32,15 @@ export function initHelpSidebar() {
         if (regexBusqueda.test(code)) {
           code = code.replace(regexBusqueda, `${insertText}\n>$&`);
         } else {
-          let salto = code.trim() !== "" ? "\n\n" : "";
+          const salto = code.trim() !== "" ? "\n\n" : "";
           code += `${salto}${insertText}`;
         }
         window.editor.setValue(code);
 
         if (iframePreview.contentWindow && window.runActiveSandbox) window.runActiveSandbox();
         for (let i = 0; i < window.editor.lineCount(); i++) {
-          let textoLinea = window.editor.getLine(i);
-          let posicion = textoLinea.indexOf(insertText);
+          const textoLinea = window.editor.getLine(i);
+          const posicion = textoLinea.indexOf(insertText);
           if (posicion !== -1) {
             window.editor.setCursor({ line: i, ch: posicion + insertText.length - 1 });
             break;
