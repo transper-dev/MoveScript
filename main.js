@@ -178,7 +178,7 @@ export function removeSandbox(sb) {
   sb.destroy();
 
   if (wasActive) {
-    state.activeSandbox = null;
+    state.setActiveSandbox(null);
     const w = (win && state.windows.includes(win)) ? win : state.windows[state.windows.length - 1];
     if (w && w.activeSb) w.activeSb.activate();
   }
@@ -219,24 +219,21 @@ function runCode(sb, code) {
   setGlobalPauseUI(false);
   sb.paused = false; sb.syncUI();
 
-  let inStrVal = false, strChVal = null;
-  for (let ci = 0; ci < code.length - 1; ci++) {
-    const ch = code[ci];
-    if ((ch === '"' || ch === "'") && !inStrVal) { inStrVal = true; strChVal = ch; }
-    else if (inStrVal && ch === strChVal && code[ci - 1] !== "\\") { inStrVal = false; }
-    if (!inStrVal && ch === "]" && /\s/.test(code[ci + 1]?.replace(/\s/g, "") === "" ? "x" : code.slice(ci + 1).trimStart()[0] || "") === false && code.slice(ci + 1).trimStart().startsWith(".")) {
-      showError(`[Sandbox ${sb.label}] Error de sintaxis: No uses punto '.' después del bloque. Usa el pipe '>'`);
+  let transpiled = code;
+  try {
+    const blocks = parseBlocks(code);
+    if (blocks.length > 1) {
+      showError(`[Sandbox ${sb.label}] Solo se permite una secuencia continua por sandbox. Une los bloques con '>'`);
       return;
     }
-  }
-
-  const blocks = parseBlocks(code);
-  if (blocks.length > 1) {
-    showError(`[Sandbox ${sb.label}] Solo se permite una secuencia continua por sandbox. Une los bloques con '>'`);
+    if (blocks.length === 1) {
+      const b = blocks[0];
+      transpiled = code.slice(0, b.start) + transpileBlock(b) + code.slice(b.end);
+    }
+  } catch (err) {
+    showError(`[Sandbox ${sb.label}] ${err.message}`);
     return;
   }
-
-  const transpiled = blocks.length === 1 ? transpileBlock(blocks[0]) : code;
 
   const configuracionOculta = `
     clear();
@@ -318,7 +315,7 @@ window.addEventListener("message", (e) => {
   }
 });
 
-function removeMethodCall(str, methodName) {
+export function removeMethodCall(str, methodName) {
   let result = "";
   let i = 0;
   const prefix = "." + methodName + "(";
@@ -329,8 +326,18 @@ function removeMethodCall(str, methodName) {
     let depth = 0;
     let j = idx + prefix.length - 1;
     while (j < str.length) {
-      if (str[j] === "(") depth++;
-      else if (str[j] === ")") { depth--; if (depth === 0) { j++; break; } }
+      const ch = str[j];
+      if (ch === '"' || ch === "'" || ch === '`') {
+        const sc = ch;
+        j++;
+        while (j < str.length) {
+          if (str[j] === sc && str[j-1] !== '\\') { j++; break; }
+          j++;
+        }
+        continue;
+      }
+      if (ch === "(") depth++;
+      else if (ch === ")") { depth--; if (depth === 0) { j++; break; } }
       j++;
     }
     i = j;

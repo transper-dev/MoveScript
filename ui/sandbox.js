@@ -200,17 +200,45 @@ export class Sandbox {
     let startPos = null, endPos = null;
     let l = blockStartLine;
     let c = lines[l].indexOf("[");
+    let inString = false;
+    let stringChar = null;
+    let inComment = false;
 
     while (l < lines.length) {
       const lineStr = lines[l];
+      inComment = false;
       while (c < lineStr.length) {
         const char = lineStr[c];
-        if (char === "[") {
-          if (currentStep === step) startPos = { line: l, ch: c };
-        } else if (char === "]") {
-          if (currentStep === step) { endPos = { line: l, ch: c + 1 }; break; }
-        } else if (char === ">") {
-          if (currentStep < step) currentStep++;
+        const nextChar = lineStr[c + 1];
+
+        if (!inString && char === '/' && nextChar === '/') {
+          inComment = true;
+        }
+        if (inComment) {
+          c++;
+          continue;
+        }
+
+        if (!inString && (char === '"' || char === "'" || char === '`')) {
+          inString = true;
+          stringChar = char;
+          c++;
+          continue;
+        } else if (inString && char === stringChar && lineStr[c - 1] !== '\\') {
+          inString = false;
+          stringChar = null;
+          c++;
+          continue;
+        }
+
+        if (!inString) {
+          if (char === "[") {
+            if (currentStep === step) startPos = { line: l, ch: c };
+          } else if (char === "]") {
+            if (currentStep === step) { endPos = { line: l, ch: c + 1 }; break; }
+          } else if (char === ">") {
+            if (currentStep < step) currentStep++;
+          }
         }
         c++;
       }
