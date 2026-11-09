@@ -90,8 +90,27 @@ These modifiers can be applied globally to an entire group (e.g., `>[color("red"
 * **`speed(v)`**: Playback speed multiplier (1 is normal, 2 is double, 0.5 is slow motion).
 * **`trail(length)`**: Configures the ghost trail length (e.g., `trail(40)`). Use `0` to disable.
 * **`skeleton(boolean)`**: Shows or hides the solid bones (`true`/`false`).
-* **`bones(width, [length])`**:): Modifies the geometry of the bones. The first number sets the thickness, and the optional second number sets the length multiplier.
+* **`bones(width, [length])`**: Modifies the geometry of the bones. The first number sets the thickness, and the optional second number sets the length multiplier.
 * **`joints(size)`**: Defines the size of the spherical joints connecting the bones.
+* **`delay(s)`**: Sets an initial delay (in seconds) before the animation starts playing.
+* **`reverse(boolean)`**: Reverses the animation playback direction (`true`/`false`).
+* **`duplicate()`**: Creates a copy of the current animation handle to be manipulated independently.
+* **`pause()`**: Pauses playback of the animation (`true`/`false`).
+
+## Advanced Controls (Multi-Sandbox)
+MoveScript supports multiple concurrent sandbox environments, allowing for complex, layered choreography.
+
+* **Pestañas (Tabs):** Add, reorder, and close code editors using tabs within a window.
+* **Ventanas Flotantes:** Move, resize, and stack multiple editor windows for a customized workspace.
+* **Run All (Ctrl + Shift + Enter):** Executes all active sandboxes simultaneously.
+* **Pausar todo (Ctrl + P):** Globally freezes or resumes all animations across all sandboxes.
+
+## Safe Sandbox Security
+MoveScript executes user code in a strictly secured, isolated sandbox environment:
+* Your code runs with restricted access (no prototype access).
+* Only core `Math` functions are exposed by default.
+* The standard `THREE` library is NOT exposed globally; animations and visual elements must be controlled through the MoveScript DSL.
+* The `clear()` function only resets the state of the *current* sandbox, leaving other active sandboxes untouched.
 
 ## Standard Three.js Support
-Under the hood, the environment still has full access to the standard `THREE` namespace. You can always mix generative BVH animations with custom geometries, custom shaders, and traditional lighting if your artwork requires it.
+While the core experience is designed for high-level DSL usage, you can still leverage Three.js for custom needs. Note that all Three.js elements must be created and added to the scene within your sandbox code context, ensuring they are correctly cleaned up when `clear()` is called.

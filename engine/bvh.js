@@ -119,27 +119,9 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
   const myRunId = handle._runId;
 
   ctx.later(async () => {
-    let urlDefinitiva = "";
-
-    if (fileOrUrl.startsWith("http")) {
-      urlDefinitiva = fileOrUrl;
-    } else {
-      urlDefinitiva = `./assets/${fileOrUrl}.bvh`;
-      try {
-        const comprobacionLocal = await fetch(urlDefinitiva, { method: "HEAD" });
-        if (!comprobacionLocal.ok) {
-          if (navigator.onLine) {
-            urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/${fileOrUrl}.bvh`;
-          } else {
-            throw new Error("Archivo no encontrado en local y no hay internet.");
-          }
-        }
-      } catch (e) {
-        if (navigator.onLine) {
-          urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/${fileOrUrl}.bvh`;
-        }
-      }
-    }
+    const urlDefinitiva = fileOrUrl.startsWith("http")
+      ? fileOrUrl
+      : `./assets/${fileOrUrl}.bvh`;
 
     if (myRunId !== ctx.runId) return;
 
@@ -403,18 +385,12 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
             ejecutarRelevo(nextRig);
           }
           else {
-            ctx.every((intervalId) => {
-              const delayedRig = ctx.rigs.find(r => r.handle === handle._nextHandle);
-              if (delayedRig) {
-                ctx.cancel(intervalId);
-                ejecutarRelevo(delayedRig);
-              }
-            }, 50);
+            handle._nextHandle._onRigLoaded = (loadedRig) => ejecutarRelevo(loadedRig);
           }
         }
       });
 
-      ctx.rigs.push({
+      const rigRecord = {
         ctx, handle, group, pivot, root, helper, mixer, action, clip: result.clip, timeAlive: 0, autoScale,
         opts: {
           rotX: handle._rotX, rotY: handle._rotY, rotZ: handle._rotZ,
@@ -427,7 +403,11 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
           trail: handle._trail,
           delay: handle._delay
         }
-      });
+      };
+      ctx.rigs.push(rigRecord);
+      if (handle._onRigLoaded) {
+        handle._onRigLoaded(rigRecord);
+      }
     }, undefined, () => {
       if (myRunId !== ctx.runId) return;
       send(MessageTypes.ERROR, ctx.id, { message: `No se encuentra la animación: ${fileOrUrl}.bvh` });

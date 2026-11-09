@@ -15,7 +15,10 @@ import { buildApi, executeInSandbox } from './engine/api.js';
 function resize() {
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
-  if (canvas.width !== w || canvas.height !== h) {
+  const pr = renderer.getPixelRatio ? renderer.getPixelRatio() : (window.devicePixelRatio || 1);
+  const targetW = Math.floor(w * pr);
+  const targetH = Math.floor(h * pr);
+  if (canvas.width !== targetW || canvas.height !== targetH) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();

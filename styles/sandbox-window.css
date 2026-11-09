@@ -12,8 +12,6 @@
   border-radius: 10px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(1px);
-  -webkit-backdrop-filter: blur(1px);
   min-width: 475px;
   min-height: 220px;
   max-width: calc(100vw - 16px);
@@ -260,9 +258,7 @@
 
 #global-bar .global-btn {
   padding: 8px 12px;
-  background: rgba(15, 15, 15, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(15, 15, 15, 0.95);
 }
 
 #global-bar .btn-label {

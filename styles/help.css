@@ -6,8 +6,7 @@
   right: 0;
   width: 280px;
   height: 100vh;
-  background: rgba(15, 15, 15, 0.85);
-  backdrop-filter: blur(10px);
+  background: rgba(15, 15, 15, 0.95);
   border-left: 1px solid rgba(255, 255, 255, 0.1);
   color: #ddd;
   z-index: 1000;
@@ -28,8 +27,7 @@
   left: -40px;
   width: 40px;
   height: 40px;
-  background: rgba(15, 15, 15, 0.85);
-  backdrop-filter: blur(10px);
+  background: rgba(15, 15, 15, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-right: none;
   border-radius: 10px 0 0 10px;
