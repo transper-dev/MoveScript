@@ -45,7 +45,11 @@ export function buildApi(ctx) {
  * Usa new Function para evitar contaminar el scope global
  */
 export function executeInSandbox(ctx, code) {
-  const proxyAPI = new Proxy(ctx.api, {
+  const safeTarget = Object.create(null);
+  Object.assign(safeTarget, ctx.api);
+  safeTarget.Math = Math;
+
+  const proxyAPI = new Proxy(safeTarget, {
     has: (_target, _prop) => true,
     get: (target, prop) => {
       if (prop === Symbol.unscopables) return undefined;

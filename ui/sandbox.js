@@ -3,11 +3,7 @@ import { MessageTypes, getTargetOrigin } from '../shared/protocol.js';
 import { ls, codeKey } from './storage.js';
 import { startTabGesture } from './sandboxWindow.js';
 import { emit } from './events.js';
-import {
-  runSandbox,
-  runAll,
-  writeLayout
-} from '../main.js';
+import { getAction } from '../core/actions.js';
 import {
   activeSandbox,
   setActiveSandbox,
@@ -90,7 +86,9 @@ export class Sandbox {
       }
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault(); e.stopPropagation();
-        if (e.shiftKey) runAll(); else runSandbox(this);
+        const rAll = getAction("runAll");
+        const rSb = getAction("runSandbox");
+        if (e.shiftKey) { if (rAll) rAll(); } else { if (rSb) rSb(this); }
       }
       if (this.isRigSelected && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         e.preventDefault(); e.stopPropagation();
@@ -144,7 +142,8 @@ export class Sandbox {
       this.hasStored = true;
       this.markSaved();
     }
-    writeLayout();
+    const sls = getAction("scheduleLayoutSave");
+    if (sls) sls();
   }
 
   // ---------- pausa local ----------

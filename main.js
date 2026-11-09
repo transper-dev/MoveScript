@@ -5,6 +5,9 @@ import { SandboxWindow } from './ui/sandboxWindow.js';
 import { ls, LIST_KEY, LEGACY_KEY, codeKey } from './ui/storage.js';
 import { on } from './ui/events.js';
 import * as state from './core/state.js';
+import { registerActions } from './core/actions.js';
+import { writeLayout, scheduleLayoutSave } from './core/layout.js';
+export { writeLayout, scheduleLayoutSave };
 
 function buildPreviewHtml() {
   return `<!doctype html>
@@ -81,20 +84,8 @@ function showError(message, ms = 4000) {
 const sortedByLabel = () => [...state.sandboxes.values()].sort((a, b) => a.label - b.label);
 
 // ====================================================
-// PERSISTENCIA (exports)
+// PERSISTENCIA
 // ====================================================
-let layoutTimer = null;
-
-export function writeLayout() {
-  clearTimeout(layoutTimer);
-  const wins = state.windows.map(w => w.getLayout()).filter(Boolean);
-  if (wins.length === 0) ls.remove(LIST_KEY);
-  else ls.set(LIST_KEY, JSON.stringify({ windows: wins }));
-}
-export function scheduleLayoutSave() {
-  clearTimeout(layoutTimer);
-  layoutTimer = setTimeout(writeLayout, 300);
-}
 function readLayout() {
   let o = null;
   try { o = JSON.parse(ls.get(LIST_KEY)); } catch (e) { return null; }
@@ -420,4 +411,17 @@ function init() {
     state.windows[0].activeSb.activate();
   }
 }
+
+registerActions({
+  createSandbox,
+  createWindow,
+  runSandbox,
+  runAll,
+  writeLayout,
+  scheduleLayoutSave
+});
+
+on("RUN_SANDBOX", (sb) => runSandbox(sb));
+on("RUN_ALL", () => runAll());
+
 init();

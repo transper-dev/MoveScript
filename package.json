@@ -4,7 +4,7 @@
   "description": "Modularized MoveScript project",
   "type": "module",
   "scripts": {
-    "test": "node --test tests/**/*.test.js",
+    "test": "node --test tests/**/*.test.js engine/**/*.test.js",
     "lint": "eslint --config config/eslint.config.js main.js bvhApi.js dsl/ engine/ shared/ ui/"
   },
   "devDependencies": {

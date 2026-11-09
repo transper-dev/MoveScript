@@ -430,7 +430,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
       });
     }, undefined, () => {
       if (myRunId !== ctx.runId) return;
-      send("error", ctx.id, { message: `No se encuentra la animación: ${fileOrUrl}.bvh` });
+      send(MessageTypes.ERROR, ctx.id, { message: `No se encuentra la animación: ${fileOrUrl}.bvh` });
     });
   }, 0);
 

@@ -186,6 +186,10 @@ window.addEventListener("error", (event) => {
 });
 
 window.addEventListener("message", (event) => {
+  if (event.source !== window.parent) return;
+  const targetOrigin = getTargetOrigin();
+  if (targetOrigin !== "*" && event.origin !== targetOrigin) return;
+
   const d = event.data;
   if (!d || !d.type) return;
   const id = d.sandboxId ?? DEFAULT_SANDBOX;

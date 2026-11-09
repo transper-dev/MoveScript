@@ -1,10 +1,4 @@
-import {
-  createWindow,
-  createSandbox,
-  runSandbox,
-  writeLayout,
-  scheduleLayoutSave
-} from '../main.js';
+import { getAction } from '../core/actions.js';
 import {
   windows,
   incrementZCounter
@@ -49,14 +43,19 @@ export class SandboxWindow {
 
     this.el.addEventListener("pointerdown", () => { if (this.activeSb) this.activeSb.activate(); }, true);
     this.addBtn.addEventListener("click", () => {
-      const sb = createSandbox();
+      const cs = getAction("createSandbox");
+      const sb = cs ? cs() : null;
       if (!sb) return;
       this.addTab(sb);
       sb.activate();
       sb.cm.focus();
-      scheduleLayoutSave();
+      const sls = getAction("scheduleLayoutSave");
+      if (sls) sls();
     });
-    this.runBtn.addEventListener("click", () => { if (this.activeSb) runSandbox(this.activeSb); });
+    this.runBtn.addEventListener("click", () => {
+      const rs = getAction("runSandbox");
+      if (this.activeSb && rs) rs(this.activeSb);
+    });
     this.pauseBtn.addEventListener("click", () => { if (this.activeSb) this.activeSb.togglePause(); });
     this.saveBtn.addEventListener("click", () => { if (this.activeSb) this.activeSb.toggleSave(); });
     this.toggleBtn.addEventListener("click", () => this.toggleMinimized());
@@ -162,7 +161,8 @@ export class SandboxWindow {
       this.toggleBtn.title = "Ocultar (Esc)";
       if (this.activeSb) this.activeSb.cm.refresh();
     }
-    scheduleLayoutSave();
+    const sls = getAction("scheduleLayoutSave");
+    if (sls) sls();
   }
 
   sizeStrings() {
@@ -188,7 +188,13 @@ export class SandboxWindow {
       if (!dragging) return;
       this.moveTo(startLeft + (e.clientX - startX), startTop + (e.clientY - startY));
     });
-    const stop = () => { if (dragging) scheduleLayoutSave(); dragging = false; };
+    const stop = () => {
+      if (dragging) {
+        const sls = getAction("scheduleLayoutSave");
+        if (sls) sls();
+      }
+      dragging = false;
+    };
     this.barEl.addEventListener("pointerup", stop);
     this.barEl.addEventListener("pointercancel", stop);
   }
@@ -205,7 +211,13 @@ export class SandboxWindow {
       this.el.style.width = `${Math.max(420, Math.min(window.innerWidth - 16, startW + (e.clientX - startRX)))}px`;
       this.el.style.height = `${Math.max(220, Math.min(window.innerHeight - 16, startH + (e.clientY - startRY)))}px`;
     });
-    const stop = () => { if (resizing) scheduleLayoutSave(); resizing = false; };
+    const stop = () => {
+      if (resizing) {
+        const sls = getAction("scheduleLayoutSave");
+        if (sls) sls();
+      }
+      resizing = false;
+    };
     this.resizeHandle.addEventListener("pointerup", stop);
     this.resizeHandle.addEventListener("pointercancel", stop);
   }
@@ -277,7 +289,8 @@ export function startTabGesture(e, sb) {
       // Sacar la pestaña a una ventana nueva que sigue al puntero
       const size = w.sizeStrings();
       w.detachTab(sb);
-      moving = createWindow({ left: ev.clientX - 60, top: ev.clientY - 18, width: size.width, height: size.height });
+      const cw = getAction("createWindow");
+      moving = cw ? cw({ left: ev.clientX - 60, top: ev.clientY - 18, width: size.width, height: size.height }) : null;
       moving.addTab(sb);
       moving.el.classList.add("ghost");
       sb.activate();
@@ -313,7 +326,8 @@ export function startTabGesture(e, sb) {
         sb.activate();
       }
     }
-    writeLayout();
+    const wl = getAction("writeLayout");
+    if (wl) wl();
   };
   const onUp = () => finish(true);
   const onCancel = () => finish(false);

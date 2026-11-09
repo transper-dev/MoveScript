@@ -66,7 +66,9 @@ export async function initAnimationList() {
   animacionesDisponibles.forEach(nombre => {
     const btn = document.createElement('div');
     btn.className = 'bvh-item';
-    btn.innerHTML = `<span>${nombre}</span>`;
+    const span = document.createElement('span');
+    span.textContent = nombre;
+    btn.appendChild(span);
 
     btn.addEventListener('click', () => {
       if (!window.editor) return;
