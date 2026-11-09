@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/**/*.test.js",
-    "lint": "eslint --config config/eslint.config.js main.js bvhApi.js dsl/ engine/ shared/ ui/"
+    "lint": "eslint --config config/eslint.config.js src/"
   },
   "devDependencies": {
     "eslint": "^9.0.0",

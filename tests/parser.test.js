@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { parseBlocks, transpileBlock } from '../dsl/transpile.js';
+import { parseBlocks, transpileBlock } from '../src/dsl/transpile.js';
 
 test('DSL Parser - distinguish DSL from JS arrays', () => {
   const jsArrayCode = 'const f = [1, 2];';

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert';
 import './setup.js';
 import * as THREE from 'three';
-import { createBvh } from '../engine/bvh.js';
+import { createBvh } from '../src/engine/bvh.js';
 
 // Mock BVHLoader to avoid network/file access
 import { BVHLoader } from 'three/addons/loaders/BVHLoader.js';

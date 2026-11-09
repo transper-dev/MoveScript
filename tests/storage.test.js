@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert';
 import './setup.js';
-import { ls, LIST_KEY, codeKey } from '../ui/storage.js';
+import { ls, LIST_KEY, codeKey } from '../src/ui/storage.js';
 
 test('Storage - basic operations', () => {
     const key = 'test_key';

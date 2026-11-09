@@ -1,10 +1,10 @@
 import './setup.js'; // MUST import first!
 import test from 'node:test';
 import assert from 'node:assert';
-import { getCtx, SandboxContext } from '../engine/context.js';
-import { SANDBOX_SPACING } from '../engine/utils.js';
-import { scene } from '../engine/scene.js';
-import { RigNode, makeChain, duplicateHandle, createBvh } from '../engine/bvh.js';
+import { getCtx, SandboxContext } from '../src/engine/context.js';
+import { SANDBOX_SPACING } from '../src/engine/utils.js';
+import { scene } from '../src/engine/scene.js';
+import { RigNode, makeChain, duplicateHandle, createBvh } from '../src/engine/bvh.js';
 
 test('SandboxContext life cycle & getCtx', () => {
     const ctx1 = getCtx('s1', () => ({}));

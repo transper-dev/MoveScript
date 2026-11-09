@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { parseBlocks, isNewBlock, transpileBlock } from '../dsl/transpile.js';
+import { parseBlocks, isNewBlock, transpileBlock } from '../src/dsl/transpile.js';
 
 test('DSL Transpiler - parseBlocks', (_t) => {
   // 1. Basic parsing

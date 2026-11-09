@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { MessageTypes, createMessage, isMessageType } from '../shared/protocol.js';
+import { MessageTypes, createMessage, isMessageType } from '../src/shared/protocol.js';
 
 test('Protocol - Message Types', (_t) => {
   assert.strictEqual(MessageTypes.EXECUTE, 'execute');
