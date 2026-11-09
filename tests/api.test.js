@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { executeInSandbox } from './api.js';
+import { executeInSandbox } from '../engine/api.js';
 
 test('executeInSandbox - security and null prototype check', () => {
     const ctx = {
