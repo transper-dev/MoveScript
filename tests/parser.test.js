@@ -27,6 +27,16 @@ test('DSL Parser - detect syntax error ].', () => {
     }, /Error de sintaxis/);
 });
 
+test('DSL Parser - detect multiple blocks per sandbox rule with semicolon separation', () => {
+    const validCode = '[bvh("froging")]>[color("red")]';
+    const validBlocks = parseBlocks(validCode);
+    assert.strictEqual(validBlocks.length, 1, 'Single block should have length 1');
+
+    const multiBlockCode = '[bvh("froging")]>[color("red")]; [bvh("headbutt")]';
+    const multiBlocks = parseBlocks(multiBlockCode);
+    assert.strictEqual(multiBlocks.length, 2, 'Multiple blocks separated by semicolon should be detected (length > 1)');
+});
+
 test('DSL Parser - preserve surrounding code', () => {
     const code = 'bg("#001"); cam(0,100,300);\n[bvh("a")]';
     const blocks = parseBlocks(code);
