@@ -29,7 +29,7 @@ function buildPreviewHtml() {
 </head>
 <body>
   <canvas id="c" tabindex="1"></canvas>
-  <script type="module" src="./bvhApi.js"></script>
+  <script type="module" src="./src/bvhApi.js"></script>
 </body>
 </html>`;
 }
@@ -322,7 +322,7 @@ export function removeMethodCall(str, methodName) {
         const sc = ch;
         j++;
         while (j < str.length) {
-          if (str[j] === sc && str[j-1] !== '\\') { j++; break; }
+          if (str[j] === sc && str[j - 1] !== '\\') { j++; break; }
           j++;
         }
         continue;

@@ -35,6 +35,10 @@ test('DSL Parser - detect multiple blocks per sandbox rule with semicolon separa
     const multiBlockCode = '[bvh("froging")]>[color("red")]; [bvh("headbutt")]';
     const multiBlocks = parseBlocks(multiBlockCode);
     assert.strictEqual(multiBlocks.length, 2, 'Multiple blocks separated by semicolon should be detected (length > 1)');
+
+    const multiBlockLinesCode = '[bvh("froging")]\n>[color("red")]\n[bvh("headbutt")]';
+    const multiBlocksLines = parseBlocks(multiBlockLinesCode);
+    assert.strictEqual(multiBlocksLines.length, 2, 'Multiple blocks on separate lines should be detected (length > 1)');
 });
 
 test('DSL Parser - preserve surrounding code', () => {

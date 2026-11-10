@@ -59,7 +59,13 @@ function isValidDslStart(code, index) {
 
   if (['=', ':', ',', '(', '['].includes(effectiveLast)) return false;
   if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(effectiveLast)) return false;
-  if (effectiveLast === ')' || effectiveLast === ']') return false;
+  if (effectiveLast === ')' || effectiveLast === ']') {
+    const remainder = code.slice(index);
+    if (/^\[\s*(bvh|duplicate)\b/i.test(remainder)) {
+      return true;
+    }
+    return false;
+  }
 
   return true;
 }
