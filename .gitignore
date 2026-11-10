@@ -14,3 +14,7 @@ npm-debug.log*
 .claude
 .superpowers
 .vscode
+
+# Archivos de prueba y reportes
+test-results
+playwright-report
