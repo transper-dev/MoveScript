@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://127.0.0.1:3000',
     trace: 'on-first-retry',
   },
   projects: [
@@ -18,8 +18,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npx http-server -p 3000 --cors',
-    port: 3000,
+    command: 'npx http-server -p 3000 -c-1 -a 127.0.0.1',
+    url: 'http://127.0.0.1:3000',
     cwd: '../',
     reuseExistingServer: !process.env.CI,
   },

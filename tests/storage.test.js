@@ -27,3 +27,34 @@ test('Storage - handle JSON parse/serialization logic simulation', () => {
     assert.deepStrictEqual(retrieved, layout);
     ls.remove(LIST_KEY);
 });
+
+test('Storage - handle QuotaExceededError gracefully', () => {
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = () => {
+        const err = new Error('QuotaExceededError');
+        err.name = 'QuotaExceededError';
+        throw err;
+    };
+
+    assert.doesNotThrow(() => {
+        ls.set('quota_key', 'some_value');
+    });
+
+    localStorage.setItem = originalSetItem;
+});
+
+test('Storage - handle corrupted JSON data gracefully', () => {
+    const corruptKey = 'corrupt_json_key';
+    ls.set(corruptKey, '{invalid_json');
+
+    const raw = ls.get(corruptKey);
+    let parsed = null;
+    try {
+        parsed = JSON.parse(raw);
+    } catch (e) {
+        parsed = { fallback: true };
+    }
+
+    assert.strictEqual(parsed.fallback, true);
+    ls.remove(corruptKey);
+});

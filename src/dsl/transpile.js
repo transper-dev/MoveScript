@@ -192,10 +192,42 @@ export function parseBlocks(code) {
                 }
 
                 let k = i;
-                while (k < code.length && (code[k] === ' ' || code[k] === '\t' || code[k] === '\n' || code[k] === '\r')) k++;
+                while (k < code.length) {
+                  if (code[k] === ' ' || code[k] === '\t' || code[k] === '\n' || code[k] === '\r') {
+                    k++;
+                    continue;
+                  }
+                  if (code[k] === '/' && code[k+1] === '/') {
+                    while (k < code.length && code[k] !== '\n') k++;
+                    continue;
+                  }
+                  if (code[k] === '/' && code[k+1] === '*') {
+                    k += 2;
+                    while (k < code.length && !(code[k] === '*' && code[k+1] === '/')) k++;
+                    if (k < code.length) k += 2;
+                    continue;
+                  }
+                  break;
+                }
                 if (code[k] === '>') {
                   i = k + 1;
-                  while (i < code.length && (code[i] === ' ' || code[i] === '\t' || code[i] === '\n' || code[i] === '\r')) i++;
+                  while (i < code.length) {
+                    if (code[i] === ' ' || code[i] === '\t' || code[i] === '\n' || code[i] === '\r') {
+                      i++;
+                      continue;
+                    }
+                    if (code[i] === '/' && code[i+1] === '/') {
+                      while (i < code.length && code[i] !== '\n') i++;
+                      continue;
+                    }
+                    if (code[i] === '/' && code[i+1] === '*') {
+                      i += 2;
+                      while (i < code.length && !(code[i] === '*' && code[i+1] === '/')) i++;
+                      if (i < code.length) i += 2;
+                      continue;
+                    }
+                    break;
+                  }
                   if (code[i] === '[') {
                     depth = 1;
                     currentPart = '[';

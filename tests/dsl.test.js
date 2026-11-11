@@ -46,3 +46,17 @@ test('DSL Transpiler - transpileBlock', (_t) => {
   const singleCode = transpileBlock(singleBlock);
   assert.strictEqual(singleCode, 'CHAIN($B().bvh("headbutt"))');
 });
+
+test('DSL Transpiler - Edge Cases (Comments and formatting inside blocks)', (_t) => {
+  const codeWithInlineComments = '[bvh("walk")] /* comment */ > [pos(1,2,3)]';
+  const blocks = parseBlocks(codeWithInlineComments);
+  assert.strictEqual(blocks.length, 1);
+  assert.deepStrictEqual(blocks[0].parts, ['[bvh("walk")]', '[pos(1,2,3)]']);
+});
+
+test('DSL Transpiler - Edge Cases (Complex nested arguments and non-standard spacing)', (_t) => {
+  const codeComplex = '[bvh("walk")]   \n   >   [scale({x: 1, y: [2, 3]})]';
+  const blocks = parseBlocks(codeComplex);
+  assert.strictEqual(blocks.length, 1);
+  assert.deepStrictEqual(blocks[0].parts, ['[bvh("walk")]', '[scale({x: 1, y: [2, 3]})]']);
+});
