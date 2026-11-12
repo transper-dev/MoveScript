@@ -651,12 +651,12 @@
 </head>
 
 <body>
-  <form name="estudio_rq1" method="POST" data-netlify="true" id="form-rq1" style="display: none;">
-    <input type="hidden" name="form-name" value="estudio_rq1" />
-    <input type="text" name="participante" id="rq1-nombre" />
-    <input type="text" name="titulo" id="rq1-titulo" />
-    <input type="text" name="tipo_tarea" id="rq1-tarea" />
-    <textarea name="codigo_enviado" id="rq1-codigo"></textarea>
+  <form name="estudio_rq3" method="POST" data-netlify="true" id="form-rq3" style="display: none;">
+    <input type="hidden" name="form-name" value="estudio_rq3" />
+    <input type="text" name="participante" id="rq3-nombre" />
+    <input type="text" name="titulo" id="rq3-titulo" />
+    <input type="text" name="tipo_tarea" id="rq3-tarea" />
+    <textarea name="codigo_enviado" id="rq3-codigo"></textarea>
   </form>
 
   <div id="custom-modal-overlay">
@@ -690,7 +690,7 @@
     <input type="text" id="participant-input" placeholder="Group ID" autocomplete="off" />
     <button id="submitTrain1Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Send Training 1</button>
     <button id="submitTrain2Btn" class="exp-btn"><i class="fas fa-dumbbell"></i> Send Training 2</button>
-    <button id="submitRq1Btn" class="exp-btn"><i class="fas fa-paper-plane"></i> Send Creation</button>
+    <button id="submitRq3Btn" class="exp-btn"><i class="fas fa-paper-plane"></i> Send Creation</button>
   </div>
 
   <div id="loader">Loading... ⏳</div>
@@ -821,12 +821,12 @@
         botonReferencia.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
         botonReferencia.style.pointerEvents = 'none';
 
-        document.getElementById('rq1-nombre').value = nombre;
-        document.getElementById('rq1-titulo').value = titulo;
-        document.getElementById('rq1-tarea').value = nombreTarea;
-        document.getElementById('rq1-codigo').value = codigo;
+        document.getElementById('rq3-nombre').value = nombre;
+        document.getElementById('rq3-titulo').value = titulo;
+        document.getElementById('rq3-tarea').value = nombreTarea;
+        document.getElementById('rq3-codigo').value = codigo;
 
-        const form = document.getElementById('form-rq1');
+        const form = document.getElementById('form-rq3');
         const formData = new FormData(form);
 
         fetch("/", {
@@ -932,7 +932,7 @@
 
       document.getElementById('submitTrain1Btn').addEventListener('click', function () { procesarEnvio("Training 1", this); });
       document.getElementById('submitTrain2Btn').addEventListener('click', function () { procesarEnvio("Training 2", this); });
-      document.getElementById('submitRq1Btn').addEventListener('click', function () { procesarEnvio("Creacion Final", this); });
+      document.getElementById('submitRq3Btn').addEventListener('click', function () { procesarEnvio("Creacion Final", this); });
 
       // --- ACTIVAR LA INTERFAZ ---
       toggleBtn.addEventListener('click', () => {
