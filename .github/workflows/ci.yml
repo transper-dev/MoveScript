@@ -27,7 +27,7 @@ jobs:
         run: npm run lint
 
       - name: Run Unit Tests
-        run: npm test
+        run: node --test tests/*.test.js
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
