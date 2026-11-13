@@ -26,8 +26,8 @@ jobs:
       - name: Run Linter
         run: npm run lint
 
-      - name: Run Unit Tests
-        run: node --test tests/*.test.js
+      - name: Run Unit Tests with Coverage
+        run: npm run test:coverage
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

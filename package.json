@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/**/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage tests/**/*.test.js",
     "test:e2e": "playwright test -c config/playwright.config.js",
     "lint": "eslint --config config/eslint.config.js src/"
   },

@@ -42,4 +42,49 @@ test.describe('MoveScript E2E Tests', () => {
     await pauseBtn.click();
     await expect(pauseBtn).toHaveClass(/paused/);
   });
+
+  test('should open help sidebar and insert commands into CodeMirror', async ({ page }) => {
+    await page.goto('/');
+
+    const toggleBtn = page.locator('#help-toggle');
+    await expect(toggleBtn).toBeVisible();
+    await expect(toggleBtn).toHaveText('?');
+
+    await toggleBtn.click();
+    await expect(page.locator('#help-sidebar')).toHaveClass(/abierto/);
+    await expect(toggleBtn).toHaveText('X');
+
+    // Click a help item to insert BVH code
+    const helpItem = page.locator('.help-item').first();
+    await helpItem.click();
+
+    // Evaluate that CodeMirror holds the inserted value
+    const editorValue = await page.evaluate(() => window.editor.getValue());
+    expect(editorValue).toContain('[bvh("dummy")]');
+  });
+
+  test('should allow typing code in CodeMirror and toggling the save state', async ({ page }) => {
+    await page.goto('/');
+
+    const editor = page.locator('.CodeMirror').first();
+    await editor.click();
+
+    // Set editor value using evaluate for reliability or write to CodeMirror
+    await page.evaluate(() => window.editor.setValue('[bvh("dummy")]'));
+
+    const editorValueBefore = await page.evaluate(() => window.editor.getValue());
+    expect(editorValueBefore).toBe('[bvh("dummy")]');
+
+    // Trigger save using ctrl+s key combination
+    await page.keyboard.press('Control+s');
+
+    // Verify layout or save status
+    const isSaved = await page.evaluate(() => {
+      // Find sandbox object representing this sandbox
+      // and assert that its isSaved property or saved class behaves correctly.
+      return document.querySelector('.sb-tab').classList.contains('dirty');
+    });
+    // It should not be dirty after saving (it's saved)
+    expect(isSaved).toBe(false);
+  });
 });
