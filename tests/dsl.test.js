@@ -52,6 +52,17 @@ test('DSL Transpiler - Edge Cases (Comments and formatting inside blocks)', (_t)
   const blocks = parseBlocks(codeWithInlineComments);
   assert.strictEqual(blocks.length, 1);
   assert.deepStrictEqual(blocks[0].parts, ['[bvh("walk")]', '[pos(1,2,3)]']);
+
+  // Multiline comments and line comments between blocks and after brackets
+  const complexComments = `
+    /* multi-line comment */
+    [bvh("a")] // line comment after bracket
+    /* another multi */
+    > // comment before pipe
+    /* yet another */ [pos(0,0,0)]
+  `;
+  const parsed = parseBlocks(complexComments);
+  assert.strictEqual(parsed.length, 1);
 });
 
 test('DSL Transpiler - Edge Cases (Complex nested arguments and non-standard spacing)', (_t) => {

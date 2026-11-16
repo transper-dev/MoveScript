@@ -46,3 +46,34 @@ test('HelpSidebar UI - toggle and insert commands', () => {
   jointsItem.click();
   assert.ok(editorValue.includes('.joints(2)'));
 });
+
+test('HelpSidebar UI - missing elements and empty editor branches', () => {
+  document.body.innerHTML = ``;
+  assert.doesNotThrow(() => initHelpSidebar());
+
+  document.body.innerHTML = `
+    <div id="help-sidebar">
+      <div id="help-toggle">?</div>
+      <div class="help-content">
+        <div class="help-item" data-insert='[bvh("dance")]'>Dance</div>
+      </div>
+    </div>
+    <iframe id="preview"></iframe>
+  `;
+
+  let editorVal = '';
+  global.window.editor = {
+    getValue: () => editorVal,
+    setValue: (v) => { editorVal = v; },
+    lineCount: () => 1,
+    getLine: () => editorVal,
+    setCursor: () => {},
+    replaceSelection: (t) => { editorVal += t; },
+    focus: () => {}
+  };
+
+  initHelpSidebar();
+  const item = document.querySelector('.help-item');
+  item.click();
+  assert.strictEqual(editorVal, '[bvh("dance")]');
+});

@@ -6,10 +6,15 @@
 export function initDrawer() {
   const drawer = document.getElementById('bvh-drawer');
   const toggleBtn = document.getElementById('drawer-toggle');
-  const toggleIcon = toggleBtn.querySelector('i');
 
-  if (!drawer || !toggleBtn || !toggleIcon) {
+  if (!drawer || !toggleBtn) {
     console.warn('Drawer elements not found');
+    return;
+  }
+
+  const toggleIcon = toggleBtn.querySelector('i');
+  if (!toggleIcon) {
+    console.warn('Drawer toggle icon not found');
     return;
   }
 

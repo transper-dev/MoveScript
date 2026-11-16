@@ -16,11 +16,27 @@ test('SandboxContext life cycle & getCtx', () => {
     assert.strictEqual(ctx1.defaultX, 0 * SANDBOX_SPACING, 'Order 0 default X should be 0');
     assert.strictEqual(ctx2.defaultX, 1 * SANDBOX_SPACING, 'Order 1 default X should be SANDBOX_SPACING');
 
+    // Test timer methods (later, every, cancel)
+    let fired = false;
+    const tid = ctx1.later(() => { fired = true; }, 10);
+    assert.ok(tid);
+    ctx1.cancel(tid);
+
+    let count = 0;
+    const intervalId = ctx1.every((id) => { count++; }, 10);
+    assert.ok(intervalId);
+    ctx1.cancel(intervalId);
+
+    // Test tick execution
+    ctx1.tick(0.016);
+
     // clear() verification
     const initialChildrenCount = scene.children.length;
     ctx1.clear();
     assert.strictEqual(ctx1.rigs.length, 0, 'Rigs should be cleared');
     assert.strictEqual(ctx1.timers.size, 0, 'Timers should be cleared');
+
+    ctx1.destroy();
 });
 
 test('RigNode, makeChain and duplicateHandle with Three.js', () => {

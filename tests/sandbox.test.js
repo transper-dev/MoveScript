@@ -22,6 +22,12 @@ test('Sandbox UI - lifecycle, saving and pause', () => {
     sb.togglePause();
     assert.strictEqual(sb.paused, false);
 
+    // Test chain highlighting & editor update
+    sb.highlightStep(0, 0);
+    sb.clearChainMarks();
+
+    sb.updateEditor(0, (statement) => statement + ' > [pos(10,0,0)]');
+
     // Test cleanup
     assert.doesNotThrow(() => sb.destroy());
 });

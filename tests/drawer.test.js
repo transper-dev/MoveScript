@@ -26,3 +26,8 @@ test('Drawer UI - toggle open and close', () => {
   assert.strictEqual(drawer.classList.contains('abierto'), false);
   assert.strictEqual(icon.className, 'fas fa-chevron-up');
 });
+
+test('Drawer UI - missing elements warning branch', () => {
+  document.body.innerHTML = `<div></div>`;
+  assert.doesNotThrow(() => initDrawer());
+});

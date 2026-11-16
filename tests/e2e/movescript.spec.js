@@ -87,4 +87,40 @@ test.describe('MoveScript E2E Tests', () => {
     // It should not be dirty after saving (it's saved)
     expect(isSaved).toBe(false);
   });
+
+  test('should run all sandboxes when clicking Run All', async ({ page }) => {
+    await page.goto('/');
+    const runAllBtn = page.locator('#runAllBtn');
+    await runAllBtn.click();
+    await expect(runAllBtn).toBeVisible();
+  });
+
+  test('should open drawer and select an animation', async ({ page }) => {
+    await page.goto('/');
+    const drawerToggle = page.locator('#drawer-toggle');
+    await drawerToggle.click();
+    await expect(page.locator('#bvh-drawer')).toBeVisible();
+
+    const animItem = page.locator('.bvh-item').first();
+    if (await animItem.count() > 0) {
+      await animItem.click();
+      const editorValue = await page.evaluate(() => window.editor.getValue());
+      expect(editorValue).toContain('[bvh("');
+    }
+  });
+
+  test('should close a sandbox window', async ({ page }) => {
+    await page.goto('/');
+    const initialWindowsCount = await page.locator('#sandboxes > .sandbox').count();
+
+    await page.click('#addSandboxBtn');
+    const newWindowsCount = await page.locator('#sandboxes > .sandbox').count();
+    expect(newWindowsCount).toBe(initialWindowsCount + 1);
+
+    const closeBtn = page.locator('.sb-tab-close').last();
+    await closeBtn.click();
+
+    const finalWindowsCount = await page.locator('#sandboxes > .sandbox').count();
+    expect(finalWindowsCount).toBe(initialWindowsCount);
+  });
 });

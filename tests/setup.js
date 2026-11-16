@@ -29,6 +29,8 @@ global.CodeMirror = {
             setBookmark: () => ({ clear: () => {} }),
             refresh: () => {},
             getCursor: () => ({ line: 0, ch: 0 }),
+            posFromIndex: (idx) => ({ line: 0, ch: idx }),
+            focus: () => {},
             setSelection: () => {},
             replaceRange: () => {},
             markText: () => ({ clear: () => {} }),

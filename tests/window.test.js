@@ -36,6 +36,19 @@ test('SandboxWindow - lifecycle, tabs and layout', () => {
     win.toggleMinimized();
     assert.strictEqual(win.el.classList.contains('minimized'), false);
 
+    // Test reposition and size
+    win.moveTo(200, 200);
+    assert.strictEqual(win.el.style.left, '200px');
+    assert.strictEqual(win.el.style.top, '200px');
+
+    assert.strictEqual(win.hitBar(210, 210), false);
+    win.setDrop(true);
+    win.setDrop(false);
+
+    // Test reorderByX and indexForX
+    const index = win.indexForX(250);
+    assert.strictEqual(typeof index, 'number');
+
     // Test detachTab
     win.detachTab(mockSb);
     assert.strictEqual(win.tabs.length, 0);
