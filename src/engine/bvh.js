@@ -121,7 +121,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
   ctx.later(async () => {
     const urlDefinitiva = fileOrUrl.startsWith("http")
       ? fileOrUrl
-      : `./assets/${fileOrUrl}.bvh`;
+      : `./assets/bvh/${fileOrUrl}.bvh`;
 
     if (myRunId !== ctx.runId) return;
 

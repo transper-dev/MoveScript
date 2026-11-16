@@ -1,5 +1,5 @@
 /**
- * Protocol - Mensajes entre main.js (parent) y bvhApi.js (iframe)
+ * Protocol - Mensajes entre main.js (parent) y bridge.js (iframe)
  * Define los tipos de mensajes postMessage enviados entre la ventana principal y el iframe preview
  */
 

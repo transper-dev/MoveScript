@@ -1,13 +1,13 @@
-import { MessageTypes, getTargetOrigin } from './shared/protocol.js';
-import { canvas, renderer, scene, camera, controls, clock, setGlobalPause } from './engine/scene.js';
+import { MessageTypes, getTargetOrigin } from '../shared/protocol.js';
+import { canvas, renderer, scene, camera, controls, clock, setGlobalPause } from './scene.js';
 import {
   DEFAULT_SANDBOX, send,
   raycaster, mouse, selectionBox,
   getSelectedRig, setSelectedRig, deselect,
   incrementFrameCount
-} from './engine/utils.js';
-import { contexts, getCtx, allRigs } from './engine/context.js';
-import { buildApi, executeInSandbox } from './engine/api.js';
+} from './utils.js';
+import { contexts, getCtx, allRigs } from './context.js';
+import { buildApi, executeInSandbox } from './api.js';
 
 // ====================================================
 // RENDER LOOP

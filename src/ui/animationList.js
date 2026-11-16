@@ -20,7 +20,7 @@ export async function initAnimationList() {
     if (typeof require !== 'undefined') {
       const fs = require('fs');
       const path = require('path');
-      const rutaAssets = path.join(__dirname, 'assets');
+      const rutaAssets = path.join(__dirname, '..', '..', 'assets', 'bvh');
       if (fs.existsSync(rutaAssets)) {
         const archivos = fs.readdirSync(rutaAssets);
         animacionesDisponibles = archivos

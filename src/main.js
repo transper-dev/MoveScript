@@ -29,7 +29,7 @@ function buildPreviewHtml() {
 </head>
 <body>
   <canvas id="c" tabindex="1"></canvas>
-  <script type="module" src="./src/bvhApi.js"></script>
+  <script type="module" src="./src/engine/bridge.js"></script>
 </body>
 </html>`;
 }
