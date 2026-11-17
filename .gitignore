@@ -6,3 +6,15 @@ dist/
 
 # Logs de errores
 npm-debug.log*
+
+# Archivos de volcado de pila
+.stackdump
+
+# Archivos de configuración de entorno
+.claude
+.superpowers
+.vscode
+
+# Archivos de prueba y reportes
+test-results
+playwright-report

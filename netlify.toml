@@ -1,6 +1,0 @@
-[build]
-  # El comando que Netlify ejecutará antes de publicar la web
-  command = "node generar-lista.js"
-  
-  # La carpeta que Netlify debe mostrar al público (el punto significa "la carpeta principal")
-  publish = "."
