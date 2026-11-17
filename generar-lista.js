@@ -5,22 +5,18 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function getBvhFiles(dir, fileList = []) {
-  if (!fs.existsSync(dir)) return fileList;
-  const files = fs.readdirSync(dir);
-  files.forEach(file => {
-    const filePath = path.join(dir, file);
-    if (fs.statSync(filePath).isDirectory()) {
-      getBvhFiles(filePath, fileList);
-    } else if (file.endsWith('.bvh')) {
-      fileList.push(file.replace('.bvh', ''));
-    }
-  });
-  return fileList;
-}
-
 const rutaAssets = path.join(__dirname, 'assets', 'bvh');
-let animaciones = getBvhFiles(rutaAssets);
+let animaciones = [];
+
+if (fs.existsSync(rutaAssets)) {
+  const archivos = fs.readdirSync(rutaAssets);
+  animaciones = archivos
+    .filter(archivo => {
+      const filePath = path.join(rutaAssets, archivo);
+      return archivo.endsWith('.bvh') && fs.statSync(filePath).isFile();
+    })
+    .map(archivo => archivo.replace('.bvh', ''));
+}
 
 // Fallback
 if (animaciones.length === 0) {
@@ -30,4 +26,4 @@ if (animaciones.length === 0) {
 const rutaJson = path.join(__dirname, 'assets', 'lista.json');
 fs.writeFileSync(rutaJson, JSON.stringify(animaciones, null, 2));
 
-console.log("✅ lista.json generada con éxito con:", animaciones.length, "animaciones.");
+console.log("✅ lista.json generada con éxito con:", animaciones.length, "animaciones (solo raíz de assets/bvh).");
