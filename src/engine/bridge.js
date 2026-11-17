@@ -26,7 +26,6 @@ function resize() {
 }
 
 function tick() {
-  clock.update();
   const dt = clock.getDelta();
   incrementFrameCount();
 

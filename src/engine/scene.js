@@ -109,4 +109,4 @@ export function setRot(v) {
 // Valores iniciales
 setGrid(800, 20);
 
-export const clock = new THREE.Timer();
+export const clock = new THREE.Clock();
