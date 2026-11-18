@@ -9,9 +9,11 @@
     "test:e2e": "playwright test -c config/playwright.config.js",
     "lint": "eslint --config config/eslint.config.js src/",
     "coverage:full": "c8 --all --include \"src/**/*.js\" --exclude \"tests/**/*.test.js\" node --test \"tests/**/*.test.js\"",
+    "build:web": "vite build --mode web",
+    "build:desktop": "vite build --mode desktop",
+    "build": "npm run build:web",
     "prebuild": "node generar-lista.js",
     "dev": "vite",
-    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {

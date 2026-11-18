@@ -17,4 +17,9 @@ npm-debug.log*
 
 # Archivos de prueba y reportes
 test-results
-playwright-report
+playwright-reportcoverage/
+dist-guard/
+coverage/
+dist-guard/
+playwright-report/
+docs/verificacion-*.txt

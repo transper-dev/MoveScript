@@ -9,6 +9,7 @@ import {
   setActiveSandbox,
   incrementZCounter
 } from '../core/state.js';
+import { createEditor } from './editorFactory.js';
 
 // Compatibilidad: sidebar de ayuda y cajón de BVH usan window.editor => CodeMirror del sandbox ACTIVO
 // Para mantener el comportamiento exacto, window.editor se define/actualiza en main.js o mediante la propiedad activa.
@@ -34,7 +35,7 @@ export class Sandbox {
     const textarea = document.createElement("textarea");
     textarea.spellcheck = false;
     this.holder.appendChild(textarea);
-    this.cm = CodeMirror.fromTextArea(textarea, {
+    this.cm = createEditor(textarea, {
       mode: "javascript",
       theme: "monokai",
       lineNumbers: false,

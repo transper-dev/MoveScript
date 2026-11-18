@@ -1,8 +1,9 @@
 /**
- * AnimationList - Carga y renderizado de la lista de animaciones BVH
- * Busca animaciones en: local (Node), lista.json local, CDN remoto
+ * AnimationList - Carga y renderizado de la lista de animaciones BVH usando platform.bvh.list()
  * Inserta la animación seleccionada en el editor activo
  */
+
+import { getPlatform } from '../platform/platform.js';
 
 export async function initAnimationList() {
   const bvhList = document.getElementById('bvh-list');
@@ -15,40 +16,21 @@ export async function initAnimationList() {
 
   let animacionesDisponibles = [];
 
-  // 1. Intentar cargar desde el sistema local (Node.js)
   try {
-    if (typeof require !== 'undefined') {
-      const fs = require('fs');
-      const path = require('path');
-      const rutaAssets = path.join(__dirname, '..', '..', 'assets', 'bvh');
-      if (fs.existsSync(rutaAssets)) {
-        const archivos = fs.readdirSync(rutaAssets);
-        animacionesDisponibles = archivos
-          .filter(archivo => archivo.endsWith('.bvh'))
-          .map(archivo => archivo.replace('.bvh', ''));
-      }
+    const platform = await getPlatform();
+    const items = await platform.bvh.list();
+    if (Array.isArray(items)) {
+      animacionesDisponibles = items.map(item => (typeof item === 'string' ? item : item.name));
     }
   } catch (e) {
-    console.warn("Local no disponible");
+    console.warn("No se pudo cargar la lista de platform.bvh", e);
   }
 
-  // 2. Intentar cargar desde lista.json local
+  // Fallback si nada funciona
   if (animacionesDisponibles.length === 0) {
-    try {
-      const response = await fetch('./assets/lista.json');
-      if (response.ok) {
-        animacionesDisponibles = await response.json();
-      }
-    } catch (e) {
-      console.warn("No se pudo leer el lista.json local");
-    }
-  }
-
-  // 3. (REMOVED) CDN check - WEB profile must be self-contained
-
-  // 4. Fallback si nada funciona
-  if (animacionesDisponibles.length === 0) {
-    console.warn("Cargando animaciones de emergencia.");
+    const msg = "Cargando animaciones de emergencia.";
+    console.error(msg);
+    // TODO: Registrar en informe de cobertura/log persistente
     animacionesDisponibles = ["turn", "silly_walk", "monster_walk", "serious_walk"];
   }
 

@@ -33,8 +33,8 @@ test('BVH Chain - relay logic', async (t) => {
         const handle1 = createBvh(ctx, 'anim1');
         const handle2 = handle1.nextBvh('anim2');
 
-        // Simulate load for handle1
-        await new Promise(resolve => setTimeout(resolve, 10));
+        // Allow microtasks/async later to queue up loader.load (including getPlatform import)
+        await new Promise(resolve => setTimeout(resolve, 200));
         assert.strictEqual(loadCallbacks.length, 2, 'Two loader calls should have been made');
 
         loadCallbacks[0](mockResult);

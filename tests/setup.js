@@ -15,6 +15,19 @@ global.HTMLCanvasElement = dom.window.HTMLCanvasElement;
 global.localStorage = dom.window.localStorage;
 global.devicePixelRatio = 1;
 
+// Mock global.window.__MS_PROFILE__ for platform selection
+global.__MS_PROFILE__ = 'web';
+
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Mock fetch
+const listaJsonContent = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'public/assets/lista.json'), 'utf8'));
+global.fetch = async (url) => ({
+  ok: true,
+  json: async () => listaJsonContent
+});
+
 const canvasProto = dom.window.HTMLCanvasElement.prototype;
 canvasProto.getContext = function(type) {
   if (type === 'webgl' || type === 'webgl2' || type === '2d') {
@@ -83,6 +96,8 @@ canvasProto.getContext = function(type) {
   return null;
 };
 
+import { setEditorFactory } from '../src/ui/editorFactory.js';
+
 // Mock CodeMirror for testing UI components
 global.CodeMirror = {
     fromTextArea: (textarea, options) => {
@@ -107,3 +122,5 @@ global.CodeMirror = {
         };
     }
 };
+
+setEditorFactory(global.CodeMirror);

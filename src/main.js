@@ -5,20 +5,24 @@ import 'codemirror/theme/monokai.css';
 import './styles/index.css';
 window.CodeMirror = CodeMirror;
 
-import { parseBlocks, transpileBlock } from './dsl/transpile.js';
-import { MessageTypes, getTargetOrigin } from './shared/protocol.js';
-import { Sandbox } from './ui/sandbox.js';
-import { SandboxWindow } from './ui/sandboxWindow.js';
-import { ls, LIST_KEY, LEGACY_KEY, codeKey } from './ui/storage.js';
+import { setEditorFactory } from './ui/editorFactory.js';
+setEditorFactory(CodeMirror);
+
+import { MessageTypes } from './shared/protocol.js';
+import { ls } from './ui/storage.js';
 import { on } from './ui/events.js';
 import * as state from './core/state.js';
 import { registerActions } from './core/actions.js';
 import { writeLayout, scheduleLayoutSave } from './core/layout.js';
+
+import { restoreInitial } from './app/persistence.js';
+import { initEngineLink, engineReady, pendingRuns } from './app/engineLink.js';
+import { runSandbox as runSandboxLogic, runCode as runCodeLogic } from './app/runner.js';
+import { initShortcuts } from './app/shortcuts.js';
+import { createSandbox as createSandboxFn, createWindow as createWindowFn, removeSandbox as removeSandboxFn, openNewWindow } from './app/sandboxes.js';
+
 export { writeLayout, scheduleLayoutSave };
 
-// ====================================================
-// ELEMENTOS Y ESTADO GLOBAL
-// ====================================================
 const iframe = document.getElementById("preview");
 const container = document.getElementById("sandboxes");
 const addSandboxBtn = document.getElementById("addSandboxBtn");
@@ -27,17 +31,12 @@ const globalPauseBtn = document.getElementById("globalPauseBtn");
 const errorToast = document.getElementById("error-toast");
 const errorText = document.getElementById("error-text");
 
-const MAX_SANDBOXES = 8;
-
-const pendingRuns = new Set();    // sandboxIds a ejecutar cuando el motor esté listo
-let engineReady = false;
 let isGlobalPaused = false;
 let errorTimeout;
 
 export function setActiveSandbox(sb) { state.setActiveSandbox(sb); }
 export function incrementZCounter() { return state.incrementZCounter(); }
 
-// Compatibilidad
 Object.defineProperty(window, "editor", {
   get: () => (state.activeSandbox ? state.activeSandbox.cm : null),
   configurable: true
@@ -55,167 +54,43 @@ function setGlobalPauseUI(paused) {
   globalPauseBtn.title = paused ? "Reanudar todo (Ctrl+P)" : "Pausar todo (Ctrl+P)";
 }
 
-function showError(message, ms = 4000) {
+window.showError = function showError(message, ms = 4000) {
   if (!errorToast || !errorText) { console.error(message); return; }
   errorText.textContent = message;
   errorToast.classList.add("visible");
   clearTimeout(errorTimeout);
   errorTimeout = setTimeout(() => errorToast.classList.remove("visible"), ms);
-}
+};
 
 const sortedByLabel = () => [...state.sandboxes.values()].sort((a, b) => a.label - b.label);
 
-// ====================================================
-// PERSISTENCIA
-// ====================================================
-function readLayout() {
-  let o = null;
-  try { o = JSON.parse(ls.get(LIST_KEY)); } catch (e) { return null; }
-  if (!o) return null;
-  if (Array.isArray(o.windows)) return o;
-  if (Array.isArray(o.items)) {
-    return {
-      windows: o.items.map(it => ({
-        left: it.left, top: it.top, width: it.width, height: it.height, minimized: it.minimized,
-        tabs: [{ id: it.id, label: it.label }], active: it.id
-      }))
-    };
-  }
-  return null;
-}
-window.addEventListener("beforeunload", writeLayout);
-
-// ====================================================
-// CREAR / ELIMINAR (exports)
-// ====================================================
-function refreshOnlyOne() {
-  document.body.classList.toggle("only-one", state.sandboxes.size <= 1);
-}
-
-const labelInUse = (n) => [...state.sandboxes.values()].some(sb => sb.label === n);
-function nextFreeLabel() {
-  let n = 1;
-  while (labelInUse(n)) n++;
-  return n;
-}
-
-export function createSandbox({ id, label, code = "", hasStored = false } = {}) {
-  if (state.sandboxes.size >= MAX_SANDBOXES) {
-    showError(`Máximo ${MAX_SANDBOXES} sandboxes a la vez.`);
-    return null;
-  }
-  let lbl = Number(label);
-  if (!Number.isInteger(lbl) || lbl < 1 || labelInUse(lbl)) lbl = nextFreeLabel();
-  let sbId = id || `s${lbl}`;
-  while (state.sandboxes.has(sbId)) sbId += "_";
-
-  const sb = new Sandbox(sbId, lbl, { code, hasStored });
-  state.sandboxes.set(sbId, sb);
-  refreshOnlyOne();
-  return sb;
+export function createSandbox(opts) {
+  return createSandboxFn(opts, window.showError);
 }
 
 export function createWindow(opts) {
-  const w = new SandboxWindow(opts);
-  state.windows.push(w);
-  container.appendChild(w.el);
-  return w;
-}
-
-function openNewWindow() {
-  const sb = createSandbox();
-  if (!sb) return null;
-  const offset = (state.windows.length % 8) * 36;
-  const left = Math.min(16 + offset, Math.max(8, window.innerWidth - 475 - 8));
-  const top = Math.min(16 + offset, Math.max(8, window.innerHeight - 220 - 8));
-  const win = createWindow({ left, top });
-  win.addTab(sb);
-  sb.activate();
-  writeLayout();
-  return sb;
+  return createWindowFn(opts, container);
 }
 
 export function removeSandbox(sb) {
-  if (state.sandboxes.size <= 1) return;
-  iframe.contentWindow.postMessage({ type: MessageTypes.REMOVE_SANDBOX, sandboxId: sb.id }, getTargetOrigin());
-  pendingRuns.delete(sb.id);
-  state.sandboxes.delete(sb.id);
-  ls.remove(codeKey(sb.id));
-
-  const win = sb.win;
-  const wasActive = state.activeSandbox === sb;
-  if (win) {
-    win.detachTab(sb);
-    if (win.tabs.length === 0) win.destroy();
-  }
-  sb.destroy();
-
-  if (wasActive) {
-    state.setActiveSandbox(null);
-    const w = (win && state.windows.includes(win)) ? win : state.windows[state.windows.length - 1];
-    if (w && w.activeSb) w.activeSb.activate();
-  }
-  refreshOnlyOne();
-  writeLayout();
+  removeSandboxFn(sb, iframe, pendingRuns);
 }
 
-addSandboxBtn.addEventListener("click", () => {
-  const sb = openNewWindow();
-  if (sb) sb.cm.focus();
-});
+if (addSandboxBtn) {
+  addSandboxBtn.addEventListener("click", () => {
+    const sb = openNewWindow(container, window.showError);
+    if (sb) sb.cm.focus();
+  });
+}
 
-// ====================================================
-// EJECUCIÓN (exports)
-// ====================================================
 export function runSandbox(sb) {
   if (errorToast) errorToast.classList.remove("visible");
-
-  const code = sb.cm.getValue();
   if (!engineReady) pendingRuns.add(sb.id);
-  else runCode(sb, code);
-
-  const cursor = sb.cm.getCursor();
-  let startLine = cursor.line, endLine = cursor.line;
-  while (startLine > 0 && sb.cm.getLine(startLine - 1).trim() !== "") startLine--;
-  const lastLine = sb.cm.lineCount() - 1;
-  while (endLine < lastLine && sb.cm.getLine(endLine + 1).trim() !== "") endLine++;
-
-  for (let i = startLine; i <= endLine; i++) sb.cm.addLineClass(i, "background", "flash-line");
-  setTimeout(() => {
-    for (let i = startLine; i <= endLine; i++) sb.cm.removeLineClass(i, "background", "flash-line");
-  }, 400);
+  runSandboxLogic(sb, (s, c) => runCode(s, c));
 }
 
 function runCode(sb, code) {
-  sb.clearChainMarks();
-
-  setGlobalPauseUI(false);
-  sb.paused = false; sb.syncUI();
-
-  let transpiled = code;
-  try {
-    const blocks = parseBlocks(code);
-    if (blocks.length > 1) {
-      showError(`[Sandbox ${sb.label}] Solo se permite una secuencia continua por sandbox. Une los bloques con '>'`);
-      return;
-    }
-    if (blocks.length === 1) {
-      const b = blocks[0];
-      transpiled = code.slice(0, b.start) + transpileBlock(b) + code.slice(b.end);
-    }
-  } catch (err) {
-    showError(`[Sandbox ${sb.label}] ${err.message}`);
-    return;
-  }
-
-  const configuracionOculta = `
-    clear();
-    pause(false);
-  `;
-
-  const codigoFinal = configuracionOculta + "\n" + transpiled;
-  const order = sortedByLabel().indexOf(sb);
-  iframe.contentWindow.postMessage({ type: MessageTypes.EXECUTE, sandboxId: sb.id, order, code: codigoFinal }, getTargetOrigin());
+  runCodeLogic(sb, code, window.showError, setGlobalPauseUI);
 }
 
 export function runAll() {
@@ -227,34 +102,7 @@ export function runAll() {
 }
 if (runAllBtn) runAllBtn.addEventListener("click", runAll);
 
-// ====================================================
-// MENSAJES DEL MOTOR
-// ====================================================
-window.addEventListener("message", (e) => {
-  if (e.source !== iframe.contentWindow) return;
-  const d = e.data;
-  if (!d || !d.type) return;
-
-  if (d.type === MessageTypes.READY) {
-    engineReady = true;
-    for (const id of [...pendingRuns]) {
-      const sb = state.sandboxes.get(id);
-      if (sb) runCode(sb, sb.cm.getValue());
-    }
-    pendingRuns.clear();
-    return;
-  }
-
-  const sb = state.sandboxes.get(d.sandboxId);
-
-  if (d.type === MessageTypes.ERROR) {
-    const msg = String(d.message || "").split("\n")[0];
-    showError(sb ? `[Sandbox ${sb.label}] ${msg}` : msg, 6000);
-    return;
-  }
-
-  if (!sb) return;
-
+window.handleEngineMessage = function(d, sb) {
   if (d.type === MessageTypes.RIG_MOVED) {
     sb.updateEditor(d.codeIndex, (st, bIdx) => {
       let inside = st.substring(0, bIdx);
@@ -286,7 +134,7 @@ window.addEventListener("message", (e) => {
     sb.currentChainSteps[d.codeIndex] = d.step;
     sb.highlightStep(d.codeIndex, d.step);
   }
-});
+};
 
 export function removeMethodCall(str, methodName) {
   let result = "";
@@ -318,74 +166,30 @@ export function removeMethodCall(str, methodName) {
   return result;
 }
 
-// ====================================================
-// ATAJOS GLOBALES
-// ====================================================
-window.addEventListener("keydown", (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); if (e.shiftKey) runAll(); else if (state.activeSandbox) runSandbox(state.activeSandbox); }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (state.activeSandbox) state.activeSandbox.toggleSave(); }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); if (globalPauseBtn) globalPauseBtn.click(); }
-  if (e.key === "Escape") { e.preventDefault(); if (state.activeSandbox && state.activeSandbox.win) state.activeSandbox.win.toggleMinimized(); }
+initShortcuts({
+  runAll,
+  runSandbox: (sb) => runSandbox(sb),
+  globalPauseBtn,
+  iframe,
+  setGlobalPauseUI,
+  getIsGlobalPaused: () => isGlobalPaused
 });
 
-if (globalPauseBtn) {
-  globalPauseBtn.addEventListener("click", () => {
-    setGlobalPauseUI(!isGlobalPaused);
-    iframe.contentWindow.postMessage({ type: MessageTypes.PAUSE, paused: isGlobalPaused }, getTargetOrigin());
-  });
-}
-
-// ====================================================
-// INICIO
-// ====================================================
 on("REMOVE_SANDBOX", removeSandbox);
 
 function init() {
   iframe.src = './preview.html';
+  initEngineLink(iframe, runCode);
 
-  let restored = 0;
-  const layout = readLayout();
-  if (layout) {
-    for (const w of layout.windows) {
-      if (!w || !Array.isArray(w.tabs)) continue;
-      let win = null;
-      for (const t of w.tabs) {
-        if (restored >= MAX_SANDBOXES) break;
-        if (!t || typeof t.id !== "string" || state.sandboxes.has(t.id)) continue;
-        const stored = ls.get(codeKey(t.id));
-        if (stored === null) continue;
-        const sb = createSandbox({ id: t.id, label: t.label, code: stored, hasStored: true });
-        if (!sb) continue;
-        if (!win) {
-          win = createWindow({
-            left: Math.max(8, Math.min(window.innerWidth - 120, Number(w.left) || 16)),
-            top: Math.max(8, Math.min(window.innerHeight - 60, Number(w.top) || 16)),
-            width: w.width || "", height: w.height || ""
-          });
-        }
-        win.addTab(sb);
-        sb.markSaved();
-        pendingRuns.add(sb.id);
-        restored++;
-      }
-      if (win) {
-        const act = win.tabs.find(t => t.id === w.active) || win.tabs[0];
-        win.selectTab(act);
-        if (w.minimized) win.toggleMinimized();
-      }
-    }
-  }
-
-  const legacy = ls.get(LEGACY_KEY);
+  const restored = restoreInitial(createSandbox, createWindow, pendingRuns);
   if (restored === 0) {
-    const first = createSandbox({ id: "default", label: 1, code: legacy || "", hasStored: legacy !== null });
+    const first = createSandbox({ id: "default", label: 1, code: ls.get("movescript_saved_code") || "", hasStored: ls.get("movescript_saved_code") !== null });
     const win = createWindow({ left: 16, top: 16 });
     win.addTab(first);
-    if (legacy !== null) {
-      ls.set(codeKey(first.id), legacy);
+    if (ls.get("movescript_saved_code") !== null) {
       first.markSaved();
       writeLayout();
-      ls.remove(LEGACY_KEY);
+      ls.remove("movescript_saved_code");
     }
     first.activate();
     pendingRuns.add(first.id);
@@ -405,5 +209,7 @@ registerActions({
 
 on("RUN_SANDBOX", (sb) => runSandbox(sb));
 on("RUN_ALL", () => runAll());
+
+window.addEventListener("beforeunload", writeLayout);
 
 init();

@@ -8,6 +8,7 @@ import { BVHLoader } from "three/addons/loaders/BVHLoader.js";
 import { scene } from './scene.js';
 import { send } from './utils.js';
 import { MessageTypes } from '../shared/protocol.js';
+import { getPlatform } from '../platform/platform.js';
 
 /**
  * Crea un handle para cargar y controlar una animación BVH
@@ -119,9 +120,15 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
   const myRunId = handle._runId;
 
   ctx.later(async () => {
-    const urlDefinitiva = fileOrUrl.startsWith("http")
-      ? fileOrUrl
-      : `./assets/bvh/${fileOrUrl}.bvh`;
+    let urlDefinitiva;
+    try {
+      const platform = await getPlatform();
+      urlDefinitiva = await platform.bvh.resolveUrl(fileOrUrl);
+    } catch (err) {
+      if (myRunId !== ctx.runId) return;
+      send(MessageTypes.ERROR, ctx.id, { message: err.message || `No se encuentra la animación: ${fileOrUrl}.bvh` });
+      return;
+    }
 
     if (myRunId !== ctx.runId) return;
 

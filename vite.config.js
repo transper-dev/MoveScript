@@ -8,6 +8,11 @@ export default defineConfig(({ mode }) => {
     define: {
       __MS_PROFILE__: JSON.stringify(profile)
     },
+    resolve: {
+      alias: profile === 'web' ? {
+        './desktop/index.js': resolve(__dirname, 'src/platform/web/stub.js')
+      } : {}
+    },
     build: {
       rollupOptions: {
         input: {
