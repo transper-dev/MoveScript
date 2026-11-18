@@ -18,7 +18,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npx http-server -p 3000 -c-1 -a 127.0.0.1',
+    command: 'npm run build && npx http-server dist -p 3000 -c-1 -a 127.0.0.1',
     url: 'http://127.0.0.1:3000',
     cwd: '../',
     reuseExistingServer: !process.env.CI,

@@ -44,16 +44,7 @@ export async function initAnimationList() {
     }
   }
 
-  // 3. Intentar cargar desde CDN
-  if (animacionesDisponibles.length === 0 && navigator.onLine) {
-    try {
-      const urlNube = 'https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/lista.json';
-      const response = await fetch(urlNube);
-      if (response.ok) animacionesDisponibles = await response.json();
-    } catch (e) {
-      console.warn("Nube bloqueada temporalmente");
-    }
-  }
+  // 3. (REMOVED) CDN check - WEB profile must be self-contained
 
   // 4. Fallback si nada funciona
   if (animacionesDisponibles.length === 0) {

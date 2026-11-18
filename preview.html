@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none';">
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #111; }
+    canvas { width: 100%; height: 100%; display: block; outline: none; }
+  </style>
+</head>
+<body>
+  <canvas id="c" tabindex="1"></canvas>
+  <script type="module" src="./src/engine/bridge.js"></script>
+</body>
+</html>
