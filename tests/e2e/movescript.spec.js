@@ -198,4 +198,30 @@ test.describe('MoveScript E2E Tests', () => {
     const editorsCount = await page.locator('.CodeMirror').count();
     expect(editorsCount).toBeGreaterThanOrEqual(2);
   });
+
+  test('phase 1: no external network requests (strict offline check)', async ({ page }) => {
+    const externalRequests = [];
+
+    page.on('request', request => {
+      const url = new URL(request.url());
+      // Check if host is not localhost/127.0.0.1
+      if (!['localhost', '127.0.0.1'].includes(url.hostname)) {
+        externalRequests.push(request.url());
+      }
+    });
+
+    await page.goto('/');
+
+    // Perform standard actions: run default sandbox, add window, open drawer
+    await page.click('#runAllBtn');
+
+    const drawerToggle = page.locator('#drawer-toggle');
+    if (await drawerToggle.isVisible()) {
+      await drawerToggle.click();
+    }
+
+    await page.waitForTimeout(1000);
+
+    expect(externalRequests).toEqual([]);
+  });
 });

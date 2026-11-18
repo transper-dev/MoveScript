@@ -36,28 +36,36 @@
 
 ## Línea base de cobertura (Actualizada)
 
-*Nota:* La medición actual excluye `tests/**` mediante `--test-coverage-exclude` e incluye únicamente `src/**` mediante `--test-coverage-include`. La base anterior incluía `tests/setup.js`. Además, el motor de test nativo de Node.js solo reporta archivos cargados durante los tests; por tanto, `src/main.js` y `src/engine/bridge.js` no aparecen en este informe al no ser importados directamente por los tests unitarios (como alternativa para forzar el reporte de archivos no cargados al 0% se podría utilizar `c8` con `--all`).
+*Nota:* La medición estándar (usando `node --test`) excluye `tests/**` y limita a `src/**`.
+La medición "full" (usando `c8 --all`) ofrece una visión completa de todos los archivos en `src/**`, incluyendo aquellos no cargados directamente por los tests unitarios.
+
+**Informe Full (c8 --all):**
+- Total Line %: **60.93%**
+- Archivos al 0% (`main.js`, `bridge.js`): Se validan únicamente mediante tests E2E.
 
 | Archivo | Line % | Branch % | Funcs % | Líneas no cubiertas |
 |---|---|---|---|---|
 | **core/actions.js** | 100.00 | 100.00 | 100.00 | |
 | **core/layout.js** | 100.00 | 100.00 | 100.00 | |
 | **core/state.js** | 100.00 | 100.00 | 100.00 | |
-| **dsl/transpile.js** | 100.00 | 97.14 | 100.00 | |
+| **dsl/transpile.js** | 99.33 | 96.59 | 100.00 | 67-68 |
 | **engine/api.js** | 100.00 | 100.00 | 52.38 | |
-| **engine/bvh.js** | 71.43 | 32.00 | 35.09 | 33-41, 61-62, 65-68, 71, 181-182, 187-190, 199-200, 223-226, 239-245, 250-330, 350-351, 364-365, 374-378, 387-389, 409-410, 412-413, 435-441, 505-507, 517-521, 530-536 |
-| **engine/context.js** | 65.17 | 61.90 | 76.92 | 45-46, 55-60, 87-90, 107-124, 127-136, 141-162 |
-| **engine/scene.js** | 91.07 | 77.78 | 20.83 | 54-60, 104-106 |
-| **engine/utils.js** | 93.18 | 72.73 | 77.78 | 46-47, 51-54 |
-| **shared/protocol.js** | 100.00 | 80.00 | 100.00 | |
-| **ui/animationList.js** | 68.48 | 33.33 | 66.67 | 12-14, 21-30, 32-33, 43-44, 49-56, 60-62, 80 |
-| **ui/drawer.js** | 89.66 | 87.50 | 100.00 | 17-19 |
+| **engine/bvh.js** | 71.42 | 32.00 | 29.54 | ... |
+| **engine/context.js** | 65.16 | 61.90 | 90.00 | ... |
+| **engine/scene.js** | 91.07 | 86.66 | 21.73 | 54-60, 104-106 |
+| **engine/utils.js** | 93.18 | 75.00 | 85.71 | 46-47, 51-54 |
+| **shared/protocol.js** | 100.00 | 80.00 | 100.00 | 27 |
+| **ui/animationList.js** | 68.47 | 33.33 | 100.00 | ... |
+| **ui/drawer.js** | 89.65 | 87.50 | 100.00 | 17-19 |
 | **ui/events.js** | 100.00 | 100.00 | 100.00 | |
-| **ui/helpSidebar.js** | 100.00 | 78.57 | 100.00 | |
-| **ui/sandbox.js** | 75.58 | 62.75 | 60.87 | 61-71, 78-98, 102-106, 113-116, 120-121, 137-139, 155-156, 172-176, 193-194, 214-215, 217-219, 239-240, 245, 269-271, 283-284, 286-287, 290-293 |
-| **ui/sandboxWindow.js** | 61.54 | 45.45 | 54.84 | 46-53, 56-57, 108-119, 182-185, 188-189, 192-196, 205-207, 210-212, 215-219, 253-338 |
-| **ui/storage.js** | 100.00 | 62.50 | 100.00 | |
-| **TOTAL** | **78.81%** | **72.16%** | **54.93%** | |
+| **ui/helpSidebar.js** | 100.00 | 78.57 | 100.00 | 19,25,35 |
+| **ui/sandbox.js** | 75.57 | 62.74 | 92.85 | ... |
+| **ui/sandboxWindow.js** | 61.53 | 44.18 | 78.94 | ... |
+| **ui/storage.js** | 100.00 | 62.50 | 100.00 | 7-9 |
+| **src/main.js** | 0.00 | 0.00 | 0.00 | 1-427 |
+| **src/engine/bridge.js** | 0.00 | 0.00 | 0.00 | 1-218 |
+| **TOTAL** | **60.93%** | **72.05%** | **58.02%** | |
+
 
 ## Umbrales Configurados en CI (`package.json`)
 - Líneas (`--test-coverage-lines`): **75** (Base: 78.81%)
