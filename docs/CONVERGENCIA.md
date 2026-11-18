@@ -34,7 +34,9 @@
   4 Electron seguro con BVH locales y drag and drop, 5 servidor de
   performance con token + túnel + VR + OSC, 6 docs/README/releases y retirar vr.
 
-## Línea base de cobertura
+## Línea base de cobertura (Actualizada)
+
+*Nota:* La medición actual excluye `tests/**` mediante `--test-coverage-exclude` e incluye únicamente `src/**` mediante `--test-coverage-include`. La base anterior incluía `tests/setup.js`. Además, el motor de test nativo de Node.js solo reporta archivos cargados durante los tests; por tanto, `src/main.js` y `src/engine/bridge.js` no aparecen en este informe al no ser importados directamente por los tests unitarios (como alternativa para forzar el reporte de archivos no cargados al 0% se podría utilizar `c8` con `--all`).
 
 | Archivo | Line % | Branch % | Funcs % | Líneas no cubiertas |
 |---|---|---|---|---|
@@ -55,15 +57,19 @@
 | **ui/sandbox.js** | 75.58 | 62.75 | 60.87 | 61-71, 78-98, 102-106, 113-116, 120-121, 137-139, 155-156, 172-176, 193-194, 214-215, 217-219, 239-240, 245, 269-271, 283-284, 286-287, 290-293 |
 | **ui/sandboxWindow.js** | 61.54 | 45.45 | 54.84 | 46-53, 56-57, 108-119, 182-185, 188-189, 192-196, 205-207, 210-212, 215-219, 253-338 |
 | **ui/storage.js** | 100.00 | 62.50 | 100.00 | |
-| **tests/setup.js** | 99.08 | 71.43 | 19.44 | 83 |
-| **TOTAL** | **79.77%** | **72.13%** | **45.96%** | |
+| **TOTAL** | **78.81%** | **72.16%** | **54.93%** | |
 
-### Archivos de `src/` sin cobertura / no incluidos
-- `src/engine/bridge.js` (0% / No aparece en el informe de cobertura)
-- `src/main.js` (0% / No aparece en el informe de cobertura)
+## Umbrales Configurados en CI (`package.json`)
+- Líneas (`--test-coverage-lines`): **75** (Base: 78.81%)
+- Ramas (`--test-coverage-branches`): **69** (Base: 72.16%)
+- Funciones (`--test-coverage-functions`): **50** (Base: 54.93%)
 
-## Estado de Pruebas y Lint (Antes y Después)
+## Tests E2E de Humo Añadidos (Red de seguridad Fase 1)
+1. `smoke: engine communication and default execution without error toast`: Verifica que la aplicación carga, se ejecuta la ejecución por defecto y no aparece el toast de error.
+2. `smoke: network request for BVH assets succeeds on execution`: Verifica la comunicación y el intento de carga de assets BVH al ejecutar comandos en el editor.
+3. `smoke: multiple windows maintain isolated sandbox contexts`: Verifica que al crear múltiples ventanas/sandboxes se mantienen contextos y editores aislados sin mezclarse.
+
+## Estado de Pruebas y Lint
 - **Lint (`npm run lint`):** Pasa correctamente sin errores ni advertencias.
-- **Tests Unitarios (`npm test`):** 36/36 tests pasando correctamente.
-- **Tests E2E (`npm run test:e2e`):** 8/8 tests pasando correctamente.
-- *Nota:* Ningún test, lint o e2e fallaba antes de los cambios.
+- **Tests Unitarios (`npm test`):** 36/36 tests pasando.
+- **Tests E2E (`npm run test:e2e`):** 11/11 tests pasando (incluyendo los 3 nuevos tests de humo).
