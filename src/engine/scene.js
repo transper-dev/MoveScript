@@ -72,6 +72,7 @@ THREE.Cache.enabled = true;
 // --- Configuración global (afecta a todos los sandboxes) ---
 let gridHelper = null;
 let floorMesh = null;
+let boxGroup = null;
 export let globalPause = false;
 
 export function setGlobalPause(paused) {
@@ -102,6 +103,30 @@ export function setFloor(color = "#444444", size = 1000) {
   floorMesh = new THREE.Mesh(geometry, material);
   floorMesh.rotation.x = -Math.PI / 2;
   scene.add(floorMesh);
+}
+
+export function setBox(n, dist) {
+  if (n === undefined) n = 3;
+  if (dist === undefined) dist = 50;
+  if (boxGroup) {
+    scene.remove(boxGroup);
+    boxGroup.traverse((child) => {
+      if (child.isLineSegments) {
+        child.geometry.dispose();
+        child.material.dispose();
+      }
+    });
+  }
+  boxGroup = new THREE.Group();
+  for (let i = 0; i < n; i++) {
+    const size = 10 + i * dist;
+    const geometry = new THREE.BoxGeometry(size, size, size);
+    const edges = new THREE.EdgesGeometry(geometry);
+    const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+    const box = new THREE.LineSegments(edges, material);
+    boxGroup.add(box);
+  }
+  scene.add(boxGroup);
 }
 
 export function setCam(x = 0, y = 200, z = 450, lx = 0, ly = 120, lz = 0) {
