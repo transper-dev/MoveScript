@@ -4,6 +4,7 @@
  */
 
 import { getPlatform } from '../platform/platform.js';
+import { appendBvhToChain } from '../dsl/insertBvh.js';
 
 export async function initAnimationList() {
   const bvhList = document.getElementById('bvh-list');
@@ -73,18 +74,10 @@ export async function initAnimationList() {
 
     btn.addEventListener('click', () => {
       if (!window.editor) return;
-      let code = window.editor.getValue();
+      const code = window.editor.getValue();
+      const newCode = appendBvhToChain(code, nombre);
 
-      const regexBusqueda = /\[[^\]]+\]/;
-
-      if (regexBusqueda.test(code)) {
-        code = code.replace(regexBusqueda, `[bvh("${nombre}")]\n>$&`);
-      } else {
-        const salto = code.trim() !== "" ? "\n\n" : "";
-        code += `${salto}[bvh("${nombre}")]`;
-      }
-
-      window.editor.setValue(code);
+      window.editor.setValue(newCode);
       if (iframePreview.contentWindow && window.runActiveSandbox) window.runActiveSandbox();
     });
 
