@@ -110,7 +110,7 @@ export function setFloor(color = "#1a1a24", size = 1000) {
   } else {
     finiteSize = Math.max(1, Math.min(10000, finiteSize));
   }
-  let validColor = color;
+  const validColor = color;
   let material;
   try {
     material = new THREE.MeshStandardMaterial({
