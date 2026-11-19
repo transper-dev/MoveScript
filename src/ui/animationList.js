@@ -43,6 +43,34 @@ export async function initAnimationList() {
     span.textContent = nombre;
     btn.appendChild(span);
 
+    const hoverPreviewContainer = document.getElementById('hover-preview-container');
+    const hoverPreviewImage = document.getElementById('hover-preview-image');
+
+    btn.addEventListener('mouseenter', () => {
+      span.textContent = `ADD ${nombre}`;
+      if (hoverPreviewContainer && hoverPreviewImage) {
+        hoverPreviewImage.src = `./assets/gifs/${nombre}.gif`;
+        hoverPreviewContainer.classList.add('visible');
+      }
+    });
+
+    btn.addEventListener('mousemove', (e) => {
+      if (hoverPreviewContainer) {
+        const x = e.clientX + 15;
+        const y = e.clientY - 265;
+        hoverPreviewContainer.style.left = `${Math.min(x, window.innerWidth - 270)}px`;
+        hoverPreviewContainer.style.top = `${Math.max(y, 10)}px`;
+      }
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      span.textContent = nombre;
+      if (hoverPreviewContainer) {
+        hoverPreviewContainer.classList.remove('visible');
+        if (hoverPreviewImage) hoverPreviewImage.src = '';
+      }
+    });
+
     btn.addEventListener('click', () => {
       if (!window.editor) return;
       let code = window.editor.getValue();
