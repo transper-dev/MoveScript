@@ -23,7 +23,6 @@ test('EngineLink - READY message executes pending runs', () => {
   const iframe = { contentWindow: {} };
   initEngineLink(iframe, runCodeCallback);
 
-  // Directly simulate READY message event on window
   const event = new global.window.MessageEvent('message', {
     source: iframe.contentWindow,
     data: { type: MessageTypes.READY }
@@ -44,7 +43,6 @@ test('EngineLink - ERROR message calls showError', () => {
   const iframe = { contentWindow: {} };
   initEngineLink(iframe, () => {});
 
-  // Directly simulate ERROR message event on window
   const event = new global.window.MessageEvent('message', {
     source: iframe.contentWindow,
     data: { type: MessageTypes.ERROR, message: 'something bad', sandboxId: 's1' }
@@ -53,4 +51,48 @@ test('EngineLink - ERROR message calls showError', () => {
 
   assert.strictEqual(errorShown, '[Sandbox 1] something bad');
   delete global.window.showError;
+});
+
+test('EngineLink - ignores messages from unknown sources', () => {
+  state.sandboxes.clear();
+  let handled = false;
+  global.window.handleEngineMessage = () => { handled = true; };
+
+  const iframe = { contentWindow: {} };
+  const otherWindow = {};
+  initEngineLink(iframe, () => {});
+
+  const event = new global.window.MessageEvent('message', {
+    source: otherWindow,
+    data: { type: MessageTypes.RIG_MOVED, sandboxId: 's1' }
+  });
+  global.window.dispatchEvent(event);
+
+  assert.strictEqual(handled, false);
+  delete global.window.handleEngineMessage;
+});
+
+test('EngineLink - handles RIG_MOVED, RIG_ROTATED and CHAIN_STEP messages', () => {
+  state.sandboxes.clear();
+  let receivedType = null;
+  global.window.handleEngineMessage = (d, sb) => {
+    receivedType = d.type;
+  };
+
+  const sb = { id: 's1', label: 1, updateEditor: () => {} };
+  state.sandboxes.set('s1', sb);
+
+  const iframe = { contentWindow: {} };
+  initEngineLink(iframe, () => {});
+
+  for (const t of [MessageTypes.RIG_MOVED, MessageTypes.RIG_ROTATED, MessageTypes.CHAIN_STEP]) {
+    const event = new global.window.MessageEvent('message', {
+      source: iframe.contentWindow,
+      data: { type: t, sandboxId: 's1' }
+    });
+    global.window.dispatchEvent(event);
+    assert.strictEqual(receivedType, t);
+  }
+
+  delete global.window.handleEngineMessage;
 });
