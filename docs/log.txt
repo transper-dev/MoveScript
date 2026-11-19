@@ -1,0 +1,8 @@
+﻿a524cf0 fix(tests): restore animation-list test syntax
+708d6d0 fix(phase1): final cleanups
+5bd25e0 fix(phase1): add vite.config.js and public assets
+5691637 feat(phase1): security hardening, CSP implementation, and module refactoring
+473487e feat(phase0b): remove example assets and update project structure
+b735c5a feat(phase0): add CONVERGENCIA.md and e2e smoke tests
+78ccf5f docs: update CONVERGENCIA.md and add e2e smoke tests (Phase 0 refined)
+62e29b3 docs: add CONVERGENCIA.md and configure test coverage threshold (Phase 0)

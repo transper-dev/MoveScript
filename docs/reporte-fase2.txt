@@ -1,0 +1,301 @@
+﻿--- RESULTADOS FINALES ---
+
+--- LINT ---
+
+> movescript@1.0.0 lint
+> eslint --config config/eslint.config.js src/
+
+
+--- TEST ---
+
+> movescript@1.0.0 test
+> node --test "tests/**/*.test.js"
+
+✔ AnimationList UI - render animations and click insertion (66.2333ms)
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ executeInSandbox - security and null prototype check (2.6008ms)
+✔ buildApi - builds API methods correctly (1.0461ms)
+✔ Build Guard - dist-guard bundles verification (13055.5641ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ BVH Chain - relay logic (214.4226ms)
+✔ Core State - management and zCounter (1.7719ms)
+✔ Core Actions - registry and retrieval (0.4198ms)
+✔ CSP - index.html matches exact hardened policy (6.9041ms)
+✔ CSP - preview.html matches exact hardened policy (0.3742ms)
+Drawer elements not found
+✔ Drawer UI - toggle open and close (34.0748ms)
+✔ Drawer UI - missing elements warning branch (2.3263ms)
+✔ DSL Transpiler - parseBlocks (3.0921ms)
+✔ DSL Transpiler - isNewBlock (0.2655ms)
+✔ DSL Transpiler - transpileBlock (2.5317ms)
+✔ DSL Transpiler - Edge Cases (Comments and formatting inside blocks) (1.8097ms)
+✔ DSL Transpiler - Edge Cases (Complex nested arguments and non-standard spacing) (0.2792ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ Engine Utils - frameCount (1.9704ms)
+✔ Engine Utils - rig selection and disposal (0.9524ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ SandboxContext life cycle & getCtx (2.2528ms)
+✔ RigNode, makeChain and duplicateHandle with Three.js (2.9648ms)
+✔ UI Events - EventBus emit and on (4.553ms)
+✔ UI Events - Stress test with 1000 rapid events (6.354ms)
+✔ UI Events - Multiple listeners execution order and concurrency (0.659ms)
+Help sidebar elements not found
+✔ HelpSidebar UI - toggle and insert commands (82.1861ms)
+✔ HelpSidebar UI - missing elements and empty editor branches (23.5923ms)
+✔ Core Layout - writeLayout and scheduleLayoutSave (2.7361ms)
+✔ DSL Parser - distinguish DSL from JS arrays (2.7621ms)
+✔ DSL Parser - detect syntax error ]. (1.0581ms)
+✔ DSL Parser - detect multiple blocks per sandbox rule with semicolon separation (1.3181ms)
+✔ DSL Parser - preserve surrounding code (1.5066ms)
+✔ Persistence - readLayout returns null when empty (2.3491ms)
+✔ Persistence - readLayout returns layout with windows (0.8672ms)
+✔ Persistence - readLayout migrates legacy items format (0.5347ms)
+✔ Persistence - readLayout returns null for corrupted JSON (0.3099ms)
+✔ Persistence - restoreInitial restores from stored layout (0.8434ms)
+✔ Platform selection - web profile (4.9413ms)
+✔ Platform desktop - capabilities are correct (2.0134ms)
+✔ Platform desktop - resolveUrl throws without window.movescriptDesktop (1.2621ms)
+✔ Platform desktop - resolveUrl delegates with mock present (0.6143ms)
+✔ Protocol - Message Types (1.4379ms)
+✔ Runner - single block transpiles without error (2.5879ms)
+✔ Runner - rejects multiple blocks (0.7991ms)
+✔ Runner - rejects point after ] (0.3495ms)
+✔ Sandbox UI - lifecycle, saving and pause (24.3172ms)
+✔ Sandboxes - MAX_SANDBOXES is 8 (1.3717ms)
+✔ Sandboxes - labels are unique (25.431ms)
+✔ Sandboxes - nextFreeLabel skips used labels (5.8062ms)
+✔ Sandboxes - returns null when at max (12.774ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ Engine Scene - Global configurations (1.5351ms)
+✔ Shortcuts - handlers registered (7.6559ms)
+✔ Storage - basic operations (1.4663ms)
+✔ Storage - codeKey helper (0.1864ms)
+✔ Storage - handle JSON parse/serialization logic simulation (1.0801ms)
+✔ Storage - handle QuotaExceededError gracefully (0.4464ms)
+✔ Storage - handle corrupted JSON data gracefully (0.3095ms)
+✔ Platform web - resolveUrl subfolders and validation (3.0762ms)
+✔ SandboxWindow - lifecycle, tabs and layout (33.5323ms)
+ℹ tests 57
+ℹ suites 0
+ℹ pass 57
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13386.1323
+
+--- COV ---
+
+> movescript@1.0.0 test:coverage
+> node --test --experimental-test-coverage --test-coverage-include="src/**/*.js" --test-coverage-exclude="tests/**/*.test.js" --test-coverage-lines=75 --test-coverage-branches=69 --test-coverage-functions=50 "tests/**/*.test.js"
+
+✔ AnimationList UI - render animations and click insertion (61.2067ms)
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ executeInSandbox - security and null prototype check (3.1468ms)
+✔ buildApi - builds API methods correctly (0.9506ms)
+✔ Build Guard - dist-guard bundles verification (17117.9602ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ BVH Chain - relay logic (216.4528ms)
+✔ Core State - management and zCounter (3.7713ms)
+✔ Core Actions - registry and retrieval (0.4583ms)
+✔ CSP - index.html matches exact hardened policy (6.0493ms)
+✔ CSP - preview.html matches exact hardened policy (0.4695ms)
+Drawer elements not found
+✔ Drawer UI - toggle open and close (49.3014ms)
+✔ Drawer UI - missing elements warning branch (2.7903ms)
+✔ DSL Transpiler - parseBlocks (6.9911ms)
+✔ DSL Transpiler - isNewBlock (0.3983ms)
+✔ DSL Transpiler - transpileBlock (0.7569ms)
+✔ DSL Transpiler - Edge Cases (Comments and formatting inside blocks) (0.6293ms)
+✔ DSL Transpiler - Edge Cases (Complex nested arguments and non-standard spacing) (0.2789ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ Engine Utils - frameCount (1.9586ms)
+✔ Engine Utils - rig selection and disposal (1.1464ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ SandboxContext life cycle & getCtx (4.3977ms)
+✔ RigNode, makeChain and duplicateHandle with Three.js (7.4739ms)
+✔ UI Events - EventBus emit and on (3.9599ms)
+✔ UI Events - Stress test with 1000 rapid events (4.2166ms)
+✔ UI Events - Multiple listeners execution order and concurrency (0.9882ms)
+Help sidebar elements not found
+✔ HelpSidebar UI - toggle and insert commands (89.7227ms)
+✔ HelpSidebar UI - missing elements and empty editor branches (30.1235ms)
+✔ Core Layout - writeLayout and scheduleLayoutSave (6.7401ms)
+✔ DSL Parser - distinguish DSL from JS arrays (10.7731ms)
+✔ DSL Parser - detect syntax error ]. (1.0293ms)
+✔ DSL Parser - detect multiple blocks per sandbox rule with semicolon separation (0.6447ms)
+✔ DSL Parser - preserve surrounding code (0.5917ms)
+✔ Persistence - readLayout returns null when empty (5.0363ms)
+✔ Persistence - readLayout returns layout with windows (1.0256ms)
+✔ Persistence - readLayout migrates legacy items format (0.5479ms)
+✔ Persistence - readLayout returns null for corrupted JSON (0.3852ms)
+✔ Persistence - restoreInitial restores from stored layout (1.106ms)
+✔ Platform selection - web profile (9.9421ms)
+✔ Platform desktop - capabilities are correct (2.0885ms)
+✔ Platform desktop - resolveUrl throws without window.movescriptDesktop (1.3774ms)
+✔ Platform desktop - resolveUrl delegates with mock present (0.4923ms)
+✔ Protocol - Message Types (2.7845ms)
+✔ Runner - single block transpiles without error (2.7166ms)
+✔ Runner - rejects multiple blocks (0.7197ms)
+✔ Runner - rejects point after ] (0.2886ms)
+✔ Sandbox UI - lifecycle, saving and pause (32.4557ms)
+✔ Sandboxes - MAX_SANDBOXES is 8 (1.4464ms)
+✔ Sandboxes - labels are unique (34.8181ms)
+✔ Sandboxes - nextFreeLabel skips used labels (5.8189ms)
+✔ Sandboxes - returns null when at max (15.7445ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ Engine Scene - Global configurations (4.0674ms)
+✔ Shortcuts - handlers registered (9.8064ms)
+✔ Storage - basic operations (3.5199ms)
+✔ Storage - codeKey helper (0.2702ms)
+✔ Storage - handle JSON parse/serialization logic simulation (1.8355ms)
+✔ Storage - handle QuotaExceededError gracefully (0.594ms)
+✔ Storage - handle corrupted JSON data gracefully (0.3192ms)
+✔ Platform web - resolveUrl subfolders and validation (4.7099ms)
+✔ SandboxWindow - lifecycle, tabs and layout (38.4868ms)
+ℹ tests 57
+ℹ suites 0
+ℹ pass 57
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17577.898
+ℹ start of coverage report
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ file                | line % | branch % | funcs % | uncovered lines
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ src                 |        |          |         | 
+ℹ  app                |        |          |         | 
+ℹ   persistence.js    |  98.11 |    57.89 |  100.00 | 16
+ℹ   runner.js         |  75.44 |   100.00 |   66.67 | 13-26
+ℹ   sandboxes.js      |  53.49 |    75.00 |   62.50 | 43-47 50-60 63-86
+ℹ   shortcuts.js      |  35.29 |   100.00 |   33.33 | 6-22 27-31
+ℹ  core               |        |          |         | 
+ℹ   actions.js        | 100.00 |   100.00 |  100.00 | 
+ℹ   layout.js         | 100.00 |   100.00 |  100.00 | 
+ℹ   state.js          | 100.00 |   100.00 |  100.00 | 
+ℹ  dsl                |        |          |         | 
+ℹ   transpile.js      | 100.00 |    97.18 |  100.00 | 
+ℹ  engine             |        |          |         | 
+ℹ   api.js            | 100.00 |   100.00 |   52.38 | 
+ℹ   bvh.js            |  71.06 |    32.00 |   35.09 | 34-42 62-63 66-69 72 128-131 188-189 194-197 206-207 230-233 246-252 257-337 357-358 371-372 381-385 394-396 416-417 419-420 442-448 512-514 524-528 537-543
+ℹ   context.js        |  65.17 |    61.90 |   76.92 | 45-46 55-60 87-90 107-124 127-136 141-162
+ℹ   scene.js          |  91.07 |    77.78 |   20.83 | 54-60 104-106
+ℹ   utils.js          |  93.18 |    72.73 |   77.78 | 46-47 51-54
+ℹ  platform           |        |          |         | 
+ℹ   desktop           |        |          |         | 
+ℹ    index.js         |  70.00 |   100.00 |   33.33 | 11-14 25-29
+ℹ   platform.js       |  87.50 |    66.67 |  100.00 | 9-10
+ℹ   web               |        |          |         | 
+ℹ    index.js         |  94.29 |    75.00 |  100.00 | 20-21
+ℹ  shared             |        |          |         | 
+ℹ   protocol.js       | 100.00 |    80.00 |  100.00 | 
+ℹ  ui                 |        |          |         | 
+ℹ   animationList.js  |  83.08 |    46.15 |  100.00 | 13-15 26-27 31-35 53
+ℹ   drawer.js         |  89.66 |    87.50 |  100.00 | 17-19
+ℹ   editorFactory.js  |  65.22 |    42.86 |  100.00 | 12-14 17-18 20-22
+ℹ   events.js         | 100.00 |   100.00 |  100.00 | 
+ℹ   helpSidebar.js    | 100.00 |    78.57 |  100.00 | 
+ℹ   sandbox.js        |  75.66 |    62.75 |   60.87 | 62-72 79-99 103-107 114-117 121-122 138-140 156-157 173-177 194-195 215-216 218-220 240-241 246 270-272 284-285 287-288 291-294
+ℹ   sandboxWindow.js  |  61.54 |    45.45 |   54.84 | 46-53 56-57 108-119 182-185 188-189 192-196 205-207 210-212 215-219 253-338
+ℹ   storage.js        | 100.00 |    62.50 |  100.00 | 
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ all files           |  78.13 |    72.51 |   57.32 | 
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report
+
+--- BUILD ---
+
+> movescript@1.0.0 build:web
+> vite build --mode web
+
+vite v6.4.6 building for web...
+transforming...
+✓ 48 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/preview.html                            0.73 kB │ gzip:   0.43 kB
+dist/index.html                              3.02 kB │ gzip:   1.16 kB
+dist/assets/fa-regular-400-DGzu1beS.woff2   13.22 kB
+dist/assets/fa-regular-400-DFnMcJPd.woff    16.28 kB
+dist/assets/fa-regular-400-D1vz6WBx.ttf     33.74 kB
+dist/assets/fa-regular-400-BhTwtT8w.eot     34.03 kB
+dist/assets/fa-brands-400-UxlILjvJ.woff2    76.74 kB
+dist/assets/fa-solid-900-BUswJgRo.woff2     78.27 kB
+dist/assets/fa-brands-400-CEJbCg16.woff     89.99 kB
+dist/assets/fa-solid-900-DOXgCApm.woff     101.65 kB
+dist/assets/fa-brands-400-CSYNqBb_.ttf     133.99 kB
+dist/assets/fa-brands-400-DnkPfk3o.eot     134.29 kB
+dist/assets/fa-regular-400-gwj8Pxq-.svg    144.71 kB │ gzip:  36.98 kB
+dist/assets/fa-solid-900-mxuxnBEa.ttf      202.74 kB
+dist/assets/fa-solid-900-B6Axprfb.eot      203.03 kB
+dist/assets/fa-brands-400-cH1MgKbP.svg     747.93 kB │ gzip: 253.41 kB
+dist/assets/fa-solid-900-B4ZZ7kfP.svg      918.99 kB │ gzip: 254.77 kB
+dist/assets/main-C1CFt8Tu.css               71.99 kB │ gzip:  16.47 kB
+dist/assets/web-Bl1wt-3N.js                  0.82 kB │ gzip:   0.46 kB
+dist/assets/platform-kxkPfw6C.js             2.50 kB │ gzip:   1.28 kB
+dist/assets/main-CJAu1VoE.js               220.70 kB │ gzip:  73.73 kB
+dist/assets/preview-r-grIFMP.js            617.45 kB │ gzip: 157.38 kB
+✓ built in 2.49s
+
+--- E2E ---
+
+> movescript@1.0.0 test:e2e
+> playwright test -c config/playwright.config.js
+
+
+
+
+
+
+
+
+Running 12 tests using 6 workers
+
+
+
+
+
+
+
+[1/12] [chromium] › tests\e2e\movescript.spec.js:46:3 › MoveScript E2E Tests › should open help sidebar and insert commands into CodeMirror
+[2/12] [chromium] › tests\e2e\movescript.spec.js:4:3 › MoveScript E2E Tests › should load application and render main UI elements
+[3/12] [chromium] › tests\e2e\movescript.spec.js:35:3 › MoveScript E2E Tests › should toggle global pause state
+[4/12] [chromium] › tests\e2e\movescript.spec.js:66:3 › MoveScript E2E Tests › should allow typing code in CodeMirror and toggling the save state
+[5/12] [chromium] › tests\e2e\movescript.spec.js:91:3 › MoveScript E2E Tests › should run all sandboxes when clicking Run All
+[6/12] [chromium] › tests\e2e\movescript.spec.js:22:3 › MoveScript E2E Tests › should add a new sandbox window when clicking New window
+[7/12] [chromium] › tests\e2e\movescript.spec.js:98:3 › MoveScript E2E Tests › should open drawer and select an animation
+[8/12] [chromium] › tests\e2e\movescript.spec.js:112:3 › MoveScript E2E Tests › should close a sandbox window
+[9/12] [chromium] › tests\e2e\movescript.spec.js:128:3 › MoveScript E2E Tests › smoke: engine communication and default execution without error toast
+[10/12] [chromium] › tests\e2e\movescript.spec.js:143:3 › MoveScript E2E Tests › smoke: network request for BVH assets succeeds on execution
+[11/12] [chromium] › tests\e2e\movescript.spec.js:173:3 › MoveScript E2E Tests › smoke: multiple windows maintain isolated sandbox contexts
+[12/12] [chromium] › tests\e2e\movescript.spec.js:202:3 › MoveScript E2E Tests › phase 1: no external network requests (strict offline check)
+  12 passed (17.1s)
+
+--- STATUS ---
+ M docs/CONVERGENCIA.md
+ M src/platform/web/index.js
+ M tests/animation-list.test.js
+ M tests/platform.test.js
+ M tests/webPlatform.test.js
+?? cov-out.txt
+?? docs/cov-antes.txt
+?? docs/log-files.txt
+?? docs/log.txt
+?? docs/reporte-fase2.txt
+?? docs/status.txt
+?? docs/tests-existentes.txt
+?? test-out.txt
+?? tests/persistence.test.js
+?? tests/runner.test.js
+?? tests/sandboxes.test.js
+?? tests/shortcuts.test.js

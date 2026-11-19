@@ -1,0 +1,123 @@
+﻿
+> movescript@1.0.0 test:coverage
+> node --test --experimental-test-coverage --test-coverage-include="src/**/*.js" --test-coverage-exclude="tests/**/*.test.js" --test-coverage-lines=75 --test-coverage-branches=69 --test-coverage-functions=50 "tests/**/*.test.js"
+
+✔ AnimationList UI - render animations and click insertion (61.2067ms)
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ executeInSandbox - security and null prototype check (3.1468ms)
+✔ buildApi - builds API methods correctly (0.9506ms)
+✔ Build Guard - dist-guard bundles verification (17117.9602ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ BVH Chain - relay logic (216.4528ms)
+✔ Core State - management and zCounter (3.7713ms)
+✔ Core Actions - registry and retrieval (0.4583ms)
+✔ CSP - index.html matches exact hardened policy (6.0493ms)
+✔ CSP - preview.html matches exact hardened policy (0.4695ms)
+Drawer elements not found
+✔ Drawer UI - toggle open and close (49.3014ms)
+✔ Drawer UI - missing elements warning branch (2.7903ms)
+✔ DSL Transpiler - parseBlocks (6.9911ms)
+✔ DSL Transpiler - isNewBlock (0.3983ms)
+✔ DSL Transpiler - transpileBlock (0.7569ms)
+✔ DSL Transpiler - Edge Cases (Comments and formatting inside blocks) (0.6293ms)
+✔ DSL Transpiler - Edge Cases (Complex nested arguments and non-standard spacing) (0.2789ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ Engine Utils - frameCount (1.9586ms)
+✔ Engine Utils - rig selection and disposal (1.1464ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ SandboxContext life cycle & getCtx (4.3977ms)
+✔ RigNode, makeChain and duplicateHandle with Three.js (7.4739ms)
+✔ UI Events - EventBus emit and on (3.9599ms)
+✔ UI Events - Stress test with 1000 rapid events (4.2166ms)
+✔ UI Events - Multiple listeners execution order and concurrency (0.9882ms)
+Help sidebar elements not found
+✔ HelpSidebar UI - toggle and insert commands (89.7227ms)
+✔ HelpSidebar UI - missing elements and empty editor branches (30.1235ms)
+✔ Core Layout - writeLayout and scheduleLayoutSave (6.7401ms)
+✔ DSL Parser - distinguish DSL from JS arrays (10.7731ms)
+✔ DSL Parser - detect syntax error ]. (1.0293ms)
+✔ DSL Parser - detect multiple blocks per sandbox rule with semicolon separation (0.6447ms)
+✔ DSL Parser - preserve surrounding code (0.5917ms)
+✔ Persistence - readLayout returns null when empty (5.0363ms)
+✔ Persistence - readLayout returns layout with windows (1.0256ms)
+✔ Persistence - readLayout migrates legacy items format (0.5479ms)
+✔ Persistence - readLayout returns null for corrupted JSON (0.3852ms)
+✔ Persistence - restoreInitial restores from stored layout (1.106ms)
+✔ Platform selection - web profile (9.9421ms)
+✔ Platform desktop - capabilities are correct (2.0885ms)
+✔ Platform desktop - resolveUrl throws without window.movescriptDesktop (1.3774ms)
+✔ Platform desktop - resolveUrl delegates with mock present (0.4923ms)
+✔ Protocol - Message Types (2.7845ms)
+✔ Runner - single block transpiles without error (2.7166ms)
+✔ Runner - rejects multiple blocks (0.7197ms)
+✔ Runner - rejects point after ] (0.2886ms)
+✔ Sandbox UI - lifecycle, saving and pause (32.4557ms)
+✔ Sandboxes - MAX_SANDBOXES is 8 (1.4464ms)
+✔ Sandboxes - labels are unique (34.8181ms)
+✔ Sandboxes - nextFreeLabel skips used labels (5.8189ms)
+✔ Sandboxes - returns null when at max (15.7445ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ Engine Scene - Global configurations (4.0674ms)
+✔ Shortcuts - handlers registered (9.8064ms)
+✔ Storage - basic operations (3.5199ms)
+✔ Storage - codeKey helper (0.2702ms)
+✔ Storage - handle JSON parse/serialization logic simulation (1.8355ms)
+✔ Storage - handle QuotaExceededError gracefully (0.594ms)
+✔ Storage - handle corrupted JSON data gracefully (0.3192ms)
+✔ Platform web - resolveUrl subfolders and validation (4.7099ms)
+✔ SandboxWindow - lifecycle, tabs and layout (38.4868ms)
+ℹ tests 57
+ℹ suites 0
+ℹ pass 57
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17577.898
+ℹ start of coverage report
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ file                | line % | branch % | funcs % | uncovered lines
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ src                 |        |          |         | 
+ℹ  app                |        |          |         | 
+ℹ   persistence.js    |  98.11 |    57.89 |  100.00 | 16
+ℹ   runner.js         |  75.44 |   100.00 |   66.67 | 13-26
+ℹ   sandboxes.js      |  53.49 |    75.00 |   62.50 | 43-47 50-60 63-86
+ℹ   shortcuts.js      |  35.29 |   100.00 |   33.33 | 6-22 27-31
+ℹ  core               |        |          |         | 
+ℹ   actions.js        | 100.00 |   100.00 |  100.00 | 
+ℹ   layout.js         | 100.00 |   100.00 |  100.00 | 
+ℹ   state.js          | 100.00 |   100.00 |  100.00 | 
+ℹ  dsl                |        |          |         | 
+ℹ   transpile.js      | 100.00 |    97.18 |  100.00 | 
+ℹ  engine             |        |          |         | 
+ℹ   api.js            | 100.00 |   100.00 |   52.38 | 
+ℹ   bvh.js            |  71.06 |    32.00 |   35.09 | 34-42 62-63 66-69 72 128-131 188-189 194-197 206-207 230-233 246-252 257-337 357-358 371-372 381-385 394-396 416-417 419-420 442-448 512-514 524-528 537-543
+ℹ   context.js        |  65.17 |    61.90 |   76.92 | 45-46 55-60 87-90 107-124 127-136 141-162
+ℹ   scene.js          |  91.07 |    77.78 |   20.83 | 54-60 104-106
+ℹ   utils.js          |  93.18 |    72.73 |   77.78 | 46-47 51-54
+ℹ  platform           |        |          |         | 
+ℹ   desktop           |        |          |         | 
+ℹ    index.js         |  70.00 |   100.00 |   33.33 | 11-14 25-29
+ℹ   platform.js       |  87.50 |    66.67 |  100.00 | 9-10
+ℹ   web               |        |          |         | 
+ℹ    index.js         |  94.29 |    75.00 |  100.00 | 20-21
+ℹ  shared             |        |          |         | 
+ℹ   protocol.js       | 100.00 |    80.00 |  100.00 | 
+ℹ  ui                 |        |          |         | 
+ℹ   animationList.js  |  83.08 |    46.15 |  100.00 | 13-15 26-27 31-35 53
+ℹ   drawer.js         |  89.66 |    87.50 |  100.00 | 17-19
+ℹ   editorFactory.js  |  65.22 |    42.86 |  100.00 | 12-14 17-18 20-22
+ℹ   events.js         | 100.00 |   100.00 |  100.00 | 
+ℹ   helpSidebar.js    | 100.00 |    78.57 |  100.00 | 
+ℹ   sandbox.js        |  75.66 |    62.75 |   60.87 | 62-72 79-99 103-107 114-117 121-122 138-140 156-157 173-177 194-195 215-216 218-220 240-241 246 270-272 284-285 287-288 291-294
+ℹ   sandboxWindow.js  |  61.54 |    45.45 |   54.84 | 46-53 56-57 108-119 182-185 188-189 192-196 205-207 210-212 215-219 253-338
+ℹ   storage.js        | 100.00 |    62.50 |  100.00 | 
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ all files           |  78.13 |    72.51 |   57.32 | 
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report

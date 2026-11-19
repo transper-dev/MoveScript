@@ -1,0 +1,80 @@
+﻿
+> movescript@1.0.0 test
+> node --test "tests/**/*.test.js"
+
+✔ AnimationList UI - render animations and click insertion (108.9052ms)
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ executeInSandbox - security and null prototype check (2.6011ms)
+✔ buildApi - builds API methods correctly (0.9577ms)
+✔ Build Guard - dist-guard bundles verification (16864.2579ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ BVH Chain - relay logic (234.3077ms)
+✔ Core State - management and zCounter (2.4881ms)
+✔ Core Actions - registry and retrieval (0.9427ms)
+✔ CSP - index.html matches exact hardened policy (10.739ms)
+✔ CSP - preview.html matches exact hardened policy (0.4427ms)
+Drawer elements not found
+✔ Drawer UI - toggle open and close (27.0903ms)
+✔ Drawer UI - missing elements warning branch (3.7111ms)
+✔ DSL Transpiler - parseBlocks (9.0631ms)
+✔ DSL Transpiler - isNewBlock (0.3599ms)
+✔ DSL Transpiler - transpileBlock (0.4969ms)
+✔ DSL Transpiler - Edge Cases (Comments and formatting inside blocks) (2.2082ms)
+✔ DSL Transpiler - Edge Cases (Complex nested arguments and non-standard spacing) (0.3141ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ Engine Utils - frameCount (2.2034ms)
+✔ Engine Utils - rig selection and disposal (1.0369ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ SandboxContext life cycle & getCtx (3.9078ms)
+✔ RigNode, makeChain and duplicateHandle with Three.js (2.5598ms)
+✔ UI Events - EventBus emit and on (3.7934ms)
+✔ UI Events - Stress test with 1000 rapid events (7.4653ms)
+✔ UI Events - Multiple listeners execution order and concurrency (0.6731ms)
+Help sidebar elements not found
+✔ HelpSidebar UI - toggle and insert commands (99.1075ms)
+✔ HelpSidebar UI - missing elements and empty editor branches (22.4983ms)
+✔ Core Layout - writeLayout and scheduleLayoutSave (2.6081ms)
+✔ DSL Parser - distinguish DSL from JS arrays (2.454ms)
+✔ DSL Parser - detect syntax error ]. (1.2184ms)
+✔ DSL Parser - detect multiple blocks per sandbox rule with semicolon separation (0.563ms)
+✔ DSL Parser - preserve surrounding code (1.6154ms)
+✔ Persistence - readLayout returns null when empty (2.1261ms)
+✔ Persistence - readLayout returns layout with windows (0.8759ms)
+✔ Persistence - readLayout migrates legacy items format (4.9527ms)
+✔ Persistence - readLayout returns null for corrupted JSON (7.8595ms)
+✔ Persistence - restoreInitial restores from stored layout (1.5922ms)
+✔ Platform selection - web profile (5.2153ms)
+✔ Platform desktop - capabilities are correct (2.0346ms)
+✔ Platform desktop - resolveUrl throws without window.movescriptDesktop (1.2807ms)
+✔ Platform desktop - resolveUrl delegates with mock present (0.5925ms)
+✔ Protocol - Message Types (1.6699ms)
+✔ Runner - single block transpiles without error (2.7835ms)
+✔ Runner - rejects multiple blocks (0.7953ms)
+✔ Runner - rejects point after ] (0.3856ms)
+✔ Sandbox UI - lifecycle, saving and pause (40.535ms)
+✔ Sandboxes - MAX_SANDBOXES is 8 (2.8119ms)
+✔ Sandboxes - labels are unique (37.0527ms)
+✔ Sandboxes - nextFreeLabel skips used labels (9.9257ms)
+✔ Sandboxes - returns null when at max (24.5038ms)
+THREE.WebGLRenderer: glVersion.indexOf is not a function
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ Engine Scene - Global configurations (2.3634ms)
+✔ Shortcuts - handlers registered (8.4512ms)
+✔ Storage - basic operations (2.5953ms)
+✔ Storage - codeKey helper (0.3292ms)
+✔ Storage - handle JSON parse/serialization logic simulation (1.6702ms)
+✔ Storage - handle QuotaExceededError gracefully (0.4497ms)
+✔ Storage - handle corrupted JSON data gracefully (0.3824ms)
+✔ Platform web - resolveUrl subfolders and validation (3.0167ms)
+✔ SandboxWindow - lifecycle, tabs and layout (55.4935ms)
+ℹ tests 57
+ℹ suites 0
+ℹ pass 57
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17340.5034
