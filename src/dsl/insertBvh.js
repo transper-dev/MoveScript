@@ -2,6 +2,7 @@
  * DSL Insert - Lógica de inserción de animaciones en la cadena existente
  */
 import { parseBlocks } from './transpile.js';
+import { isValidBvhName } from '../shared/bvhName.js';
 
 /**
  * Inserta o anexa un bloque bvh a la cadena existente
@@ -10,9 +11,8 @@ import { parseBlocks } from './transpile.js';
  * @returns {{code?: string, cursorIndex?: number, error?: string}}
  */
 export function appendBvhToChain(code, name) {
-  // 1. Validación de nombre (reutilizando lógica similar a resolveUrl)
-  const regex = /^[\w\- ]{1,64}(\/[\w\- ]{1,64})?$/;
-  if (typeof name !== 'string' || /^https?:\/\//i.test(name) || name.includes('..') || name.includes('\\') || name.includes('%') || !regex.test(name)) {
+  // 1. Validación de nombre
+  if (!isValidBvhName(name)) {
     return { error: 'Nombre de animación inválido' };
   }
 
