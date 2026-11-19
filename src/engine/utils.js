@@ -58,6 +58,14 @@ export function deselect(notify = true) {
  * Libera los recursos de un rig (mixer, helper, group)
  */
 export function disposeRig(r) {
+  if (r._trailPool) {
+    for (const mesh of r._trailPool) {
+      scene.remove(mesh);
+      if (mesh.geometry) mesh.geometry.dispose();
+      if (mesh.material) mesh.material.dispose();
+    }
+    r._trailPool.length = 0;
+  }
   if (r.mixer) {
     r.mixer.stopAllAction();
     if (r.root) r.mixer.uncacheRoot(r.root);

@@ -409,7 +409,8 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
           color2: handle._color2,
           trail: handle._trail,
           delay: handle._delay
-        }
+        },
+        _trailPool: []
       };
       ctx.rigs.push(rigRecord);
       if (handle._onRigLoaded) {

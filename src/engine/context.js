@@ -112,14 +112,24 @@ export class SandboxContext {
       const isVisible = r.handle._useDummy ? r.root.visible : (r.helper && r.helper.visible);
 
       if (!paused && trailLen > 0 && frameCount % 6 === 0 && isVisible && r.timeAlive >= delayTime) {
-        const snapGeom = r.helper.geometry.clone();
-        snapGeom.applyMatrix4(r.helper.matrixWorld);
-        const snapMat = r.helper.material.clone();
-        snapMat.transparent = true;
-        snapMat.opacity = 0.6;
-        const snapLine = new THREE.LineSegments(snapGeom, snapMat);
+        let snapLine;
+        if (r._trailPool.length > 0) {
+          snapLine = r._trailPool.pop();
+          snapLine.geometry.dispose();
+          snapLine.geometry = r.helper.geometry.clone();
+          snapLine.geometry.applyMatrix4(r.helper.matrixWorld);
+          snapLine.material.opacity = 0.6;
+          snapLine.visible = true;
+        } else {
+          const snapGeom = r.helper.geometry.clone();
+          snapGeom.applyMatrix4(r.helper.matrixWorld);
+          const snapMat = r.helper.material.clone();
+          snapMat.transparent = true;
+          snapMat.opacity = 0.6;
+          snapLine = new THREE.LineSegments(snapGeom, snapMat);
+        }
         scene.add(snapLine);
-        this.trails.push({ mesh: snapLine, life: 0.6, decay: 0.6 / trailLen });
+        this.trails.push({ mesh: snapLine, life: 0.6, decay: 0.6 / trailLen, rig: r });
       }
     }
 
@@ -129,8 +139,8 @@ export class SandboxContext {
       t.mesh.material.opacity = t.life;
       if (t.life <= 0) {
         scene.remove(t.mesh);
-        t.mesh.geometry.dispose();
-        t.mesh.material.dispose();
+        t.mesh.visible = false;
+        t.rig._trailPool.push(t.mesh);
         this.trails.splice(i, 1);
       }
     }
