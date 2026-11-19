@@ -50,8 +50,11 @@ export async function initAnimationList() {
     btn.addEventListener('mouseenter', () => {
       span.textContent = `ADD ${nombre}`;
       if (hoverPreviewContainer && hoverPreviewImage) {
-        hoverPreviewImage.src = `./assets/gifs/${nombre}.gif`;
+        hoverPreviewImage.src = `./assets/gifs/${encodeURIComponent(nombre)}.gif`;
         hoverPreviewContainer.classList.add('visible');
+        hoverPreviewImage.onerror = () => {
+           if (hoverPreviewContainer) hoverPreviewContainer.classList.remove('visible');
+        };
       }
     });
 
@@ -75,12 +78,18 @@ export async function initAnimationList() {
     btn.addEventListener('click', () => {
       if (!window.editor) return;
       const code = window.editor.getValue();
-      const newCode = appendBvhToChain(code, nombre);
-
-      window.editor.setValue(newCode);
+      const res = appendBvhToChain(code, nombre);
+      if (res.error) {
+        if (window.showError) window.showError(res.error, 6000);
+        else console.error(res.error);
+        return;
+      }
+      window.editor.setValue(res.code);
+      if (hoverPreviewContainer) hoverPreviewContainer.classList.remove('visible');
       if (iframePreview.contentWindow && window.runActiveSandbox) window.runActiveSandbox();
     });
 
     bvhList.appendChild(btn);
   });
+
 }
