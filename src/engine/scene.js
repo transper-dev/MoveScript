@@ -89,19 +89,46 @@ export function setGrid(size = 400, div = 10) {
   scene.add(gridHelper);
 }
 
-export function setFloor(color = "#444444", size = 1000) {
+export function setFloor(color = "#1a1a24", size = 1000) {
+  if (color === false) {
+    if (floorMesh) {
+      scene.remove(floorMesh);
+      floorMesh.geometry.dispose();
+      floorMesh.material.dispose();
+      floorMesh = null;
+    }
+    return;
+  }
   if (floorMesh) {
     scene.remove(floorMesh);
     floorMesh.geometry.dispose();
     floorMesh.material.dispose();
   }
-  const geometry = new THREE.PlaneGeometry(size, size);
-  const material = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(color),
-    side: THREE.DoubleSide
-  });
+  let finiteSize = Number(size);
+  if (isNaN(finiteSize) || finiteSize <= 0) {
+    finiteSize = 1000;
+  } else {
+    finiteSize = Math.max(1, Math.min(10000, finiteSize));
+  }
+  let validColor = color;
+  let material;
+  try {
+    material = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(validColor),
+      side: THREE.DoubleSide
+    });
+  } catch (e) {
+    console.warn("Invalid color provided to floor(), using default.", e);
+    material = new THREE.MeshStandardMaterial({
+      color: new THREE.Color("#1a1a24"),
+      side: THREE.DoubleSide
+    });
+  }
+  const geometry = new THREE.PlaneGeometry(finiteSize, finiteSize);
   floorMesh = new THREE.Mesh(geometry, material);
   floorMesh.rotation.x = -Math.PI / 2;
+  // position.y = -1 para evitar z-fighting con el grid en y=0
+  floorMesh.position.y = -1;
   scene.add(floorMesh);
 }
 
