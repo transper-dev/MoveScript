@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"tests/**/*.test.js\"",
-    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-exclude=\"tests/**/*.test.js\" --test-coverage-lines=80 --test-coverage-branches=74 --test-coverage-functions=59 \"tests/**/*.test.js\"",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-exclude=\"tests/**/*.test.js\" --test-coverage-lines=82 --test-coverage-branches=76 --test-coverage-functions=61 \"tests/**/*.test.js\"",
     "test:e2e": "playwright test -c config/playwright.config.js",
     "lint": "eslint --config config/eslint.config.js src/",
     "coverage:full": "c8 --all --include \"src/**/*.js\" --exclude \"tests/**/*.test.js\" node --test \"tests/**/*.test.js\"",

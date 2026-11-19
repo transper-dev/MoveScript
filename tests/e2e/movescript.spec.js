@@ -226,13 +226,20 @@ test.describe('MoveScript E2E Tests', () => {
   });
 
   test('phase 3A-bis: DSL insertion and GIF hover', async ({ page }) => {
+    await page.goto('/');
     // 1. DSL insertion
     await page.evaluate(() => {
-        window.editor.setValue('[bvh("deep_breath")]>[color("red")]; cam(0,1,1)');
+        if (window.editor) {
+          window.editor.setValue('[bvh("deep_breath")]>[color("red")]; cam(0,1,1)');
+        }
     });
-    // Click an animation (e.g., 'froging')
-    await page.click('.bvh-item:has-text("froging")');
-    const code = await page.evaluate(() => window.editor.getValue());
+    const drawerToggle = page.locator('#drawer-toggle');
+    if (await drawerToggle.isVisible()) {
+      await drawerToggle.click();
+    }
+    const frogItem = page.locator('.bvh-item', { hasText: 'froging' });
+    await frogItem.click();
+    const code = await page.evaluate(() => window.editor ? window.editor.getValue() : '');
     expect(code).toContain('>[bvh("froging")]');
     expect(code).toContain('; cam(0,1,1)');
     expect(await page.locator('#error-toast.visible').count()).toBe(0);

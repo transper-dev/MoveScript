@@ -32,7 +32,8 @@ test('EngineLink - READY message executes pending runs', () => {
   assert.strictEqual(runCodeCalled, true);
 });
 
-test('EngineLink - ERROR message calls showError', () => {
+test('EngineLink - ERROR message calls showError or logs to console', () => {
+  // 1. With window.showError
   let errorShown = null;
   global.window.showError = (msg) => { errorShown = msg; };
 
@@ -43,14 +44,25 @@ test('EngineLink - ERROR message calls showError', () => {
   const iframe = { contentWindow: {} };
   initEngineLink(iframe, () => {});
 
-  const event = new global.window.MessageEvent('message', {
+  let event = new global.window.MessageEvent('message', {
     source: iframe.contentWindow,
     data: { type: MessageTypes.ERROR, message: 'something bad', sandboxId: 's1' }
   });
   global.window.dispatchEvent(event);
-
   assert.strictEqual(errorShown, '[Sandbox 1] something bad');
+
+  // 2. Without window.showError (logs to console.error)
   delete global.window.showError;
+  const consoleErrorSpy = (msg) => { assert.strictEqual(msg, 'something bad'); };
+  const origConsoleError = console.error;
+  console.error = consoleErrorSpy;
+
+  event = new global.window.MessageEvent('message', {
+    source: iframe.contentWindow,
+    data: { type: MessageTypes.ERROR, message: 'something bad', sandboxId: 's1' }
+  });
+  global.window.dispatchEvent(event);
+  console.error = origConsoleError;
 });
 
 test('EngineLink - ignores messages from unknown sources', () => {
@@ -95,4 +107,12 @@ test('EngineLink - handles RIG_MOVED, RIG_ROTATED and CHAIN_STEP messages', () =
   }
 
   delete global.window.handleEngineMessage;
+});
+
+test('EngineLink - sendMessage sends message if iframe exists', () => {
+    let messageSent = false;
+    const iframe = { contentWindow: { postMessage: () => { messageSent = true; } } };
+    initEngineLink(iframe, () => {});
+    sendMessage(MessageTypes.READY, {});
+    assert.strictEqual(messageSent, true);
 });

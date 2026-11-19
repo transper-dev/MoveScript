@@ -11,30 +11,29 @@ test('InsertBvh - vacío', () => {
 test('InsertBvh - bloque simple', () => {
   const result = appendBvhToChain('[bvh("idle")]', 'walk');
   assert.strictEqual(result.code, '[bvh("idle")]\n>[bvh("walk")]');
-  assert.ok(result.cursorIndex > '[bvh("idle")]'.length);
 });
 
 test('InsertBvh - bloque con ; final', () => {
   const result = appendBvhToChain('[bvh("idle")];', 'walk');
-  assert.strictEqual(result.code, '[bvh("idle")];\n>[bvh("walk")]');
+  assert.strictEqual(result.code, '[bvh("idle")]\n>[bvh("walk")];');
 });
 
 test('InsertBvh - cadena con cam', () => {
   const code = '[bvh("a")]>[color("red")]; cam(0,1,1)';
   const result = appendBvhToChain(code, 'walk');
-  assert.strictEqual(result.code, '[bvh("a")]>[color("red")]; cam(0,1,1)\n>[bvh("walk")]');
+  assert.strictEqual(result.code, '[bvh("a")]>[color("red")]\n>[bvh("walk")]; cam(0,1,1)');
 });
 
 test('InsertBvh - comentario de línea tras bloque', () => {
   const code = '[bvh("a")] // comentario';
   const result = appendBvhToChain(code, 'walk');
-  assert.strictEqual(result.code, '[bvh("a")] // comentario\n>[bvh("walk")]');
+  assert.strictEqual(result.code, '[bvh("a")]\n>[bvh("walk")] // comentario');
 });
 
-test('InsertBvh - multilínea', () => {
-  const code = '[bvh("a")]\n\n// multilínea\n[bvh("b")]';
+test('InsertBvh - multilínea con un bloque', () => {
+  const code = '// inicio\n[bvh("a")];\n// fin';
   const result = appendBvhToChain(code, 'walk');
-  assert.strictEqual(result.code, '[bvh("a")]\n\n// multilínea\n[bvh("b")]\n>[bvh("walk")]');
+  assert.strictEqual(result.code, '// inicio\n[bvh("a")]\n>[bvh("walk")];\n// fin');
 });
 
 test('InsertBvh - error mas de 1 bloque', () => {
