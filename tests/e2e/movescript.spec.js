@@ -224,4 +224,32 @@ test.describe('MoveScript E2E Tests', () => {
 
     expect(externalRequests).toEqual([]);
   });
+
+  test('phase 3A-bis: DSL insertion and GIF hover', async ({ page }) => {
+    // 1. DSL insertion
+    await page.evaluate(() => {
+        window.editor.setValue('[bvh("deep_breath")]>[color("red")]; cam(0,1,1)');
+    });
+    // Click an animation (e.g., 'froging')
+    await page.click('.bvh-item:has-text("froging")');
+    const code = await page.evaluate(() => window.editor.getValue());
+    expect(code).toContain('>[bvh("froging")]');
+    expect(code).toContain('; cam(0,1,1)');
+    expect(await page.locator('#error-toast.visible').count()).toBe(0);
+
+    // 2. Hover test
+    const bvhItem = page.locator('.bvh-item').first();
+    await bvhItem.hover();
+    const previewContainer = page.locator('#hover-preview-container');
+    await expect(previewContainer).toHaveClass(/visible/);
+    const src = await page.locator('#hover-preview-image').getAttribute('src');
+    expect(src).toMatch(/\.gif$/);
+    await bvhItem.dispatchEvent('mouseleave');
+    await expect(previewContainer).not.toHaveClass(/visible/);
+  });
+
+  test('phase 3A-bis: no Local group in web', async ({ page }) => {
+    const localGroupCount = await page.locator('.bvh-local').count();
+    expect(localGroupCount).toBe(0);
+  });
 });
