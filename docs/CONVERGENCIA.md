@@ -23,4 +23,5 @@ El proyecto utiliza una capa de abstracción en `src/platform/` para manejar dif
     - Block 3: Trail pool por esqueleto para reutilizar segmentos de línea sin alloc/dispose constante.
     - Block 4: Tests E2E finales, actualización de `docs/CONVERGENCIA.md` y umbrales de cobertura. (COMPLETADO)
     - Block 5: E2E tests (`#runAllBtn` selector, live execution). (COMPLETADO)
-    - Block 6: Cobertura mínima > 82/76/61%. (COMPLETADO: 83.6/76.4/63.1%)
+    - Block 6: Cobertura mínima > 82/76/61%. (COMPLETADO: 83/76/62%)
+    - Corrección Final (Phase 3B-bis): Corrección de `box()` (cajas a `scene`, medición estricta) y `floor()` (validación color), tests unitarios actualizados, cobertura ajustada.
