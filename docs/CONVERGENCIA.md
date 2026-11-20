@@ -21,4 +21,6 @@ El proyecto utiliza una capa de abstracción en `src/platform/` para manejar dif
     - Block 1: `floor(color, size)` global method con gestión de malla y pooling.
     - Block 2: `box(n, dist)` para cajas concéntricas wireframe con pooling.
     - Block 3: Trail pool por esqueleto para reutilizar segmentos de línea sin alloc/dispose constante.
-    - Block 4: Tests E2E finales, actualización de `docs/CONVERGENCIA.md` y umbrales de cobertura.
+    - Block 4: Tests E2E finales, actualización de `docs/CONVERGENCIA.md` y umbrales de cobertura. (COMPLETADO)
+    - Block 5: E2E tests (`#runAllBtn` selector, live execution). (COMPLETADO)
+    - Block 6: Cobertura mínima > 82/76/61%. (COMPLETADO: 83.6/76.4/63.1%)
