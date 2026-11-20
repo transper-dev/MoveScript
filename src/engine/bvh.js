@@ -61,7 +61,12 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
     speed(v) { return this._propagate({ _speed: v }); },
     reverse(v = true) { return this._propagate({ _reverse: v }); },
     color(c1, c2) { return this._propagate({ _color: c1, _color2: c2 }); },
-    trail(length) { return this._propagate({ _trail: length }); },
+    trail(v) {
+      let num = parseInt(v, 10);
+      if (isNaN(num) || num < 0) num = 0;
+      num = Math.min(600, num);
+      return this._propagate({ _trail: num });
+    },
     box(n = 3, dist = 0.2) {
       let num = parseInt(n, 10);
       if (isNaN(num) || num < 0) num = 0;

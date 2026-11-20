@@ -135,24 +135,36 @@ export class SandboxContext {
       const delayTime = r.opts.delay ?? this.params.delay;
 
       if (!paused && trailLen > 0 && frameCount % 6 === 0 && isVisible && r.timeAlive >= delayTime) {
-        let snapLine;
-        if (r._trailPool.length > 0) {
-          snapLine = r._trailPool.pop();
-          snapLine.geometry.dispose();
-          snapLine.geometry = r.helper.geometry.clone();
-          snapLine.geometry.applyMatrix4(r.helper.matrixWorld);
-          snapLine.material.opacity = 0.6;
-          snapLine.visible = true;
-        } else {
-          const snapGeom = r.helper.geometry.clone();
-          snapGeom.applyMatrix4(r.helper.matrixWorld);
-          const snapMat = r.helper.material.clone();
-          snapMat.transparent = true;
-          snapMat.opacity = 0.6;
-          snapLine = new THREE.LineSegments(snapGeom, snapMat);
+        if (this.trails.length < 2000) {
+          let snapLine;
+          const sourceGeom = r.helper.geometry;
+          const posAttr = sourceGeom.attributes.position;
+
+          if (r._trailPool.length > 0) {
+            snapLine = r._trailPool.pop();
+            const geom = snapLine.geometry;
+            const targetPosAttr = geom.attributes.position;
+            if (targetPosAttr.count === posAttr.count) {
+              targetPosAttr.copy(posAttr);
+            } else {
+              geom.dispose();
+              snapLine.geometry = sourceGeom.clone();
+            }
+            snapLine.geometry.applyMatrix4(r.helper.matrixWorld);
+            snapLine.geometry.attributes.position.needsUpdate = true;
+            snapLine.material.opacity = 0.6;
+            snapLine.visible = true;
+          } else {
+            const snapGeom = sourceGeom.clone();
+            snapGeom.applyMatrix4(r.helper.matrixWorld);
+            const snapMat = r.helper.material.clone();
+            snapMat.transparent = true;
+            snapMat.opacity = 0.6;
+            snapLine = new THREE.LineSegments(snapGeom, snapMat);
+          }
+          scene.add(snapLine);
+          this.trails.push({ mesh: snapLine, life: 0.6, decay: 0.6 / trailLen, rig: r });
         }
-        scene.add(snapLine);
-        this.trails.push({ mesh: snapLine, life: 0.6, decay: 0.6 / trailLen, rig: r });
       }
     }
 
