@@ -15,9 +15,9 @@ import {
   frameCount
 } from './utils.js';
 
-// ====================================================
-// CONTEXTO POR SANDBOX
-// ====================================================
+const tempBox3 = new THREE.Box3();
+const tempSize = new THREE.Vector3();
+const tempCenter = new THREE.Vector3();
 export const contexts = new Map();
 
 export class SandboxContext {
@@ -107,9 +107,32 @@ export class SandboxContext {
       // Aplica autoScale si fue calculado al crear el rig
       if (r.group) r.group.scale.setScalar((r.autoScale || 1) * (r.opts.scale ?? this.params.globalScale));
 
+      const isVisible = r.handle._useDummy ? r.root.visible : (r.helper && r.helper.visible);
+
+      if (r.boxes && r.boxes.length > 0) {
+        if (isVisible && r.helper) {
+          tempBox3.setFromObject(r.group);
+          tempBox3.applyMatrix4(r.helper.matrixWorld);
+          tempBox3.getSize(tempSize);
+          tempBox3.getCenter(tempCenter);
+
+          const count = r.boxes.length;
+          for (let i = 0; i < count; i++) {
+            const box = r.boxes[i];
+            box.visible = true;
+            const factor = 1 + (i + 1) * 0.2;
+            box.position.copy(tempCenter);
+            box.scale.set(tempSize.x * factor, tempSize.y * factor, tempSize.z * factor);
+            box.material.opacity = Math.max(0.1, 1 - (i / count));
+            box.material.transparent = true;
+          }
+        } else {
+          for (const box of r.boxes) box.visible = false;
+        }
+      }
+
       const trailLen = r.opts.trail ?? this.params.trail;
       const delayTime = r.opts.delay ?? this.params.delay;
-      const isVisible = r.handle._useDummy ? r.root.visible : (r.helper && r.helper.visible);
 
       if (!paused && trailLen > 0 && frameCount % 6 === 0 && isVisible && r.timeAlive >= delayTime) {
         let snapLine;
