@@ -88,6 +88,16 @@ export function setGrid(size = 400, div = 10) {
   scene.add(gridHelper);
 }
 
+function isValidColor(c) {
+  if (typeof c === 'number') return true;
+  if (typeof c === 'string') {
+    if (/^#?([0-9a-fA-F]{3}){1,2}$/.test(c)) return true;
+    if (THREE.Color.NAMES[c.toLowerCase()]) return true;
+    if (c.startsWith('rgb(') || c.startsWith('hsl(')) return true;
+  }
+  return false;
+}
+
 export function setFloor(color = "#1a1a24", size = 1000) {
   if (color === false) {
     if (floorMesh) {
@@ -109,20 +119,18 @@ export function setFloor(color = "#1a1a24", size = 1000) {
   } else {
     finiteSize = Math.max(1, Math.min(10000, finiteSize));
   }
-  const validColor = color;
-  let material;
-  try {
-    material = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(validColor),
-      side: THREE.DoubleSide
-    });
-  } catch (e) {
-    console.warn("Invalid color provided to floor(), using default.", e);
-    material = new THREE.MeshStandardMaterial({
-      color: new THREE.Color("#1a1a24"),
-      side: THREE.DoubleSide
-    });
+
+  let finalColor = color;
+  if (!isValidColor(color)) {
+    console.warn("floor(): Invalid color provided, using default.", color);
+    finalColor = "#1a1a24";
   }
+
+  const material = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(finalColor),
+    side: THREE.DoubleSide
+  });
+
   const geometry = new THREE.PlaneGeometry(finiteSize, finiteSize);
   floorMesh = new THREE.Mesh(geometry, material);
   floorMesh.rotation.x = -Math.PI / 2;

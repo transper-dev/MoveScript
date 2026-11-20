@@ -359,11 +359,17 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
 
       const boxes = [];
       if (handle._boxesCount > 0) {
-        for (let i = 0; i < handle._boxesCount; i++) {
-          const boxMat = new THREE.LineBasicMaterial({ color: 0xffffff });
+        const count = handle._boxesCount;
+        for (let i = 0; i < count; i++) {
+          const opacity = Math.max(0.1, 1 - (i / count));
+          const boxMat = new THREE.LineBasicMaterial({
+            color: 0x00ffcc,
+            transparent: true,
+            opacity: opacity
+          });
           const box = new THREE.LineSegments(sharedUnitEdgesGeometry, boxMat);
           box.visible = helper.visible;
-          group.add(box);
+          scene.add(box);
           boxes.push(box);
         }
       }

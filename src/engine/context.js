@@ -111,20 +111,25 @@ export class SandboxContext {
 
       if (r.boxes && r.boxes.length > 0) {
         if (isVisible && r.helper) {
-          tempBox3.setFromObject(r.group);
-          tempBox3.applyMatrix4(r.helper.matrixWorld);
+          if (r.handle._useDummy) {
+            tempBox3.setFromObject(r.group);
+          } else {
+            if (r.helper.geometry) {
+              r.helper.geometry.computeBoundingBox();
+            }
+            tempBox3.setFromObject(r.helper);
+          }
           tempBox3.getSize(tempSize);
           tempBox3.getCenter(tempCenter);
 
           const count = r.boxes.length;
+          const dist = r.handle._boxDist ?? 0.2;
           for (let i = 0; i < count; i++) {
             const box = r.boxes[i];
             box.visible = true;
-            const factor = 1 + (i + 1) * 0.2;
+            const margin = i * dist * 60;
             box.position.copy(tempCenter);
-            box.scale.set(tempSize.x * factor, tempSize.y * factor, tempSize.z * factor);
-            box.material.opacity = Math.max(0.1, 1 - (i / count));
-            box.material.transparent = true;
+            box.scale.set(tempSize.x + margin, tempSize.y + margin, tempSize.z + margin);
           }
         } else {
           for (const box of r.boxes) box.visible = false;
