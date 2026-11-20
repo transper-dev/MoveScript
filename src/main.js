@@ -17,7 +17,7 @@ import { writeLayout, scheduleLayoutSave } from './core/layout.js';
 
 import { restoreInitial } from './app/persistence.js';
 import { initEngineLink, engineReady, pendingRuns } from './app/engineLink.js';
-import { runSandbox as runSandboxLogic, runCode as runCodeLogic } from './app/runner.js';
+import { runSandbox as runSandboxLogic, runCode as runCodeLogic, initRunner } from './app/runner.js';
 import { initShortcuts } from './app/shortcuts.js';
 import { createSandbox as createSandboxFn, createWindow as createWindowFn, removeSandbox as removeSandboxFn, openNewWindow } from './app/sandboxes.js';
 
@@ -179,6 +179,7 @@ on("REMOVE_SANDBOX", removeSandbox);
 
 function init() {
   iframe.src = './preview.html';
+  initRunner(iframe);
   initEngineLink(iframe, runCode);
 
   const restored = restoreInitial(createSandbox, createWindow, pendingRuns);
