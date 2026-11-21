@@ -24,3 +24,5 @@ dist-guard/
 playwright-report/
 docs/verificacion-*.txt
 *-out.txt
+
+run*.txt
