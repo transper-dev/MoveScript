@@ -37,7 +37,9 @@ export function appendBvhToChain(code, name) {
 
   // 1 bloque: Insertar tras el bloque
   const b = blocks[0];
-  const newPart = `\n>[bvh("${name}")]`;
-  const newCode = code.slice(0, b.end) + newPart + code.slice(b.end);
+  const slicedPrefix = code.slice(0, b.end);
+  const hasTrailingPipe = slicedPrefix.trim().endsWith('>');
+  const newPart = hasTrailingPipe ? `\n[bvh("${name}")]` : `\n>[bvh("${name}")]`;
+  const newCode = slicedPrefix + newPart + code.slice(b.end);
   return { code: newCode, cursorIndex: b.end + newPart.length };
 }

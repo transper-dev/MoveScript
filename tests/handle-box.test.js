@@ -7,12 +7,13 @@ import { SandboxContext } from '../src/engine/context.js';
 import { buildApi, executeInSandbox } from '../src/engine/api.js';
 import { scene } from '../src/engine/scene.js';
 import { BVHLoader } from 'three/addons/loaders/BVHLoader.js';
+import { waitFor } from './helpers.js';
 
 test('box: n cajas creadas por createBvh', async () => {
   const ctx = new SandboxContext('bvh-box-real', 0, buildApi);
   const handle = createBvh(ctx, 'anim1').box(3, 0.2);
 
-  await new Promise(r => setTimeout(r, 20));
+  await waitFor(() => ctx.rigs.find(r => r.handle === handle));
 
   const rig = ctx.rigs.find(r => r.handle === handle);
   assert.ok(rig, 'Rig should be loaded via mock BVHLoader');
@@ -40,12 +41,12 @@ test('box: todas las cajas comparten la misma EdgesGeometry', async () => {
   const ctx = new SandboxContext('bvh-box-shared-geom', 0, buildApi);
   const handle = createBvh(ctx, 'anim1').box(4);
 
-  await new Promise(r => setTimeout(r, 20));
+  await waitFor(() => ctx.rigs.find(r => r.handle === handle));
 
   const rig = ctx.rigs.find(r => r.handle === handle);
   assert.ok(rig && rig.boxes.length === 4);
   for (const b of rig.boxes) {
-    assert.strictEqual(b.geometry, sharedUnitEdgesGeometry);
+    assert.ok(b.geometry === sharedUnitEdgesGeometry, 'Should share EdgesGeometry');
   }
 });
 
@@ -53,13 +54,13 @@ test('box: las cajas creadas por bvh.js tienen parent === scene (no group)', asy
   const ctx = new SandboxContext('bvh-box-parent', 0, buildApi);
   const handle = createBvh(ctx, 'anim1').box(2);
 
-  await new Promise(r => setTimeout(r, 20));
+  await waitFor(() => ctx.rigs.find(r => r.handle === handle));
 
   const rig = ctx.rigs.find(r => r.handle === handle);
   assert.ok(rig && rig.boxes.length === 2);
   for (const b of rig.boxes) {
-    assert.strictEqual(b.parent, scene);
-    assert.notStrictEqual(b.parent, rig.group);
+    assert.ok(b.parent === scene, 'Parent must be scene');
+    assert.ok(b.parent !== rig.group, 'Parent must not be rig.group');
   }
 });
 
@@ -68,7 +69,7 @@ test('box: relevo de cadena: al terminar el primer rig sus cajas se ocultan y la
   const h1 = createBvh(ctx, 'anim1').box(2);
   const h2 = h1.nextBvh('anim2').box(2);
 
-  await new Promise(r => setTimeout(r, 30));
+  await waitFor(() => ctx.rigs.length >= 2);
 
   const rig1 = ctx.rigs.find(r => r.handle === h1);
   const rig2 = ctx.rigs.find(r => r.handle === h2);
@@ -91,7 +92,7 @@ test('box: [bvh("deep_breath").box(3)] con executeInSandbox y mock deja rig.boxe
   const ctx = new SandboxContext('bvh-box-exec', 0, buildApi);
   executeInSandbox(ctx, 'CHAIN($B().bvh("deep_breath").box(3))');
 
-  await new Promise(r => setTimeout(r, 20));
+  await waitFor(() => ctx.rigs.length > 0);
 
   const rig = ctx.rigs[0];
   assert.ok(rig);
@@ -105,7 +106,7 @@ test('box: dos sandboxes no se mezclan (cada uno con sus cajas)', async () => {
   const h1 = createBvh(ctx1, 'anim1').box(2);
   const h2 = createBvh(ctx2, 'anim2').box(5);
 
-  await new Promise(r => setTimeout(r, 20));
+  await waitFor(() => ctx1.rigs.find(r => r.handle === h1) && ctx2.rigs.find(r => r.handle === h2));
 
   const rig1 = ctx1.rigs.find(r => r.handle === h1);
   const rig2 = ctx2.rigs.find(r => r.handle === h2);
@@ -114,7 +115,7 @@ test('box: dos sandboxes no se mezclan (cada uno con sus cajas)', async () => {
   assert.strictEqual(rig1.boxes.length, 2);
   assert.strictEqual(rig2.boxes.length, 5);
   for (const b of rig1.boxes) {
-    assert.strictEqual(rig2.boxes.includes(b), false);
+    assert.ok(!rig2.boxes.includes(b), 'Boxes should not mix');
   }
 });
 
@@ -141,7 +142,7 @@ test('box: estabilidad - tamaño igual en tick 2 y 120, finito y > 0 con 3 hueso
   };
 
   const handle = createBvh(ctx, 'anim1').box(2, 0.5);
-  await new Promise(r => setTimeout(r, 20));
+  await waitFor(() => ctx.rigs.find(r => r.handle === handle));
   BVHLoader.prototype.load = origLoad;
 
   const rig = ctx.rigs.find(r => r.handle === handle);
@@ -186,7 +187,7 @@ test('box: variante _useDummy y group.scale = 100 coincide con bounding box estr
   };
 
   const handle = createBvh(ctx, 'anim1').dummy().box(1, 0);
-  await new Promise(r => setTimeout(r, 20));
+  await waitFor(() => ctx.rigs.find(r => r.handle === handle));
   BVHLoader.prototype.load = origLoad;
 
   const rig = ctx.rigs.find(r => r.handle === handle);

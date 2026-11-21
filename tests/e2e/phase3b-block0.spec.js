@@ -14,9 +14,7 @@ test.describe('Phase 3B Block 0: Error Toast', () => {
 
     // 2. Open drawer and click an animation to trigger insertion error
     const drawerToggle = page.locator('#drawer-toggle');
-    if (await drawerToggle.isVisible()) {
-      await drawerToggle.click();
-    }
+    await drawerToggle.click();
     const bvhItem = page.locator('.bvh-item').first();
     await bvhItem.click();
 

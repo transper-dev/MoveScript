@@ -13,6 +13,11 @@ test('InsertBvh - bloque simple', () => {
   assert.strictEqual(result.code, '[bvh("idle")]\n>[bvh("walk")]');
 });
 
+test('InsertBvh - bloque con > previo', () => {
+  const result = appendBvhToChain('[bvh("a")]>', 'walk');
+  assert.strictEqual(result.code, '[bvh("a")]>\n[bvh("walk")]');
+});
+
 test('InsertBvh - bloque con ; final', () => {
   const result = appendBvhToChain('[bvh("idle")];', 'walk');
   assert.strictEqual(result.code, '[bvh("idle")]\n>[bvh("walk")];');
