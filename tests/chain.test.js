@@ -3,9 +3,8 @@ import assert from 'node:assert';
 import './setup.js';
 import * as THREE from 'three';
 import { createBvh } from '../src/engine/bvh.js';
-
-// Mock BVHLoader to avoid network/file access
 import { BVHLoader } from 'three/addons/loaders/BVHLoader.js';
+import { waitFor } from './helpers.js';
 
 test('BVH Chain - relay logic', async (t) => {
     const ctx = {
@@ -22,7 +21,6 @@ test('BVH Chain - relay logic', async (t) => {
         clip: new THREE.AnimationClip('test', 1, [])
     };
 
-    // Spy on BVHLoader.load
     const originalLoad = BVHLoader.prototype.load;
     const loadCallbacks = [];
     BVHLoader.prototype.load = function(url, onLoad) {
@@ -33,8 +31,7 @@ test('BVH Chain - relay logic', async (t) => {
         const handle1 = createBvh(ctx, 'anim1');
         const handle2 = handle1.nextBvh('anim2');
 
-        // Allow microtasks/async later to queue up loader.load (including getPlatform import)
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await waitFor(() => loadCallbacks.length >= 2);
         assert.strictEqual(loadCallbacks.length, 2, 'Two loader calls should have been made');
 
         loadCallbacks[0](mockResult);
@@ -45,10 +42,8 @@ test('BVH Chain - relay logic', async (t) => {
         assert.strictEqual(ctx.rigs.length, 2, 'Two rigs should be loaded');
         const rig2 = ctx.rigs[1];
 
-        // Test the relay: when rig1 finishes, it should trigger rig2
         rig1.mixer.dispatchEvent({ type: 'finished' });
 
-        // Check if rig2 action is now playing (it was paused initially)
         assert.strictEqual(rig2.action.paused, false, 'Rig2 should be playing after Rig1 finishes');
 
     } finally {
