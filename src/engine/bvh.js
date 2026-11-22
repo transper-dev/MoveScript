@@ -8,7 +8,10 @@ import { BVHLoader } from "three/addons/loaders/BVHLoader.js";
 import { scene } from './scene.js';
 import { send } from './utils.js';
 import { MessageTypes } from '../shared/protocol.js';
+
 import { getPlatform } from '../platform/platform.js';
+
+export const sharedUnitEdgesGeometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1));
 
 /**
  * Crea un handle para cargar y controlar una animación BVH
@@ -20,6 +23,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
     _xExplicit: false,
     _scale: null, _showSkeleton: null, _speed: null, _reverse: null,
     _color: null, _color2: null, _trail: null, _delay: null,
+    _boxesCount: 0, _boxDist: 0,
 
     _useDummy: false, _reqBones: false, _reqJoints: false, _enforceProportions: false,
     _boneWidth: null, _boneLength: null, _jointSize: null,
@@ -32,12 +36,13 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
 
     _propagate(props) {
       Object.assign(this, props);
-      if (this._isChained && this._isHead) {
-        let curr = this._nextHandle;
-        while (curr && curr !== this) {
+      const head = this._chainHead || (this._isHead ? this : null);
+      if (head && head._isChained) {
+        let curr = head;
+        do {
           Object.assign(curr, props);
           curr = curr._nextHandle;
-        }
+        } while (curr && curr !== head);
       }
       return this;
     },
@@ -56,7 +61,21 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
     speed(v) { return this._propagate({ _speed: v }); },
     reverse(v = true) { return this._propagate({ _reverse: v }); },
     color(c1, c2) { return this._propagate({ _color: c1, _color2: c2 }); },
-    trail(length) { return this._propagate({ _trail: length }); },
+    trail(v) {
+      let num = parseInt(v, 10);
+      if (isNaN(num) || num < 0) num = 0;
+      num = Math.min(600, num);
+      return this._propagate({ _trail: num });
+    },
+    box(n = 3, dist = 0.2) {
+      let num = parseInt(n, 10);
+      if (isNaN(num) || num < 0) num = 0;
+      num = Math.min(30, num);
+      let d = parseFloat(dist);
+      if (isNaN(d) || d < 0) d = 0;
+      d = Math.min(10, d);
+      return this._propagate({ _boxesCount: num, _boxDist: d });
+    },
 
     dummy(v = true) {
       const estado = !!v;
@@ -89,6 +108,8 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
       nextHandle._scale = this._scale;
       nextHandle._speed = this._speed;
       nextHandle._trail = this._trail;
+      nextHandle._boxesCount = this._boxesCount;
+      nextHandle._boxDist = this._boxDist;
       nextHandle._showSkeleton = this._showSkeleton;
       nextHandle._reverse = this._reverse;
 
@@ -336,6 +357,23 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
         root.visible = !(handle._isChained && !handle._isHead);
       }
 
+      const boxes = [];
+      if (handle._boxesCount > 0) {
+        const count = handle._boxesCount;
+        for (let i = 0; i < count; i++) {
+          const opacity = Math.max(0.1, 1 - (i / count));
+          const boxMat = new THREE.LineBasicMaterial({
+            color: 0x00ffcc,
+            transparent: true,
+            opacity: opacity
+          });
+          const box = new THREE.LineSegments(sharedUnitEdgesGeometry, boxMat);
+          box.visible = helper.visible;
+          scene.add(box);
+          boxes.push(box);
+        }
+      }
+
       mixer.addEventListener("finished", () => {
         if (myRunId !== ctx.runId || ctx.disposed) return;
         if (handle._isChained && handle._nextHandle) {
@@ -409,7 +447,9 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
           color2: handle._color2,
           trail: handle._trail,
           delay: handle._delay
-        }
+        },
+        _trailPool: [],
+        boxes: boxes
       };
       ctx.rigs.push(rigRecord);
       if (handle._onRigLoaded) {
@@ -424,7 +464,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
   return handle;
 }
 
-const DUPLICATE_KEYS = ["_x", "_xExplicit", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize", "_isStaticDummy"];
+const DUPLICATE_KEYS = ["_x", "_xExplicit", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize", "_isStaticDummy", "_boxesCount", "_boxDist"];
 
 /**
  * Duplica un handle BVH existente con todas sus propiedades
@@ -474,6 +514,7 @@ export class RigNode {
   reverse(v = true) { this.props.reverse = v; return this; }
   skeleton(v = true) { this.props.skeleton = v; return this; }
   trail(l) { this.props.trail = l; return this; }
+  box(n, dist) { this.props.calledBox = true; this.props.boxN = n; this.props.boxDist = dist; return this; }
 }
 
 function applyPropsToHandle(handle, props) {
@@ -495,6 +536,7 @@ function applyPropsToHandle(handle, props) {
   if (props.reverse !== undefined) handle.reverse(props.reverse);
   if (props.skeleton !== undefined) handle.skeleton(props.skeleton);
   if (props.trail !== undefined) handle.trail(props.trail);
+  if (props.calledBox) handle.box(props.boxN, props.boxDist);
 }
 
 /**

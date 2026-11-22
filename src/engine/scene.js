@@ -71,6 +71,7 @@ THREE.Cache.enabled = true;
 
 // --- Configuración global (afecta a todos los sandboxes) ---
 let gridHelper = null;
+let floorMesh = null;
 export let globalPause = false;
 
 export function setGlobalPause(paused) {
@@ -85,6 +86,57 @@ export function setGrid(size = 400, div = 10) {
   }
   gridHelper = new THREE.GridHelper(size, div);
   scene.add(gridHelper);
+}
+
+function isValidColor(c) {
+  if (typeof c === 'number') return true;
+  if (typeof c === 'string') {
+    if (/^#?([0-9a-fA-F]{3}){1,2}$/.test(c)) return true;
+    if (THREE.Color.NAMES[c.toLowerCase()]) return true;
+    if (c.startsWith('rgb(') || c.startsWith('hsl(')) return true;
+  }
+  return false;
+}
+
+export function setFloor(color = "#1a1a24", size = 1000) {
+  if (color === false) {
+    if (floorMesh) {
+      scene.remove(floorMesh);
+      floorMesh.geometry.dispose();
+      floorMesh.material.dispose();
+      floorMesh = null;
+    }
+    return;
+  }
+  if (floorMesh) {
+    scene.remove(floorMesh);
+    floorMesh.geometry.dispose();
+    floorMesh.material.dispose();
+  }
+  let finiteSize = Number(size);
+  if (isNaN(finiteSize) || finiteSize <= 0) {
+    finiteSize = 1000;
+  } else {
+    finiteSize = Math.max(1, Math.min(10000, finiteSize));
+  }
+
+  let finalColor = color;
+  if (!isValidColor(color)) {
+    console.warn("floor(): Invalid color provided, using default.", color);
+    finalColor = "#1a1a24";
+  }
+
+  const material = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(finalColor),
+    side: THREE.DoubleSide
+  });
+
+  const geometry = new THREE.PlaneGeometry(finiteSize, finiteSize);
+  floorMesh = new THREE.Mesh(geometry, material);
+  floorMesh.rotation.x = -Math.PI / 2;
+  // position.y = -1 para evitar z-fighting con el grid en y=0
+  floorMesh.position.y = -1;
+  scene.add(floorMesh);
 }
 
 export function setCam(x = 0, y = 200, z = 450, lx = 0, ly = 120, lz = 0) {

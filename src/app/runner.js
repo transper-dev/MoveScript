@@ -1,12 +1,11 @@
 import { parseBlocks, transpileBlock } from '../dsl/transpile.js';
 import { MessageTypes, getTargetOrigin } from '../shared/protocol.js';
+import * as state from '../core/state.js';
 
 let iframe;
-let sortedByLabelFunc;
 
-export function initRunner(iframeEl, sortedByLabel) {
+export function initRunner(iframeEl) {
   iframe = iframeEl;
-  sortedByLabelFunc = sortedByLabel;
 }
 
 export function runSandbox(sb, runCodeCallback) {
@@ -52,6 +51,7 @@ export function runCode(sb, code, showError, setGlobalPauseUI) {
   `;
 
   const codigoFinal = configuracionOculta + "\n" + transpiled;
-  const order = sortedByLabelFunc().indexOf(sb);
+  const sorted = [...state.sandboxes.values()].sort((a, b) => a.label - b.label);
+  const order = sorted.indexOf(sb);
   iframe.contentWindow.postMessage({ type: MessageTypes.EXECUTE, sandboxId: sb.id, order, code: codigoFinal }, getTargetOrigin());
 }

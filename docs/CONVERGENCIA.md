@@ -13,6 +13,18 @@ El proyecto utiliza una capa de abstracción en `src/platform/` para manejar dif
 
 ## Notas
 - **Three.js**: `THREE.Clock` está deprecado, usar `THREE.Timer` es la meta futura (deuda técnica).
-- **Validación**:
-  - `src/app/` y lógica de UI se validan mediante E2E (`tests/e2e/`) y tests unitarios (`tests/persistence.test.js`, `tests/insertBvh.test.js`, etc.).
-  - **Fase 3A/3A-bis completada**: Deuda de tests cerrada, GIFs portados (9 en `public/assets/gifs/`, ~20MB total, el mayor ~5.3MB), Drawer UX con previsualizaciones flotantes cargadas dinámicamente en hover, y lógica DSL `appendBvhToChain` implementada (varios bloques -> error y no modifica nada).
+
+## Fases y Funcionalidades
+- **Fase 3A/3A-bis**: Deuda de tests cerrada, GIFs portados, Drawer UX con previsualizaciones flotantes, y lógica DSL `appendBvhToChain`.
+- **Fase 3B**:
+    - **box(n, dist)**: Modificador de esqueleto, cajas en `scene`, margen `i*dist*60` sobre bounding box estricto, n<=30, dist<=10, `EdgesGeometry` compartida.
+    - **floor(color, size)**: Defaults, límites [1,10000], y=-1, validación color propia (`isValidColor`), `floor(false)`.
+    - **Estelas (trails)**: Pool por rig, tope 2000, `trail<=600`.
+    - **Corregido**: `box()` (cajas a `scene`, medición estricta), `floor()` (validación color), `runner.js` (TypeError en `sortedByLabelFunc`), tests e2e/unitarios, cobertura.
+
+## Deudas Técnicas
+- **UI/Errors**: `showError` (pasar como parámetro frente a `window.showError`, fase 6).
+- **Arquitectura**: Cabeceras Global/Local (fase 4).
+- **DSL**: Peso de `dist/` y GIFs (fase 6).
+- **Seguridad**: El sandbox del DSL se salta con `speed.constructor('...')()` y `Math.constructor.constructor(...)`; debe resolverse antes de la fase 5.
+- **THREE.Clock**: Sustitución por `THREE.Timer` (fase 7).

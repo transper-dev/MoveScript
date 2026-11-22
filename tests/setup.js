@@ -124,3 +124,14 @@ global.CodeMirror = {
 };
 
 setEditorFactory(global.CodeMirror);
+
+import { BVHLoader } from 'three/addons/loaders/BVHLoader.js';
+BVHLoader.prototype.load = function(url, onLoad) {
+  setTimeout(() => {
+    onLoad({
+      skeleton: { bones: [new THREE.Bone()] },
+      clip: new THREE.AnimationClip('test', 1, [])
+    });
+  }, 0);
+};
+

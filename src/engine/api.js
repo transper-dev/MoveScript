@@ -4,7 +4,7 @@
  * executeInSandbox() ejecuta código de usuario con la API inyectada
  */
 
-import { setGlobalPause, setGrid, setCam, setBackground, setRot } from './scene.js';
+import { setGlobalPause, setGrid, setCam, setBackground, setRot, setFloor } from './scene.js';
 import { createBvh, duplicateHandle, makeChain, RigNode } from './bvh.js';
 
 /**
@@ -22,12 +22,19 @@ export function buildApi(ctx) {
     scale(v) { ctx.params.globalScale = v; return api; },
     reverse(v = true) { ctx.params.reverse = v; return api; },
     color(c1, c2) { ctx.params.color = c1; ctx.params.color2 = c2; return api; },
-    trail(v) { ctx.params.trail = v; return api; },
+    trail(v) {
+      let num = parseInt(v, 10);
+      if (isNaN(num) || num < 0) num = 0;
+      num = Math.min(600, num);
+      ctx.params.trail = num;
+      return api;
+    },
     delay(s) { ctx.params.delay = s; return api; },
 
     // Métodos globales (afectan a toda la escena)
     pause(v = true) { setGlobalPause(v); return api; },
     grid(size, div) { setGrid(size, div); return api; },
+    floor(color, size) { setFloor(color, size); return api; },
     cam(...a) { setCam(...a); return api; },
     background(c) { setBackground(c); return api; },
     bg(c) { setBackground(c); return api; },

@@ -126,6 +126,12 @@ test.describe('MoveScript E2E Tests', () => {
 
   // --- Smoke Tests for Phase 1 Safety Net ---
   test('smoke: engine communication and default execution without error toast', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+    page.on('console', (msg) => {
+        if (msg.type() === 'error') errors.push(msg.text());
+    });
+
     await page.goto('/');
 
     // Wait for application to load
@@ -138,6 +144,7 @@ test.describe('MoveScript E2E Tests', () => {
     // Verify error toast is not visible (no runtime error on default execution)
     const errorToast = page.locator('#error-toast');
     await expect(errorToast).not.toHaveClass(/visible/);
+    expect(errors).toEqual([]);
   });
 
   test('smoke: network request for BVH assets succeeds on execution', async ({ page }) => {

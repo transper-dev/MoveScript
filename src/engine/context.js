@@ -15,9 +15,9 @@ import {
   frameCount
 } from './utils.js';
 
-// ====================================================
-// CONTEXTO POR SANDBOX
-// ====================================================
+const tempBox3 = new THREE.Box3();
+const tempSize = new THREE.Vector3();
+const tempCenter = new THREE.Vector3();
 export const contexts = new Map();
 
 export class SandboxContext {
@@ -107,19 +107,69 @@ export class SandboxContext {
       // Aplica autoScale si fue calculado al crear el rig
       if (r.group) r.group.scale.setScalar((r.autoScale || 1) * (r.opts.scale ?? this.params.globalScale));
 
-      const trailLen = r.opts.trail ?? this.params.trail;
-      const delayTime = r.opts.delay ?? this.params.delay;
       const isVisible = r.handle._useDummy ? r.root.visible : (r.helper && r.helper.visible);
 
+      if (r.boxes && r.boxes.length > 0) {
+        if (isVisible && r.helper) {
+          if (r.handle._useDummy) {
+            tempBox3.setFromObject(r.group);
+          } else {
+            if (r.helper.geometry) {
+              r.helper.geometry.computeBoundingBox();
+            }
+            tempBox3.setFromObject(r.helper);
+          }
+          tempBox3.getSize(tempSize);
+          tempBox3.getCenter(tempCenter);
+
+          const count = r.boxes.length;
+          const dist = r.handle._boxDist ?? 0.2;
+          for (let i = 0; i < count; i++) {
+            const box = r.boxes[i];
+            box.visible = true;
+            const margin = i * dist * 60;
+            box.position.copy(tempCenter);
+            box.scale.set(tempSize.x + margin, tempSize.y + margin, tempSize.z + margin);
+          }
+        } else {
+          for (const box of r.boxes) box.visible = false;
+        }
+      }
+
+      const trailLen = r.opts.trail ?? this.params.trail;
+      const delayTime = r.opts.delay ?? this.params.delay;
+
       if (!paused && trailLen > 0 && frameCount % 6 === 0 && isVisible && r.timeAlive >= delayTime) {
-        const snapGeom = r.helper.geometry.clone();
-        snapGeom.applyMatrix4(r.helper.matrixWorld);
-        const snapMat = r.helper.material.clone();
-        snapMat.transparent = true;
-        snapMat.opacity = 0.6;
-        const snapLine = new THREE.LineSegments(snapGeom, snapMat);
-        scene.add(snapLine);
-        this.trails.push({ mesh: snapLine, life: 0.6, decay: 0.6 / trailLen });
+        if (this.trails.length < 2000) {
+          let snapLine;
+          const sourceGeom = r.helper.geometry;
+          const posAttr = sourceGeom.attributes.position;
+
+          if (r._trailPool.length > 0) {
+            snapLine = r._trailPool.pop();
+            const geom = snapLine.geometry;
+            const targetPosAttr = geom.attributes.position;
+            if (targetPosAttr.count === posAttr.count) {
+              targetPosAttr.copy(posAttr);
+            } else {
+              geom.dispose();
+              snapLine.geometry = sourceGeom.clone();
+            }
+            snapLine.geometry.applyMatrix4(r.helper.matrixWorld);
+            snapLine.geometry.attributes.position.needsUpdate = true;
+            snapLine.material.opacity = 0.6;
+            snapLine.visible = true;
+          } else {
+            const snapGeom = sourceGeom.clone();
+            snapGeom.applyMatrix4(r.helper.matrixWorld);
+            const snapMat = r.helper.material.clone();
+            snapMat.transparent = true;
+            snapMat.opacity = 0.6;
+            snapLine = new THREE.LineSegments(snapGeom, snapMat);
+          }
+          scene.add(snapLine);
+          this.trails.push({ mesh: snapLine, life: 0.6, decay: 0.6 / trailLen, rig: r });
+        }
       }
     }
 
@@ -129,8 +179,8 @@ export class SandboxContext {
       t.mesh.material.opacity = t.life;
       if (t.life <= 0) {
         scene.remove(t.mesh);
-        t.mesh.geometry.dispose();
-        t.mesh.material.dispose();
+        t.mesh.visible = false;
+        t.rig._trailPool.push(t.mesh);
         this.trails.splice(i, 1);
       }
     }

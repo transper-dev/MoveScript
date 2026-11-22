@@ -58,6 +58,22 @@ export function deselect(notify = true) {
  * Libera los recursos de un rig (mixer, helper, group)
  */
 export function disposeRig(r) {
+  if (r.boxes) {
+    for (const b of r.boxes) {
+      if (b.parent) b.parent.remove(b);
+      scene.remove(b);
+      if (b.material) b.material.dispose();
+    }
+    r.boxes.length = 0;
+  }
+  if (r._trailPool) {
+    for (const mesh of r._trailPool) {
+      scene.remove(mesh);
+      if (mesh.geometry) mesh.geometry.dispose();
+      if (mesh.material) mesh.material.dispose();
+    }
+    r._trailPool.length = 0;
+  }
   if (r.mixer) {
     r.mixer.stopAllAction();
     if (r.root) r.mixer.uncacheRoot(r.root);

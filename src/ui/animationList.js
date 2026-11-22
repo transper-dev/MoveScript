@@ -85,6 +85,12 @@ export async function initAnimationList() {
         return;
       }
       window.editor.setValue(res.code);
+      if (typeof window.editor.posFromIndex === 'function' && typeof window.editor.setCursor === 'function') {
+        window.editor.setCursor(window.editor.posFromIndex(res.cursorIndex));
+      }
+      if (typeof window.editor.focus === 'function') {
+        window.editor.focus();
+      }
       if (hoverPreviewContainer) hoverPreviewContainer.classList.remove('visible');
       if (iframePreview.contentWindow && window.runActiveSandbox) window.runActiveSandbox();
     });
