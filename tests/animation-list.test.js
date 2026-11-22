@@ -3,6 +3,69 @@ import assert from 'node:assert';
 import './setup.js';
 import { initAnimationList } from '../src/ui/animationList.js';
 
+test('AnimationList UI - error on multiple continuous blocks', async () => {
+  global.fetch = async () => ({
+    ok: true,
+    json: async () => ["deep_breath"]
+  });
+
+  document.body.innerHTML = `
+    <div id="bvh-list"></div>
+    <iframe id="preview"></iframe>
+  `;
+
+  let setValueCalled = false;
+  let errorShown = null;
+
+  global.window.editor = {
+    getValue: () => '[bvh("a")]; [bvh("b")]',
+    setValue: () => { setValueCalled = true; },
+    focus: () => {}
+  };
+  global.window.showError = (msg) => { errorShown = msg; };
+
+  await initAnimationList();
+  const bvhList = document.getElementById('bvh-list');
+  const items = bvhList.querySelectorAll('.bvh-item');
+
+  items[0].click();
+
+  assert.ok(errorShown && errorShown.includes('Solo se permite una secuencia continua'), 'Should show error message');
+  assert.strictEqual(setValueCalled, false, 'setValue should NOT be called');
+
+  delete global.window.showError;
+});
+
+test('AnimationList UI - setCursor and focus called before runActiveSandbox', async () => {
+  global.fetch = async () => ({
+    ok: true,
+    json: async () => ["deep_breath"]
+  });
+
+  document.body.innerHTML = `
+    <div id="bvh-list"></div>
+    <iframe id="preview"></iframe>
+  `;
+
+  const callOrder = [];
+  global.window.editor = {
+    getValue: () => '',
+    setValue: () => { callOrder.push('setValue'); },
+    posFromIndex: (i) => i,
+    setCursor: () => { callOrder.push('setCursor'); },
+    focus: () => { callOrder.push('focus'); }
+  };
+  global.window.runActiveSandbox = () => { callOrder.push('runActiveSandbox'); };
+
+  await initAnimationList();
+  const bvhList = document.getElementById('bvh-list');
+  const items = bvhList.querySelectorAll('.bvh-item');
+
+  items[0].click();
+
+  assert.deepStrictEqual(callOrder, ['setValue', 'setCursor', 'focus', 'runActiveSandbox']);
+});
+
 test('AnimationList UI - render animations, hover, click, error handling and fallback', async () => {
   let fetched = false;
   global.fetch = async (url) => {
@@ -26,7 +89,9 @@ test('AnimationList UI - render animations, hover, click, error handling and fal
   global.window.editor = {
     getValue: () => editorValue,
     setValue: (v) => { editorValue = v; },
-    focus: () => {}
+    focus: () => {},
+    posFromIndex: (i) => i,
+    setCursor: () => {}
   };
   global.window.runActiveSandbox = () => {};
 
@@ -62,11 +127,6 @@ test('AnimationList UI - render animations, hover, click, error handling and fal
   // Test Click insertion (success)
   items[0].click();
   assert.strictEqual(editorValue, '[bvh("deep_breath")]');
-
-  // Test Click insertion error (more than 1 block)
-  editorValue = '[bvh("a")][bvh("b")]';
-  items[0].click();
-  assert.ok(errorShown);
 
   delete global.window.showError;
 });

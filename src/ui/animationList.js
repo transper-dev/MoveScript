@@ -31,8 +31,7 @@ export async function initAnimationList() {
   if (animacionesDisponibles.length === 0) {
     const msg = "Cargando animaciones de emergencia.";
     console.error(msg);
-    // TODO: Registrar en informe de cobertura/log persistente
-    animacionesDisponibles = ["turn", "silly_walk", "monster_walk", "serious_walk"];
+    animacionesDisponibles = ["deep_breath", "surprise", "posing"];
   }
 
   // Renderizar los botones en el drawer
