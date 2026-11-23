@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, session } from 'electron';
 import { dirname, join, basename } from 'path';
 import { fileURLToPath } from 'url';
-import { execFile } from 'child_process';
+import { spawn } from 'child_process';
 import fs from 'fs';
 import { sanitizeBvhFileName } from './validator.js';
 import { createDesktopServices } from './desktopServices.js';
@@ -65,7 +65,9 @@ app.whenReady().then(async () => {
         onTunnelStart: (onClose) => {
             const command = process.platform === 'win32' ? 'ssh.exe' : 'ssh';
             const args = ['-p', '443', '-R0:127.0.0.1:3000', '-o', 'StrictHostKeyChecking=no', 'qr@a.pinggy.io'];
-            const child = execFile(command, args);
+            const child = process.platform === 'win32'
+                ? spawn('cmd.exe', ['/k', command, ...args], { windowsHide: false })
+                : spawn(command, args, { stdio: 'inherit' });
             child.once('close', onClose);
             child.once('error', onClose);
             return child;
