@@ -1,5 +1,5 @@
-const { contextBridge, ipcRenderer } = require('electron');
-const path = require('path');
+import { contextBridge, ipcRenderer } from 'electron';
+import path from 'path';
 
 const BASE_DIR = 'MoveScript_BVH';
 

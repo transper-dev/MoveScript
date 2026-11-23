@@ -1,9 +1,13 @@
-const { app, BrowserWindow, ipcMain, session } = require('electron');
-const path = require('path');
-const fs = require('fs');
-const { sanitizeBvhFileName } = require('./validator.js');
+import { app, BrowserWindow, ipcMain, session } from 'electron';
+import { dirname, join, basename } from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+import { sanitizeBvhFileName } from './validator.js';
 
-const BASE_DIR = path.join(app.getPath('userData'), 'MoveScript_BVH');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const BASE_DIR = join(app.getPath('userData'), 'MoveScript_BVH');
 if (!fs.existsSync(BASE_DIR)) {
     fs.mkdirSync(BASE_DIR, { recursive: true });
 }
@@ -13,14 +17,13 @@ function createWindow() {
         width: 1280,
         height: 800,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            preload: join(__dirname, 'preload.js'),
             contextIsolation: true,
             nodeIntegration: false,
             sandbox: true
         }
     });
 
-    // CSP Estricta
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
         callback({
             responseHeaders: {
@@ -30,7 +33,7 @@ function createWindow() {
         });
     });
 
-    mainWindow.loadFile(path.join(__dirname, '../index.html'));
+    mainWindow.loadFile(join(__dirname, '../index.html'));
 }
 
 app.whenReady().then(() => {
@@ -42,15 +45,14 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.stop();
+    if (process.platform !== 'darwin') app.quit();
 });
 
-// IPC handler seguro con validación
 ipcMain.handle('fs:read', async (event, filePath) => {
     try {
-        const basename = path.basename(filePath);
-        const safeName = sanitizeBvhFileName(basename);
-        const resolvedPath = path.join(BASE_DIR, safeName);
+        const fileBasename = basename(filePath);
+        const safeName = sanitizeBvhFileName(fileBasename);
+        const resolvedPath = join(BASE_DIR, safeName);
 
         if (!fs.existsSync(resolvedPath)) {
             throw new Error(`File not found: ${safeName}`);
@@ -75,7 +77,7 @@ ipcMain.handle('fs:list', async () => {
 ipcMain.handle('fs:save', async (event, filename, content) => {
     try {
         const safeName = sanitizeBvhFileName(filename);
-        const resolvedPath = path.join(BASE_DIR, safeName);
+        const resolvedPath = join(BASE_DIR, safeName);
         fs.writeFileSync(resolvedPath, content, 'utf8');
         return true;
     } catch (err) {
