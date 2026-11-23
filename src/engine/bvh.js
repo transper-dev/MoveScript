@@ -126,6 +126,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
   const myRunId = handle._runId;
 
   ctx.later(async () => {
+    let bvhContent = null;
     let urlDefinitiva = "";
 
     if (fileOrUrl.startsWith("http")) {
@@ -133,13 +134,13 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
     } else {
       if (capabilities.hasLocalBvh) {
         try {
-          urlDefinitiva = await window.electronAPI.readBvh(`${fileOrUrl}.bvh`);
+          bvhContent = await window.electronAPI.readBvh(`${fileOrUrl}.bvh`);
         } catch (e) {
           console.warn("BVH no encontrado en local, cayendo a globales...");
         }
       }
 
-      if (!urlDefinitiva) {
+      if (!bvhContent) {
         urlDefinitiva = `./assets/bvh/${fileOrUrl}.bvh`;
         if (!capabilities.hasLocalBvh && navigator.onLine) {
           try {
@@ -152,13 +153,13 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
 
     if (myRunId !== ctx.runId) return;
 
-    if (!urlDefinitiva) {
+    if (!bvhContent && !urlDefinitiva) {
       send(MessageTypes.ERROR, ctx.id, { message: `No se encuentra la animación: ${fileOrUrl}.bvh` });
       return;
     }
 
     const loader = new BVHLoader();
-    loader.load(urlDefinitiva, (result) => {
+    const onLoaded = (result) => {
       if (myRunId !== ctx.runId || ctx.disposed) return;
 
       const root = result.skeleton.bones[0];
@@ -464,10 +465,21 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
       if (handle._onRigLoaded) {
         handle._onRigLoaded(rigRecord);
       }
-    }, undefined, () => {
-      if (myRunId !== ctx.runId) return;
-      send(MessageTypes.ERROR, ctx.id, { message: `No se encuentra la animación: ${fileOrUrl}.bvh` });
-    });
+    };
+
+    if (bvhContent) {
+      try {
+        const result = loader.parse(bvhContent);
+        onLoaded(result);
+      } catch (err) {
+        send(MessageTypes.ERROR, ctx.id, { message: `Error parseando BVH local: ${err.message}` });
+      }
+    } else {
+      loader.load(urlDefinitiva, onLoaded, undefined, () => {
+        if (myRunId !== ctx.runId) return;
+        send(MessageTypes.ERROR, ctx.id, { message: `No se encuentra la animación: ${fileOrUrl}.bvh` });
+      });
+    }
   }, 0);
 
   return handle;
