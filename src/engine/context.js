@@ -4,7 +4,7 @@
  */
 
 import * as THREE from "three";
-import { scene, globalPause } from './scene.js';
+import { scene, globalPause, clearFloor } from './scene.js';
 import {
   DEFAULT_SANDBOX,
   SANDBOX_SPACING,
@@ -96,6 +96,8 @@ export class SandboxContext {
     this.trails.length = 0;
     this.params = defaultParams();
     this.paused = false; // un nuevo Run reanuda este sandbox
+
+    clearFloor();
   }
 
   destroy() {

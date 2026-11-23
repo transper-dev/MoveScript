@@ -112,6 +112,7 @@ setGrid(800, 20);
 export const clock = new THREE.Clock();
 
 export function floor(color = "#1a1a24", size = 2000) {
+  clearFloor();
   const geom = new THREE.PlaneGeometry(size, size);
   const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.9, metalness: 0.1 });
   const mesh = new THREE.Mesh(geom, mat);
@@ -119,4 +120,17 @@ export function floor(color = "#1a1a24", size = 2000) {
   mesh.position.y = -20;
   mesh.name = "CustomFloor";
   scene.add(mesh);
+}
+
+export function clearFloor() {
+  const floors = scene.children.filter(obj => obj.name === "CustomFloor");
+  for (const f of floors) {
+    scene.remove(f);
+    f.geometry.dispose();
+    if (Array.isArray(f.material)) {
+      f.material.forEach(m => m.dispose());
+    } else {
+      f.material.dispose();
+    }
+  }
 }
