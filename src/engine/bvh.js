@@ -136,7 +136,9 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
         try {
           bvhContent = await window.electronAPI.readBvh(`${fileOrUrl}.bvh`);
         } catch (e) {
-          console.warn("BVH no encontrado en local, cayendo a globales...");
+          console.warn("BVH no encontrado en local:", e.message);
+          send(MessageTypes.ERROR, ctx.id, { message: `Error leyendo BVH local: ${e.message}` });
+          return;
         }
       }
 
@@ -472,6 +474,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
         const result = loader.parse(bvhContent);
         onLoaded(result);
       } catch (err) {
+        if (myRunId !== ctx.runId || ctx.disposed) return;
         send(MessageTypes.ERROR, ctx.id, { message: `Error parseando BVH local: ${err.message}` });
       }
     } else {
