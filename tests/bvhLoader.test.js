@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert';
 import { BVHLoader } from 'three/examples/jsm/loaders/BVHLoader.js';
+import { loadBvhContent } from '../src/engine/bvh.js';
 
 test('BVHLoader can parse string content directly', () => {
     const loader = new BVHLoader();
@@ -28,4 +29,28 @@ Frame Time: 0.03333333
     const result = loader.parse(bvhContent);
     assert.ok(result.skeleton, 'Skeleton should be parsed');
     assert.ok(result.clip, 'Clip should be parsed');
+});
+
+test('loadBvhContent falls back to global asset when local BVH is missing', async () => {
+    const localError = new Error('File not found: deep_breath.bvh');
+    const globalContent = 'global bvh content';
+    const calls = [];
+
+    const content = await loadBvhContent('deep_breath', {
+        hasLocalBvh: true,
+        readLocal: async filename => {
+            calls.push(['local', filename]);
+            throw localError;
+        },
+        fetchGlobal: async url => {
+            calls.push(['global', url]);
+            return globalContent;
+        }
+    });
+
+    assert.strictEqual(content, globalContent);
+    assert.deepStrictEqual(calls, [
+        ['local', 'deep_breath.bvh'],
+        ['global', './assets/bvh/deep_breath.bvh']
+    ]);
 });

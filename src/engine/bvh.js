@@ -12,6 +12,28 @@ import { capabilities } from '../platform/index.js';
 
 let localBvhRequestId = 0;
 
+export async function loadBvhContent(fileOrUrl, {
+  hasLocalBvh = capabilities.hasLocalBvh,
+  readLocal = readLocalBvh,
+  fetchGlobal = async url => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.text();
+  }
+} = {}) {
+  if (fileOrUrl.startsWith('http')) return null;
+
+  if (hasLocalBvh) {
+    try {
+      return await readLocal(`${fileOrUrl}.bvh`);
+    } catch (error) {
+      console.warn('BVH no encontrado en local:', error.message);
+    }
+  }
+
+  return fetchGlobal(`./assets/bvh/${fileOrUrl}.bvh`);
+}
+
 function readLocalBvh(filename) {
   const api = typeof window !== 'undefined' ? window.electronAPI : null;
   if (api?.readBvh) return api.readBvh(filename);
@@ -154,25 +176,21 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
 
     if (fileOrUrl.startsWith("http")) {
       urlDefinitiva = fileOrUrl;
-    } else {
-      if (capabilities.hasLocalBvh) {
-        try {
-          bvhContent = await readLocalBvh(`${fileOrUrl}.bvh`);
-        } catch (e) {
-          console.warn("BVH no encontrado en local:", e.message);
-          send(MessageTypes.ERROR, ctx.id, { message: `Error leyendo BVH local: ${e.message}` });
-          return;
-        }
+    } else if (capabilities.hasLocalBvh) {
+      try {
+        bvhContent = await loadBvhContent(fileOrUrl);
+      } catch (e) {
+        if (myRunId !== ctx.runId || ctx.disposed) return;
+        send(MessageTypes.ERROR, ctx.id, { message: `No se encuentra la animación: ${fileOrUrl}.bvh` });
+        return;
       }
-
-      if (!bvhContent) {
-        urlDefinitiva = `./assets/bvh/${fileOrUrl}.bvh`;
-        if (!capabilities.hasLocalBvh && navigator.onLine) {
-          try {
-            const res = await fetch(urlDefinitiva, { method: 'HEAD' });
-            if (!res.ok) urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/bvh/${fileOrUrl}.bvh`;
-          } catch (e) { /* fallback fallido */ }
-        }
+    } else {
+      urlDefinitiva = `./assets/bvh/${fileOrUrl}.bvh`;
+      if (navigator.onLine) {
+        try {
+          const res = await fetch(urlDefinitiva, { method: 'HEAD' });
+          if (!res.ok) urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/bvh/${fileOrUrl}.bvh`;
+        } catch (e) { /* fallback fallido */ }
       }
     }
 
@@ -498,7 +516,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
         onLoaded(result);
       } catch (err) {
         if (myRunId !== ctx.runId || ctx.disposed) return;
-        send(MessageTypes.ERROR, ctx.id, { message: `Error parseando BVH local: ${err.message}` });
+        send(MessageTypes.ERROR, ctx.id, { message: `Error parseando BVH: ${err.message}` });
       }
     } else {
       loader.load(urlDefinitiva, onLoaded, undefined, () => {
