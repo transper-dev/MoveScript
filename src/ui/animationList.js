@@ -93,15 +93,19 @@ export async function initAnimationList() {
 
     btn.addEventListener('click', () => {
       if (!window.editor) return;
-      let code = window.editor.getValue();
+      let code = window.editor.getValue().trim();
 
-      const regexBusqueda = /\[[^\]]+\]/;
+      const newBvh = `[bvh("${nombre}")]`;
 
-      if (regexBusqueda.test(code)) {
-        code = code.replace(regexBusqueda, `[bvh("${nombre}")]\n>$&`);
+      if (code === "") {
+        code = newBvh;
       } else {
-        const salto = code.trim() !== "" ? "\n\n" : "";
-        code += `${salto}[bvh("${nombre}")]`;
+        // Si ya hay código, añadimos con pipe si el último bloque no está encadenado
+        if (code.endsWith(']')) {
+          code += `\n>${newBvh}`;
+        } else {
+          code += `\n\n${newBvh}`;
+        }
       }
 
       window.editor.setValue(code);
