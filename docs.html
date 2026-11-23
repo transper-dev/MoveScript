@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MoveScript Docs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="icon" type="image/png" href="./assets/icons/icon.png">
+    <style>
+        :root {
+            --bg-color: #111111;
+            --panel-bg: #1a1a1a;
+            --text-color: #eeeeee;
+            --accent-color: #00ffcc;
+            --code-bg: #252525;
+            --nav-height: 60px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+
+        .top-nav h2 {
+            color: var(--accent-color);
+            margin: 0;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+        }
+
+        .main-menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        .main-menu a.nav-btn {
+            text-decoration: none;
+            color: #aaa;
+            font-size: 1rem;
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .main-menu a.nav-btn:hover,
+        .main-menu a.nav-btn.active {
+            color: var(--accent-color);
+            background: rgba(0, 255, 204, 0.1);
+            font-weight: bold;
+        }
+
+        .page-content {
+            margin-top: var(--nav-height);
+            padding: 0;
+        }
+
+        .page-section {
+            scroll-margin-top: 60px;
+            min-height: 50vh;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .page-section:last-child {
+            border-bottom: none;
+        }
+
+        .sub-nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            background-color: rgba(21, 21, 21, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            position: sticky;
+            top: calc(var(--nav-height) + 10px);
+            z-index: 999;
+            margin-bottom: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .sub-nav a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+
+        .sub-nav a:hover {
+            color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sub-nav a.active {
+            color: var(--accent-color);
+            background: rgba(0, 255, 204, 0.15);
+            font-weight: bold;
+        }
+
+        .content-padding {
+            padding: 60px 40px 10vh 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-text {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header-text p {
+            color: #ccc;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 10px auto 0 auto;
+            line-height: 1.5;
+        }
+
+        .header-text code {
+            background-color: #252525;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #fff;
+        }
+
+        .function-title {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            margin-top: 0;
+            line-height: 1.4;
+        }
+
+        .no-border {
+            border-bottom: none !important;
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
+        .doc-section {
+            padding-bottom: 50px;
+            margin-bottom: 50px;
+            scroll-margin-top: 120px;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .doc-section>h3,
+        .doc-section>p {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+
+        .doc-card {
+            background-color: var(--panel-bg);
+            border-radius: 6px;
+            border: 1px solid #333;
+            overflow: hidden;
+            margin-top: 5px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .code-wrapper {
+            position: relative;
+            background-color: var(--code-bg);
+            border-bottom: 1px solid #333;
+        }
+
+        .code-block {
+            padding: 15px;
+            margin: 0;
+            font-size: 0.95rem;
+            color: #fff;
+            overflow-x: auto;
+        }
+
+        .gif-preview {
+            display: block;
+            width: 100%;
+            height: auto;
+            background-color: #050505;
+        }
+
+        .description {
+            padding: 15px;
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            border: 1px solid #444;
+            border-radius: 4px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(0, 255, 204, 0.15);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-color);
+            color: #000;
+            border-color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .anim-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .anim-card {
+            background-color: var(--panel-bg);
+            border: 1px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .anim-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 204, 0.1);
+        }
+
+        .anim-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background-color: #050505;
+            transition: transform 0.3s ease;
+        }
+
+        .anim-card:hover img {
+            transform: scale(1.10);
+        }
+
+        .anim-card .anim-name {
+            padding: 10px;
+            font-weight: bold;
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            border-top: 1px solid #333;
+            background-color: var(--panel-bg);
+            position: relative;
+            z-index: 2;
+        }
+
+        #backToTop {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(15, 15, 15, 0.85);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #backToTop.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #backToTop:hover {
+            background: var(--accent-color);
+            color: #000;
+            transform: translateY(-3px);
+        }
+
+        /* ESTILOS DE MEDIA (VIDEOS/IMAGENES DEMO) */
+        .demo-video-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .demo-media {
+            width: 100%;
+            height: auto;
+            max-height: 60vh;
+            object-fit: contain;
+            border-radius: 6px;
+            background-color: #050505;
+            border: 1px solid #333;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .demo-caption {
+            color: #ccc;
+            font-size: 1.1rem;
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="top-nav">
+        <h2>MoveScript</h2>
+        <div class="main-menu">
+            <a href="#demo" class="nav-btn">Demo</a>
+            <a href="#download" class="nav-btn">Download</a>
+            <a href="#functions" class="nav-btn">Functions</a>
+            <a href="#videotobvh" class="nav-btn">VideoToBVH</a>
+            <a href="#vr" class="nav-btn">WebXR</a>
+            <a href="#movements" class="nav-btn">Movements</a>
+        </div>
+        <div style="width: 120px;"></div>
+    </nav>
+
+    <div class="page-content">
+
+        <section id="demo" class="page-section">
+            <div class="content-padding">
+                <div class="header-text">
+                    <h1 class="function-title">Live Demos</h1>
+                    <p>Write code and see the changes instantly with no load times.</p>
+                </div>
+
+                <section class="doc-section no-border">
+                    <div class="doc-card">
+                        <div class="demo-video-container">
+                            <video class="demo-media" controls muted loop>
+                                <source src="assets/docs/DemoMoveScript.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section id="download" class="page-section">
+            <div class="content-padding">
+                <div class="header-text">
+                    <h1 class="function-title">Download</h1>
+                    <p>Get the latest compiled version of MoveScriptVR for your operating system, ready to use with no
+                        dependencies.</p>
+                </div>
+
+                <section class="doc-section no-border">
+                    <div class="doc-card" style="padding: 40px 20px; text-align: center;">
+                        <h3 style="color: var(--accent-color); margin-bottom: 15px;">Cross-Platform Installers</h3>
+                        <p style="color: #ccc; margin-bottom: 30px;">The application includes a silent auto-update
+                            system.</p>
+
+                        <a href="https://github.com/transper-dev/MoveScript/releases/latest" target="_blank"
+                            rel="noopener noreferrer"
+                            style="display: inline-block; background-color: var(--accent-color); color: #000; padding: 15px 30px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: all 0.2s ease; border: 2px solid var(--accent-color);">
+                            <i class="fab fa-github" style="margin-right: 8px;"></i> Download from GitHub Releases
+                        </a>
+
+                        <div style="margin-top: 25px; color: #888; font-size: 0.95rem;">
+                            Available files: <strong>.exe</strong> (Windows) and <strong>.dmg</strong> (macOS).
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section id="functions" class="page-section">
+
+            <div class="content-padding">
+                <div class="header-text">
+                    <h1 class="function-title">Functions Reference</h1>
+                    <p>Explore the available methods to load animations, modify the skeleton, and chain movements.</p>
+                </div>
+
+                <nav class="sub-nav">
+                    <a href="#bvh">bvh</a>
+                    <a href="#dummy">dummy</a>
+                    <a href="#joints">joints</a>
+                    <a href="#bones">bones</a>
+                    <a href="#color">color</a>
+                    <a href="#trail">trail</a>
+                    <a href="#box">box</a>
+                    <a href="#chaining">chaining</a>
+                </nav>
+
+                <section id="bvh" class="doc-section">
+                    <h3 class="function-title">bvh( "name" )</h3>
+                    <p>Loads and initializes a pre-recorded animation to apply it to the skeleton.</p>
+                    <div class="doc-card">
+                        <div class="code-wrapper">
+                            <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                            <pre class="code-block"><code>[bvh("surprise")]</code></pre>
+                        </div>
+                        <img class="gif-preview" src="assets/gifs/bvh-example.gif" alt="bvh example">
+                        <div class="description">
+                            <strong>Parameters:</strong> <code>"name"</code> (string with the exact name of the
+                            animation file).
+                            <br><em>Check the <a href="#movements"
+                                    style="color: var(--accent-color); text-decoration: none; border-bottom: 1px dashed var(--accent-color);">Movement
+                                    Catalog</a> to see all available animations.</em>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="dummy" class="doc-section">
+                    <h3 class="function-title">bvh( "dummy" )</h3>
+                    <p>Generates a static skeleton in a T-pose.</p>
+                    <div class="doc-card">
+                        <div class="code-wrapper">
+                            <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                            <pre class="code-block"><code>[bvh("dummy")]</code></pre>
+                        </div>
+                        <img class="gif-preview" src="assets/gifs/dummy-example.gif" alt="dummy example">
+                        <div class="description"><strong>Parameters:</strong> No additional parameters required.</div>
+                    </div>
+                </section>
+
+                <section id="joints" class="doc-section">
+                    <h3 class="function-title">.joints( size )</h3>
+                    <p>Modifies the size of the spheres that represent the skeleton's joints.</p>
+                    <div class="doc-card">
+                        <div class="code-wrapper">
+                            <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                            <pre class="code-block"><code>[bvh("surprise").joints(2)]</code></pre>
+                        </div>
+                        <img class="gif-preview" src="assets/gifs/joints-example.gif" alt="joints example">
+                        <div class="description"><strong>Parameters:</strong> <code>size</code> (numeric value defining
+                            the scale).</div>
+                    </div>
+                </section>
+
+                <section id="bones" class="doc-section">
+                    <h3 class="function-title">.bones( thickness) //default length = 1 <br> .bones( thickness, length )
+                    </h3>
+                    <p>Adjusts the thickness and length of the bones connecting the joints.</p>
+                    <div class="doc-card">
+                        <div class="code-wrapper">
+                            <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                            <pre class="code-block"><code>[bvh("surprise").bones(2, 1)]</code></pre>
+                        </div>
+                        <img class="gif-preview" src="assets/gifs/bones-example.gif" alt="bones example">
+                        <div class="description"><strong>Parameters:</strong> <code>thickness</code> (bone width),
+                            <code>length</code> (distance multiplier between connections, defaults to 1 if omitted).
+                        </div>
+                    </div>
+                </section>
+
+                <section id="color" class="doc-section">
+                    <h3 class="function-title">.color( c1 )<br>.color( c1, c2 )</h3>
+                    <p>Applies a solid color to the skeleton, or generates a gradient if two colors are specified.</p>
+                    <div class="doc-card">
+                        <div class="code-wrapper">
+                            <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                            <pre class="code-block"><code>[bvh("surprise").color("red", "blue")]</code></pre>
+                        </div>
+                        <img class="gif-preview" src="assets/gifs/color-example.gif" alt="color example">
+                        <div class="description"><strong>Parameters:</strong> <code>c1</code> (main color in text or hex
+                            format), <code>c2</code> (secondary color to create the gradient).</div>
+                    </div>
+                </section>
+
+                <section id="trail" class="doc-section">
+                    <h3 class="function-title">.trail( frames )</h3>
+                    <p>Creates a visual trail by cloning previous frames to show the movement trajectory.</p>
+                    <div class="doc-card">
+                        <div class="code-wrapper">
+                            <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                            <pre class="code-block"><code>[bvh("surprise").trail(20)]</code></pre>
+                        </div>
+                        <img class="gif-preview" src="assets/gifs/trail-example.gif" alt="trail example">
+                        <div class="description"><strong>Parameters:</strong> <code>frames</code> (integer indicating
+                            how many previous steps form the trail).</div>
+                    </div>
+                </section>
+
+                <section id="box" class="doc-section">
+                    <h3 class="function-title">.box( count ) //default distance = 0.5 <br> .box( count, distance )</h3>
+                    <p>Generates a dynamic system of concentric bounding boxes around the skeleton. The inner box acts
+                        as a strict bounding box that "breathes" by adjusting in real-time to the animation.</p>
+                    <div class="doc-card">
+                        <div class="code-wrapper">
+                            <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                            <pre class="code-block"><code>[bvh("surprise").box(10,0.2)]</code></pre>
+                        </div>
+                        <img class="gif-preview" src="assets/gifs/box-example.gif" alt="box example">
+                        <div class="description">
+                            <strong>Parameters:</strong> <code>count</code> (total number of boxes to generate),
+                            <code>distance</code> (constant separation margin).
+                        </div>
+                    </div>
+                </section>
+
+                <section id="chaining" class="doc-section no-border">
+                    <h3 class="function-title">Chaining ( [] > [] )</h3>
+                    <p>Links multiple animation blocks sequentially. When the first animation finishes, the skeleton
+                        will automatically transition into the next one.</p>
+                    <div class="doc-card">
+                        <div class="code-wrapper">
+                            <button class="copy-btn" title="Copy code"><i class="far fa-copy"></i></button>
+                            <pre class="code-block"><code>[bvh("surprise")] > [bvh("froging").color("red")]</code></pre>
+                        </div>
+                        <img class="gif-preview" src="assets/gifs/chain-example.gif" alt="chaining example">
+                        <div class="description"><strong>Syntax:</strong> Use the <code>&gt;</code> symbol between two
+                            completely closed blocks (<code>[] &gt; []</code>) to concatenate them.</div>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section id="videotobvh" class="page-section">
+            <div class="content-padding">
+                <div class="header-text">
+                    <h1 class="function-title">Video to BVH Workflow</h1>
+                    <p>Can't find the exact movement you need? Extract the motion from any <code>.mp4</code> video and
+                        use it in MoveScript.</p>
+                </div>
+
+                <section class="doc-section no-border">
+                    <p style="text-align: center; margin-bottom: 20px; color: #ccc;">Use AI tools like Rokoko Vision to
+                        generate the <code>.bvh</code> file and add it to MoveScript with a single click.</p>
+                    <div class="doc-card">
+                        <div class="demo-video-container">
+
+                            <div>
+                                <video class="demo-media" controls muted loop>
+                                    <source src="assets/docs/VideoToBVH1.mp4" type="video/mp4">
+                                </video>
+                                <p class="demo-caption">1. Processing in Rokoko Vision</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <video class="demo-media" controls muted loop>
+                                    <source src="assets/docs/VideoToBVH2.mp4" type="video/mp4">
+                                </video>
+                                <p class="demo-caption">2. Exporting from Rokoko Studio</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <video class="demo-media" controls muted loop>
+                                    <source src="assets/docs/VideoToBVH3.mp4" type="video/mp4">
+                                </video>
+                                <p class="demo-caption">3. Adding to the local MoveScript catalog</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section id="vr" class="page-section">
+            <div class="content-padding">
+                <div class="header-text">
+                    <h1 class="function-title">WebXR Connection (Meta Quest)</h1>
+                    <p>Follow these steps to expose your local server to the internet and project the skeleton into your
+                        physical environment using the headset.</p>
+                </div>
+
+                <section class="doc-section no-border">
+                    <div class="doc-card">
+                        <div class="demo-video-container">
+
+                            <div>
+                                <img class="demo-media" src="assets/docs/DemoVRButton.PNG" alt="VR Button in Interface">
+                                <p class="demo-caption"><strong>Step 1:</strong> Click the "Start VR Tunnel" button
+                                    located in the floating panel of the main interface to initialize the connection.
+                                </p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <img class="demo-media" src="assets/docs/DemoVR1.png"
+                                    alt="Terminal running Pinggy with QR">
+                                <p class="demo-caption"><strong>Step 2:</strong> A terminal opens automatically. Press
+                                    'Enter' when prompted for the password to generate your public URL and QR code.</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <img class="demo-media" src="assets/docs/DemoVRConsent.jpg"
+                                    alt="Security warning on Quest">
+                                <p class="demo-caption"><strong>Step 3:</strong> Open the URL in the Meta Quest browser.
+                                    Since it is a free tunnel, you must click "Enter site" to confirm access.</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <img class="demo-media" src="assets/docs/DemoVR2.png"
+                                    alt="Terminal showing HTTP requests">
+                                <p class="demo-caption"><strong>Step 4:</strong> Back in your PC terminal, HTTP requests
+                                    will confirm the headset is connected. The VR button in your interface will turn
+                                    green.</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
+                            <div>
+                                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                                    <div style="flex: 1; min-width: 300px;">
+                                        <video class="demo-media" controls muted loop>
+                                            <source src="assets/docs/DemoVR3.mp4" type="video/mp4">
+                                        </video>
+                                        <p class="demo-caption"
+                                            style="font-size: 0.95rem; color: #888; margin-top: 10px;"><strong>PC
+                                                Programmer View:</strong> Writing code and sending animations locally.
+                                        </p>
+                                    </div>
+                                    <div style="flex: 1; min-width: 300px;">
+                                        <video class="demo-media" controls muted loop>
+                                            <source src="assets/docs/DemoVR4.mp4" type="video/mp4">
+                                        </video>
+                                        <p class="demo-caption"
+                                            style="font-size: 0.95rem; color: #888; margin-top: 10px;"><strong>VR
+                                                Headset View:</strong> Immersive passthrough receiving live updates.</p>
+                                    </div>
+                                </div>
+                                <p class="demo-caption" style="margin-top: 25px;"><strong>Step 5:</strong> Real-time
+                                    synchronization. The PC programmer controls the movement logic, while the Meta Quest
+                                    user experiences the skeleton projected directly into their physical room.</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section id="movements" class="page-section">
+            <div class="content-padding">
+                <div class="header-text">
+                    <h1 class="function-title">Movement Catalog</h1>
+                    <p>These are all the motion capture files available in the toolkit.<br>You just need to write their
+                        name inside the <code>bvh("name")</code> function.</p>
+                </div>
+
+                <div class="anim-grid">
+                    <div class="anim-card"><img src="assets/gifs/deep_breath.gif" alt="Deep Breath">
+                        <div class="anim-name">[bvh("deep_breath")]</div>
+                    </div>
+                    <div class="anim-card"><img src="assets/gifs/flapping_wings.gif" alt="Flapping Wings">
+                        <div class="anim-name">[bvh("flapping_wings")]</div>
+                    </div>
+                    <div class="anim-card"><img src="assets/gifs/froging.gif" alt="Froging">
+                        <div class="anim-name">[bvh("froging")]</div>
+                    </div>
+                    <div class="anim-card"><img src="assets/gifs/headbutt.gif" alt="Headbutt">
+                        <div class="anim-name">[bvh("headbutt")]</div>
+                    </div>
+                    <div class="anim-card"><img src="assets/gifs/little_dance.gif" alt="Little Dance">
+                        <div class="anim-name">[bvh("little_dance")]</div>
+                    </div>
+                    <div class="anim-card"><img src="assets/gifs/open_arms_spin.gif" alt="Open Arms Spin">
+                        <div class="anim-name">[bvh("open_arms_spin")]</div>
+                    </div>
+                    <div class="anim-card"><img src="assets/gifs/pendulum.gif" alt="Pendulum">
+                        <div class="anim-name">[bvh("pendulum")]</div>
+                    </div>
+                    <div class="anim-card"><img src="assets/gifs/posing.gif" alt="Posing">
+                        <div class="anim-name">[bvh("posing")]</div>
+                    </div>
+                    <div class="anim-card"><img src="assets/gifs/surprise.gif" alt="Surprise">
+                        <div class="anim-name">[bvh("surprise")]</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <button id="backToTop" title="Back to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <script>
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const codeElement = button.nextElementSibling.querySelector('code');
+                const textToCopy = codeElement.innerText;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    button.innerHTML = '<i class="fas fa-check"></i>';
+                    button.classList.add('copied');
+                    setTimeout(() => {
+                        button.innerHTML = '<i class="far fa-copy"></i>';
+                        button.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+            });
+        });
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '-130px 0px -70% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+
+                    document.querySelectorAll('.sub-nav a').forEach(link => {
+                        link.classList.remove('active');
+                    });
+
+                    const activeLink = document.querySelector(`.sub-nav a[href="#${id}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.doc-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        const backToTopBtn = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        const mainObserverOptions = {
+            root: null,
+            rootMargin: '-65px 0px -60% 0px',
+            threshold: 0
+        };
+
+        const mainObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+
+                    document.querySelectorAll('.main-menu a.nav-btn').forEach(link => {
+                        link.classList.remove('active');
+                    });
+
+                    const activeLink = document.querySelector(`.main-menu a.nav-btn[href="#${id}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                    }
+
+                    if (id !== 'functions') {
+                        document.querySelectorAll('.sub-nav a').forEach(link => {
+                            link.classList.remove('active');
+                        });
+                    }
+                }
+            });
+        }, mainObserverOptions);
+
+        document.querySelectorAll('.page-section').forEach(section => {
+            mainObserver.observe(section);
+        });
+    </script>
+</body>
+
+</html>
