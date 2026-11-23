@@ -10,6 +10,29 @@ import { send } from './utils.js';
 import { MessageTypes } from '../shared/protocol.js';
 import { capabilities } from '../platform/index.js';
 
+let localBvhRequestId = 0;
+
+function readLocalBvh(filename) {
+  const api = typeof window !== 'undefined' ? window.electronAPI : null;
+  if (api?.readBvh) return api.readBvh(filename);
+
+  if (typeof window === 'undefined' || !window.parent || window.parent === window) {
+    return Promise.reject(new Error('Electron API no disponible en este contexto'));
+  }
+
+  const requestId = `bvh-${++localBvhRequestId}`;
+  return new Promise((resolve, reject) => {
+    const handleMessage = (event) => {
+      if (event.source !== window.parent || event.data?.type !== MessageTypes.LOCAL_BVH_RESULT || event.data.requestId !== requestId) return;
+      window.removeEventListener('message', handleMessage);
+      if (event.data.error) reject(new Error(event.data.error));
+      else resolve(event.data.content);
+    };
+    window.addEventListener('message', handleMessage);
+    window.parent.postMessage({ type: MessageTypes.READ_LOCAL_BVH, requestId, filename }, '*');
+  });
+}
+
 /**
  * Crea un handle para cargar y controlar una animación BVH
  */
@@ -134,7 +157,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
     } else {
       if (capabilities.hasLocalBvh) {
         try {
-          bvhContent = await window.electronAPI.readBvh(`${fileOrUrl}.bvh`);
+          bvhContent = await readLocalBvh(`${fileOrUrl}.bvh`);
         } catch (e) {
           console.warn("BVH no encontrado en local:", e.message);
           send(MessageTypes.ERROR, ctx.id, { message: `Error leyendo BVH local: ${e.message}` });

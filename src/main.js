@@ -248,9 +248,19 @@ if (runAllBtn) runAllBtn.addEventListener("click", runAll);
 // ====================================================
 // MENSAJES DEL MOTOR
 // ====================================================
-window.addEventListener("message", (e) => {
+window.addEventListener("message", async (e) => {
   if (e.source !== iframe.contentWindow) return;
   const d = e.data;
+  if (d?.type === MessageTypes.READ_LOCAL_BVH) {
+    const requestId = d.requestId;
+    try {
+      const content = await window.electronAPI.readBvh(d.filename);
+      iframe.contentWindow.postMessage({ type: MessageTypes.LOCAL_BVH_RESULT, requestId, content }, getTargetOrigin());
+    } catch (error) {
+      iframe.contentWindow.postMessage({ type: MessageTypes.LOCAL_BVH_RESULT, requestId, error: error.message }, getTargetOrigin());
+    }
+    return;
+  }
   if (!d || !d.type) return;
 
   if (d.type === MessageTypes.READY) {

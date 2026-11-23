@@ -10,6 +10,8 @@ export const MessageTypes = {
   PAUSE_SANDBOX: 'pauseSandbox', // Pausar/reanudar un sandbox { sandboxId, paused }
   REMOVE_SANDBOX: 'removeSandbox', // Eliminar un sandbox { sandboxId }
   REMOTE_KEY: 'remoteKey',      // Tecla de navegación cuando rig seleccionado { sandboxId, key, shiftKey }
+  READ_LOCAL_BVH: 'readLocalBvh', // iframe -> parent { requestId, filename }
+  LOCAL_BVH_RESULT: 'localBvhResult', // parent -> iframe { requestId, content, error }
 
   // De iframe -> main.js
   READY: 'ready',               // Motor 3D listo
