@@ -23,7 +23,7 @@ export async function initAnimationList() {
     const response = await fetch('./assets/bvh/lista.json');
     if (response.ok) {
       animacionesGlobales = await response.json();
-    } else if (navigator.onLine) {
+    } else if (!capabilities.hasLocalBvh && navigator.onLine) {
       const urlNube = 'https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/bvh/lista.json';
       const res = await fetch(urlNube);
       if (res.ok) animacionesGlobales = await res.json();
@@ -91,8 +91,10 @@ export async function initAnimationList() {
     return btn;
   }
 
-  // Limpiar lista antes de renderizar (en caso de refresco manual de UI)
-  bvhList.innerHTML = '';
+  // Limpiar lista de forma limpia sin innerHTML
+  while (bvhList.firstChild) {
+    bvhList.removeChild(bvhList.firstChild);
+  }
 
   // Renderizar Locales
   if (capabilities.hasLocalBvh) {
@@ -107,7 +109,10 @@ export async function initAnimationList() {
 
     const btnNew = document.createElement('div');
     btnNew.className = 'bvh-item new-bvh';
-    btnNew.innerHTML = '<span>+ NEW BVH</span>';
+    const spanNew = document.createElement('span');
+    spanNew.textContent = '+ NEW BVH';
+    btnNew.appendChild(spanNew);
+
     btnNew.addEventListener('click', () => {
       const input = document.createElement('input');
       input.type = 'file';
@@ -119,7 +124,7 @@ export async function initAnimationList() {
         reader.onload = async (re) => {
           try {
             await window.electronAPI.saveLocalBvh(file.name, re.target.result);
-            initAnimationList(); // Recarga recursiva de la lista
+            await initAnimationList(); // Actualización limpia de la lista sin recarga completa
           } catch (err) {
             console.error(err.message);
           }
