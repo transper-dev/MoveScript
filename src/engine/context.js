@@ -128,22 +128,19 @@ export class SandboxContext {
 
       if (r.concentricas && r.concentricas.length > 0) {
         if (isVisible) {
+          if (r.root) {
+            r.root.updateMatrixWorld(true);
+          }
           if (r.helper && !r.handle._useDummy) {
             r.helper.updateMatrixWorld(true);
             r.helper.geometry.computeBoundingBox();
           }
-          if (r.root) {
-            r.root.updateMatrixWorld(true);
-          }
-          if (r.group) {
-            r.group.updateMatrixWorld(true);
-          }
-          _box3.setFromObject(r.handle._useDummy ? r.group : (r.helper || r.group));
+          _box3.setFromObject(r.handle._useDummy ? r.group : r.helper);
           _box3.getCenter(_boxCenter);
           _box3.getSize(_boxSize);
           const size = _boxSize;
 
-          if (size && size.x > 0.01 && size.y > 0.01 && size.z > 0.01) {
+          if (size && size.lengthSq() > 0.01) {
             r.concentricas.forEach(c => {
               c.mesh.visible = true;
               const margenUniforme = c.offset * 60;

@@ -440,7 +440,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
       });
 
       const rigRecord = {
-        ctx, handle, group, pivot, root, helper, mixer, action, clip: result.clip, timeAlive: 0, autoScale,
+        ctx, handle, group, pivot, root, helper, mixer, action, clip: result.clip, timeAlive: 0, autoScale, concentricas,
         opts: {
           rotX: handle._rotX, rotY: handle._rotY, rotZ: handle._rotZ,
           speed: (handle._speed ?? 1.0),
@@ -450,8 +450,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
           color: handle._color,
           color2: handle._color2,
           trail: handle._trail,
-          delay: handle._delay,
-          concentricas
+          delay: handle._delay
         }
       };
       ctx.rigs.push(rigRecord);
@@ -540,7 +539,6 @@ function applyPropsToHandle(handle, props) {
   if (props.reverse !== undefined) handle.reverse(props.reverse);
   if (props.skeleton !== undefined) handle.skeleton(props.skeleton);
   if (props.trail !== undefined) handle.trail(props.trail);
-  if (props.calledBox) handle.box(props.boxCount, props.boxDist);
 }
 
 /**

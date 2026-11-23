@@ -62,17 +62,84 @@ test('RigNode, makeChain and duplicateHandle with Three.js', () => {
     ctx.clear();
 });
 
-test('Box Rendering - Concentric boxes property check', () => {
+test('Box Rendering - Concentric boxes lifecycle, tick and clear', () => {
     const ctx = getCtx('test-box', () => ({}));
     const node = new RigNode().bvh('walk').box(3, 0.5);
     const handle = createBvh(ctx, 'walk');
 
-    // Apply props manually to mock the builder
     handle._boxesCount = node.props.boxCount;
     handle._boxDist = node.props.boxDist;
 
     assert.strictEqual(handle._boxesCount, 3);
     assert.strictEqual(handle._boxDist, 0.5);
 
+    // Mock a loaded rig with concentricas
+    const dummyRoot = new THREE.Bone();
+    const childBone = new THREE.Bone();
+    childBone.position.set(10, 20, 10);
+    dummyRoot.add(childBone);
+
+    const helper = new THREE.SkeletonHelper(dummyRoot);
+    helper.visible = true;
+    scene.add(helper);
+
+    const group = new THREE.Group();
+    group.add(dummyRoot);
+    scene.add(group);
+
+    const concentricas = [];
+    for (let i = 1; i <= 3; i++) {
+        const geom = new THREE.BoxGeometry(1, 1, 1);
+        geom.translate(0, 0.5, 0);
+        const edges = new THREE.EdgesGeometry(geom);
+        geom.dispose();
+        const mat = new THREE.LineBasicMaterial({ color: 0x00ffcc });
+        const boxMesh = new THREE.LineSegments(edges, mat);
+        boxMesh.visible = false;
+        scene.add(boxMesh);
+        concentricas.push({ mesh: boxMesh, offset: (i - 1) * 0.5 });
+    }
+
+    const rigRecord = {
+        ctx,
+        handle,
+        group,
+        root: dummyRoot,
+        helper,
+        mixer: new THREE.AnimationMixer(dummyRoot),
+        timeAlive: 0,
+        autoScale: 1,
+        concentricas,
+        opts: {
+            delay: 0,
+            scale: 1
+        }
+    };
+    ctx.rigs.push(rigRecord);
+
+    // Initial check: box meshes are hidden
+    assert.strictEqual(concentricas[0].mesh.visible, false);
+
+    // Run tick
+    ctx.tick(0.016);
+
+    // After tick: concentricas meshes should be visible and positioned
+    assert.strictEqual(concentricas[0].mesh.visible, true);
+    assert.strictEqual(concentricas[1].mesh.visible, true);
+    assert.strictEqual(concentricas[2].mesh.visible, true);
+
+    // Concentric boxes scaling: later boxes are strictly larger
+    assert.ok(concentricas[1].mesh.scale.x > concentricas[0].mesh.scale.x);
+    assert.ok(concentricas[2].mesh.scale.x > concentricas[1].mesh.scale.x);
+
+    // Test clear cleans up concentricas from the scene
+    const initialSceneChildCount = scene.children.length;
+    assert.ok(scene.children.includes(concentricas[0].mesh));
+
     ctx.clear();
+
+    assert.strictEqual(ctx.rigs.length, 0);
+    assert.strictEqual(scene.children.includes(concentricas[0].mesh), false);
+    assert.strictEqual(scene.children.includes(concentricas[1].mesh), false);
+    assert.strictEqual(scene.children.includes(concentricas[2].mesh), false);
 });
