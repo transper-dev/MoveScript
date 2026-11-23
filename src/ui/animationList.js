@@ -1,8 +1,10 @@
 /**
  * AnimationList - Carga y renderizado de la lista de animaciones BVH
- * Busca animaciones en: local (Node), lista.json local, CDN remoto
+ * Busca animaciones en: local (Electron), lista.json local, CDN remoto
  * Inserta la animación seleccionada en el editor activo
  */
+
+import { capabilities } from '../platform/index.js';
 
 export async function initAnimationList() {
   const bvhList = document.getElementById('bvh-list');
@@ -13,62 +15,38 @@ export async function initAnimationList() {
     return;
   }
 
-  let animacionesDisponibles = [];
+  let animacionesGlobales = [];
+  let animacionesLocales = [];
 
-  // 1. Intentar cargar desde el sistema local (Node.js)
+  // 1. Cargar globales (Web + Desktop)
   try {
-    if (typeof require !== 'undefined') {
-      const fs = require('fs');
-      const path = require('path');
-      const rutaAssets = path.join(__dirname, '..', '..', 'assets', 'bvh');
-      if (fs.existsSync(rutaAssets)) {
-        const archivos = fs.readdirSync(rutaAssets);
-        animacionesDisponibles = archivos
-          .filter(archivo => archivo.endsWith('.bvh'))
-          .map(archivo => archivo.replace('.bvh', ''));
-      }
-    }
-  } catch (e) {
-    console.warn("Local no disponible");
-  }
-
-  // 2. Intentar cargar desde lista.json local
-  if (animacionesDisponibles.length === 0) {
-    try {
-      const response = await fetch('./assets/bvh/lista.json');
-      if (response.ok) {
-        animacionesDisponibles = await response.json();
-      }
-    } catch (e) {
-      console.warn("No se pudo leer el lista.json local");
-    }
-  }
-
-  // 3. Intentar cargar desde CDN
-  if (animacionesDisponibles.length === 0 && navigator.onLine) {
-    try {
+    const response = await fetch('./assets/bvh/lista.json');
+    if (response.ok) {
+      animacionesGlobales = await response.json();
+    } else if (navigator.onLine) {
       const urlNube = 'https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/bvh/lista.json';
-      const response = await fetch(urlNube);
-      if (response.ok) animacionesDisponibles = await response.json();
-    } catch (e) {
-      console.warn("Nube bloqueada temporalmente");
+      const res = await fetch(urlNube);
+      if (res.ok) animacionesGlobales = await res.json();
     }
+  } catch (e) { console.warn("Error cargando globales"); }
+
+  if (animacionesGlobales.length === 0) {
+    animacionesGlobales = ["turn", "silly_walk", "monster_walk", "serious_walk"];
   }
 
-  // 4. Fallback si nada funciona
-  if (animacionesDisponibles.length === 0) {
-    console.warn("Cargando animaciones de emergencia.");
-    animacionesDisponibles = ["turn", "silly_walk", "monster_walk", "serious_walk"];
+  // 2. Cargar locales si aplica (Desktop)
+  if (capabilities.hasLocalBvh) {
+    try {
+      animacionesLocales = await window.electronAPI.listLocalBvh();
+    } catch (e) { console.warn("Error cargando locales"); }
   }
 
-  // Renderizar los botones en el drawer
   const hoverContainer = document.getElementById('hover-preview-container');
   const hoverImage = document.getElementById('hover-preview-image');
 
-  animacionesDisponibles = animacionesDisponibles.filter(nombre => nombre !== 'dummy');
-  animacionesDisponibles.forEach(nombre => {
+  function renderItem(nombre, esLocal = false) {
     const btn = document.createElement('div');
-    btn.className = 'bvh-item';
+    btn.className = `bvh-item ${esLocal ? 'local' : 'global'}`;
     const span = document.createElement('span');
     span.textContent = nombre;
     btn.appendChild(span);
@@ -94,13 +72,11 @@ export async function initAnimationList() {
     btn.addEventListener('click', () => {
       if (!window.editor) return;
       let code = window.editor.getValue().trim();
-
       const newBvh = `[bvh("${nombre}")]`;
 
       if (code === "") {
         code = newBvh;
       } else {
-        // Si ya hay código, añadimos con pipe si el último bloque no está encadenado
         if (code.endsWith(']')) {
           code += `\n>${newBvh}`;
         } else {
@@ -112,6 +88,56 @@ export async function initAnimationList() {
       if (iframePreview.contentWindow && window.runActiveSandbox) window.runActiveSandbox();
     });
 
-    bvhList.appendChild(btn);
+    return btn;
+  }
+
+  // Limpiar lista antes de renderizar (en caso de refresco manual de UI)
+  bvhList.innerHTML = '';
+
+  // Renderizar Locales
+  if (capabilities.hasLocalBvh) {
+    const sectionTitle = document.createElement('h3');
+    sectionTitle.className = 'drawer-section-title';
+    sectionTitle.textContent = 'LOCAL';
+    bvhList.appendChild(sectionTitle);
+
+    animacionesLocales.forEach(nombre => {
+      bvhList.appendChild(renderItem(nombre, true));
+    });
+
+    const btnNew = document.createElement('div');
+    btnNew.className = 'bvh-item new-bvh';
+    btnNew.innerHTML = '<span>+ NEW BVH</span>';
+    btnNew.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.bvh';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (re) => {
+          try {
+            await window.electronAPI.saveLocalBvh(file.name, re.target.result);
+            initAnimationList(); // Recarga recursiva de la lista
+          } catch (err) {
+            console.error(err.message);
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    });
+    bvhList.appendChild(btnNew);
+  }
+
+  // Renderizar Globales
+  const globalTitle = document.createElement('h3');
+  globalTitle.className = 'drawer-section-title';
+  globalTitle.textContent = 'GLOBAL';
+  bvhList.appendChild(globalTitle);
+
+  animacionesGlobales.filter(n => n !== 'dummy').forEach(nombre => {
+    bvhList.appendChild(renderItem(nombre, false));
   });
 }

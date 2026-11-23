@@ -61,3 +61,24 @@ ipcMain.handle('fs:read', async (event, filePath) => {
         throw new Error(`Access denied or file error: ${err.message}`);
     }
 });
+
+ipcMain.handle('fs:list', async () => {
+    try {
+        if (!fs.existsSync(BASE_DIR)) return [];
+        const files = fs.readdirSync(BASE_DIR);
+        return files.filter(f => f.endsWith('.bvh')).map(f => f.replace('.bvh', ''));
+    } catch (err) {
+        return [];
+    }
+});
+
+ipcMain.handle('fs:save', async (event, filename, content) => {
+    try {
+        const safeName = sanitizeBvhFileName(filename);
+        const resolvedPath = path.join(BASE_DIR, safeName);
+        fs.writeFileSync(resolvedPath, content, 'utf8');
+        return true;
+    } catch (err) {
+        throw new Error(`Failed to save BVH: ${err.message}`);
+    }
+});

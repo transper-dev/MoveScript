@@ -23,7 +23,8 @@ export default [
         devicePixelRatio: "readonly",
         require: "readonly",
         __dirname: "readonly",
-        process: "readonly"
+        process: "readonly",
+        FileReader: "readonly"
       }
     },
     rules: {
