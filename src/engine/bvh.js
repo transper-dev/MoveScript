@@ -25,9 +25,10 @@ export async function loadBvhContent(fileOrUrl, {
 
   if (hasLocalBvh) {
     try {
-      return await readLocal(`${fileOrUrl}.bvh`);
+      const localContent = await readLocal(`${fileOrUrl}.bvh`);
+      if (localContent) return localContent;
     } catch (error) {
-      console.warn('BVH no encontrado en local:', error.message);
+      if (error?.code !== 'ENOENT' && !/File not found/i.test(error?.message || '')) throw error;
     }
   }
 

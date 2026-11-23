@@ -32,7 +32,7 @@ Frame Time: 0.03333333
 });
 
 test('loadBvhContent falls back to global asset when local BVH is missing', async () => {
-    const localError = new Error('File not found: deep_breath.bvh');
+    const localError = Object.assign(new Error('File not found: deep_breath.bvh'), { code: 'ENOENT' });
     const globalContent = 'global bvh content';
     const calls = [];
 
@@ -53,4 +53,27 @@ test('loadBvhContent falls back to global asset when local BVH is missing', asyn
         ['local', 'deep_breath.bvh'],
         ['global', './assets/bvh/deep_breath.bvh']
     ]);
+});
+
+test('loadBvhContent falls back when the IPC read returns null for a missing local BVH', async () => {
+    const content = await loadBvhContent('deep_breath', {
+        hasLocalBvh: true,
+        readLocal: async () => null,
+        fetchGlobal: async () => 'global bvh content'
+    });
+
+    assert.strictEqual(content, 'global bvh content');
+});
+
+test('loadBvhContent propagates local read errors other than missing files', async () => {
+    const localError = Object.assign(new Error('Permission denied'), { code: 'EACCES' });
+
+    await assert.rejects(
+        loadBvhContent('urki', {
+            hasLocalBvh: true,
+            readLocal: async () => { throw localError; },
+            fetchGlobal: async () => 'should not load'
+        }),
+        error => error === localError
+    );
 });

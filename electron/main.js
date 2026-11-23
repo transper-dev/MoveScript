@@ -91,14 +91,16 @@ app.on('window-all-closed', async () => {
 ipcMain.handle('fs:read', async (event, filePath) => {
     try {
         const resolvedPath = getSafeBvhPath(filePath);
-        const safeName = basename(resolvedPath);
 
         if (!fs.existsSync(resolvedPath)) {
-            throw new Error(`File not found: ${safeName}`);
+            return null;
         }
 
         return fs.readFileSync(resolvedPath, 'utf8');
     } catch (err) {
+        if (err.message && err.message.includes('Invalid BVH file name')) {
+            throw err;
+        }
         throw new Error(`Access denied or file error: ${err.message}`);
     }
 });
