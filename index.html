@@ -35,6 +35,10 @@
           class="fas fa-forward"></i><span class="btn-label">Run all</span></button>
       <button id="globalPauseBtn" class="global-btn" title="Pausar todo (Ctrl+P)"><i class="fas fa-pause"></i><span
           class="btn-label">Pause All</span></button>
+      <button id="vrTunnelBtn" class="global-btn" type="button" title="Iniciar túnel VR"><i class="fas fa-vr-cardboard"></i><span
+          class="btn-label">Start VR Tunnel</span></button>
+      <button id="oscBtn" class="global-btn" type="button" title="Activar salida OSC"><i class="fas fa-broadcast-tower"></i><span
+          class="btn-label">OSC: Off</span></button>
       <a href="./docs.html" class="global-btn" target="_blank" rel="noopener,noreferrer" title="Documentación"><i class="fas fa-book"></i><span class="btn-label">Docs</span></a>
     </div>
   </div>
@@ -75,10 +79,12 @@
     import { initDrawer } from './src/ui/drawer.js';
     import { initHelpSidebar } from './src/ui/helpSidebar.js';
     import { initAnimationList } from './src/ui/animationList.js';
+    import { initDesktopControls } from './src/ui/desktopControls.js';
 
     document.addEventListener("DOMContentLoaded", async () => {
       initDrawer();
       initHelpSidebar();
+      initDesktopControls();
       await initAnimationList();
     });
   </script>

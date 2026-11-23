@@ -9,5 +9,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
     saveLocalBvh: async (filename, content) => {
         return await ipcRenderer.invoke('fs:save', filename, content);
+    },
+    startVrTunnel: () => ipcRenderer.invoke('desktop:start-vr-tunnel'),
+    setOscEnabled: (enabled) => ipcRenderer.invoke('desktop:set-osc', Boolean(enabled)),
+    onTunnelStatus: (callback) => {
+        if (typeof callback !== 'function') return () => {};
+        const listener = (_event, status) => callback(status);
+        ipcRenderer.on('desktop:tunnel-status', listener);
+        return () => ipcRenderer.removeListener('desktop:tunnel-status', listener);
+    },
+    onVrStatus: (callback) => {
+        if (typeof callback !== 'function') return () => {};
+        const listener = (_event, status) => callback(status);
+        ipcRenderer.on('desktop:vr-status', listener);
+        return () => ipcRenderer.removeListener('desktop:vr-status', listener);
     }
 });

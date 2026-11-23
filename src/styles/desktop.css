@@ -1,0 +1,26 @@
+#vrTunnelBtn.desktop-idle,
+#oscBtn.desktop-idle {
+  color: #aaa;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+#vrTunnelBtn.desktop-connecting {
+  color: #111;
+  background: orange;
+  border-color: orange;
+}
+
+#vrTunnelBtn.desktop-connected,
+#oscBtn.desktop-connected {
+  color: #111;
+  background: #35c759;
+  border-color: #35c759;
+}
+
+#vrTunnelBtn.desktop-failed,
+#oscBtn.desktop-failed {
+  color: #fff;
+  background: #d64545;
+  border-color: #d64545;
+}
