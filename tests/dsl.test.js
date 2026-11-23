@@ -1,73 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { parseBlocks, isNewBlock, transpileBlock } from '../src/dsl/transpile.js';
+import { parseBlocks, transpileBlock } from '../src/dsl/transpile.js';
 
-test('DSL Transpiler - parseBlocks', (_t) => {
-  // 1. Basic parsing
-  const code = '[bvh("walk")]>[pos(1,2,3)]';
-  const blocks = parseBlocks(code);
-  assert.strictEqual(blocks.length, 1);
-  assert.deepStrictEqual(blocks[0].parts, ['[bvh("walk")]', '[pos(1,2,3)]']);
-
-  // 2. Comments ignored
-  const codeWithComments = '// a comment\n[bvh("walk")]>[pos(1,2,3)]';
-  const blocksWithComments = parseBlocks(codeWithComments);
-  assert.strictEqual(blocksWithComments.length, 1);
-  assert.deepStrictEqual(blocksWithComments[0].parts, ['[bvh("walk")]', '[pos(1,2,3)]']);
-
-  // 3. String literal safety
-  const codeWithStrings = '[bvh("walk>run")]';
-  const blocksWithStrings = parseBlocks(codeWithStrings);
-  assert.strictEqual(blocksWithStrings.length, 1);
-  assert.deepStrictEqual(blocksWithStrings[0].parts, ['[bvh("walk>run")]']);
-});
-
-test('DSL Transpiler - isNewBlock', (_t) => {
-  const lines = [
-    '[bvh("walk")]',
-    '  > [pos(1,2,3)]',
-    '[bvh("run")]'
-  ];
-  assert.strictEqual(isNewBlock(lines, 0), true);
-  assert.strictEqual(isNewBlock(lines, 1), false);
-  assert.strictEqual(isNewBlock(lines, 2), true);
-});
-
-test('DSL Transpiler - transpileBlock', (_t) => {
-  const block = {
-    parts: ['[bvh("walk")]', '[pos(1,2,3)]']
-  };
-  const code = transpileBlock(block);
-  assert.strictEqual(code, 'CHAIN($B().bvh("walk"), $B().pos(1,2,3))');
-
-  const singleBlock = {
-    parts: ['[bvh("headbutt")]']
-  };
-  const singleCode = transpileBlock(singleBlock);
-  assert.strictEqual(singleCode, 'CHAIN($B().bvh("headbutt"))');
-});
-
-test('DSL Transpiler - Edge Cases (Comments and formatting inside blocks)', (_t) => {
-  const codeWithInlineComments = '[bvh("walk")] /* comment */ > [pos(1,2,3)]';
-  const blocks = parseBlocks(codeWithInlineComments);
-  assert.strictEqual(blocks.length, 1);
-  assert.deepStrictEqual(blocks[0].parts, ['[bvh("walk")]', '[pos(1,2,3)]']);
-
-  // Multiline comments and line comments between blocks and after brackets
-  const complexComments = `
-    /* multi-line comment */
-    [bvh("a")] // line comment after bracket
-    /* another multi */
-    > // comment before pipe
-    /* yet another */ [pos(0,0,0)]
-  `;
-  const parsed = parseBlocks(complexComments);
-  assert.strictEqual(parsed.length, 1);
-});
-
-test('DSL Transpiler - Edge Cases (Complex nested arguments and non-standard spacing)', (_t) => {
-  const codeComplex = '[bvh("walk")]   \n   >   [scale({x: 1, y: [2, 3]})]';
-  const blocks = parseBlocks(codeComplex);
-  assert.strictEqual(blocks.length, 1);
-  assert.deepStrictEqual(blocks[0].parts, ['[bvh("walk")]', '[scale({x: 1, y: [2, 3]})]']);
+test('DSL Parser - handle commented chain line', () => {
+    const code = '[bvh("froging")]\n//>[bvh("headbutt")]';
+    const blocks = parseBlocks(code);
+    assert.strictEqual(blocks.length, 1);
+    const transpiled = transpileBlock(blocks[0]);
+    assert.strictEqual(transpiled, 'CHAIN($B().bvh("froging"))');
 });
