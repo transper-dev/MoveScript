@@ -143,7 +143,7 @@ export class SandboxContext {
           _box3.getSize(_boxSize);
           const size = _boxSize;
 
-          if (size && size.lengthSq() > 0.01) {
+          if (size && size.x > 0.01 && size.y > 0.01 && size.z > 0.01) {
             r.concentricas.forEach(c => {
               c.mesh.visible = true;
               const margenUniforme = c.offset * 60;

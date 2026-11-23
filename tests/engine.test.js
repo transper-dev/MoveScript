@@ -61,3 +61,18 @@ test('RigNode, makeChain and duplicateHandle with Three.js', () => {
 
     ctx.clear();
 });
+
+test('Box Rendering - Concentric boxes property check', () => {
+    const ctx = getCtx('test-box', () => ({}));
+    const node = new RigNode().bvh('walk').box(3, 0.5);
+    const handle = createBvh(ctx, 'walk');
+
+    // Apply props manually to mock the builder
+    handle._boxesCount = node.props.boxCount;
+    handle._boxDist = node.props.boxDist;
+
+    assert.strictEqual(handle._boxesCount, 3);
+    assert.strictEqual(handle._boxDist, 0.5);
+
+    ctx.clear();
+});
