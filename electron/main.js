@@ -65,12 +65,22 @@ app.whenReady().then(async () => {
         onTunnelStart: (onClose) => {
             const command = process.platform === 'win32' ? 'ssh.exe' : 'ssh';
             const args = ['-p', '443', '-R0:127.0.0.1:3000', '-o', 'StrictHostKeyChecking=no', 'qr@a.pinggy.io'];
-            const child = process.platform === 'win32'
-                ? spawn('cmd.exe', ['/k', command, ...args], { windowsHide: false })
-                : spawn(command, args, { stdio: 'inherit' });
-            child.once('close', onClose);
-            child.once('error', onClose);
-            return child;
+            try {
+                const child = process.platform === 'win32'
+                    ? spawn('cmd.exe', ['/c', 'start', 'MoveScript VR Tunnel', command, ...args], { windowsHide: false })
+                    : spawn(command, args, { stdio: 'inherit' });
+                child.once('close', () => {
+                    onClose();
+                });
+                child.once('error', (err) => {
+                    console.error(`[Desktop] Tunnel process error: ${err.message}`);
+                    onClose();
+                });
+                return child;
+            } catch (err) {
+                console.error(`[Desktop] Failed to spawn tunnel process: ${err.message}`);
+                return null;
+            }
         }
     });
     try {
