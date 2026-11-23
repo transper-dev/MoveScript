@@ -54,8 +54,13 @@ export async function initAnimationList() {
     btn.addEventListener('mouseenter', () => {
       span.textContent = `ADD ${nombre}`;
       if (hoverContainer && hoverImage) {
-        hoverImage.src = `./assets/gifs/${nombre}.gif`;
-        hoverImage.onerror = () => hoverContainer.classList.remove('visible');
+        if (!esLocal) {
+          hoverImage.src = `./assets/gifs/${nombre}.gif`;
+          hoverImage.onerror = () => hoverContainer.classList.remove('visible');
+          hoverImage.style.display = 'block';
+        } else {
+          hoverImage.style.display = 'none';
+        }
 
         const rect = btn.getBoundingClientRect();
         hoverContainer.style.left = `${rect.left}px`;
