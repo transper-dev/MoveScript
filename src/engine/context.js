@@ -15,6 +15,10 @@ import {
   frameCount
 } from './utils.js';
 
+const _box3 = new THREE.Box3();
+const _boxCenter = new THREE.Vector3();
+const _boxSize = new THREE.Vector3();
+
 // ====================================================
 // CONTEXTO POR SANDBOX
 // ====================================================
@@ -120,6 +124,37 @@ export class SandboxContext {
         const snapLine = new THREE.LineSegments(snapGeom, snapMat);
         scene.add(snapLine);
         this.trails.push({ mesh: snapLine, life: 0.6, decay: 0.6 / trailLen });
+      }
+
+      if (r.concentricas && r.concentricas.length > 0) {
+        if (isVisible) {
+          if (r.helper && !r.handle._useDummy) {
+            r.helper.updateMatrixWorld(true);
+            r.helper.geometry.computeBoundingBox();
+          }
+          _box3.setFromObject(r.handle._useDummy ? r.group : r.helper);
+          _box3.getCenter(_boxCenter);
+          _box3.getSize(_boxSize);
+          const size = _boxSize;
+
+          if (size && size.lengthSq() > 0.01) {
+            r.concentricas.forEach(c => {
+              c.mesh.visible = true;
+              const margenUniforme = c.offset * 60;
+              const baseSuelo = Math.max(r.group.position.y, _boxCenter.y - (size.y / 2));
+              c.mesh.position.set(_boxCenter.x, baseSuelo, _boxCenter.z);
+              c.mesh.scale.set(
+                size.x + margenUniforme,
+                size.y + margenUniforme,
+                size.z + margenUniforme
+              );
+            });
+          } else {
+            r.concentricas.forEach(c => c.mesh.visible = false);
+          }
+        } else {
+          r.concentricas.forEach(c => c.mesh.visible = false);
+        }
       }
     }
 

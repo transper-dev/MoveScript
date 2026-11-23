@@ -13,6 +13,7 @@ test('Engine Scene - Global configurations', () => {
     // Smoke tests for setters
     assert.doesNotThrow(() => {
         sceneMod.setGrid(100, 10);
+        sceneMod.floor("#111111", 1000);
         sceneMod.setCam(10, 10, 10, 0, 0, 0);
         sceneMod.setBackground("#ffffff");
         sceneMod.setRot(1);

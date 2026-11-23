@@ -110,3 +110,13 @@ export function setRot(v) {
 setGrid(800, 20);
 
 export const clock = new THREE.Clock();
+
+export function floor(color = "#1a1a24", size = 2000) {
+  const geom = new THREE.PlaneGeometry(size, size);
+  const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.9, metalness: 0.1 });
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.y = -20;
+  mesh.name = "CustomFloor";
+  scene.add(mesh);
+}

@@ -67,6 +67,13 @@ export function disposeRig(r) {
     if (r.helper.geometry) r.helper.geometry.dispose();
     if (r.helper.material) r.helper.material.dispose();
   }
+  if (r.concentricas) {
+    for (const c of r.concentricas) {
+      scene.remove(c.mesh);
+      c.mesh.geometry.dispose();
+      c.mesh.material.dispose();
+    }
+  }
   if (r.group) {
     scene.remove(r.group);
     r.group.traverse((child) => {

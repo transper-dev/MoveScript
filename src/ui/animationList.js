@@ -62,6 +62,9 @@ export async function initAnimationList() {
   }
 
   // Renderizar los botones en el drawer
+  const hoverContainer = document.getElementById('hover-preview-container');
+  const hoverImage = document.getElementById('hover-preview-image');
+
   animacionesDisponibles = animacionesDisponibles.filter(nombre => nombre !== 'dummy');
   animacionesDisponibles.forEach(nombre => {
     const btn = document.createElement('div');
@@ -69,6 +72,24 @@ export async function initAnimationList() {
     const span = document.createElement('span');
     span.textContent = nombre;
     btn.appendChild(span);
+
+    btn.addEventListener('mouseenter', () => {
+      span.textContent = `ADD ${nombre}`;
+      if (hoverContainer && hoverImage) {
+        hoverImage.src = `./assets/gifs/${nombre}.gif`;
+        hoverImage.onerror = () => hoverContainer.classList.remove('visible');
+
+        const rect = btn.getBoundingClientRect();
+        hoverContainer.style.left = `${rect.left}px`;
+        hoverContainer.style.top = `${rect.top - 100}px`;
+        hoverContainer.classList.add('visible');
+      }
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      span.textContent = nombre;
+      if (hoverContainer) hoverContainer.classList.remove('visible');
+    });
 
     btn.addEventListener('click', () => {
       if (!window.editor) return;

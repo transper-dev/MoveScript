@@ -43,10 +43,12 @@ test('RigNode, makeChain and duplicateHandle with Three.js', () => {
     const ctx = getCtx('test-engine', () => ({}));
 
     // Test RigNode builder
-    const node = new RigNode().bvh('walk').pos(10, 20, 30).scale(2).speed(1.5);
+    const node = new RigNode().bvh('walk').pos(10, 20, 30).scale(2).speed(1.5).box(5, 0.2);
     assert.strictEqual(node.props.file, 'walk');
     assert.strictEqual(node.props.x, 10);
     assert.strictEqual(node.props.scale, 2);
+    assert.strictEqual(node.props.boxCount, 5);
+    assert.strictEqual(node.props.boxDist, 0.2);
 
     // Test makeChain
     const chainFn = makeChain(ctx);

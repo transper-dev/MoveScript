@@ -1,5 +1,34 @@
 /* ===== CAJÓN DE ANIMACIONES BVH ===== */
 
+#hover-preview-container {
+  position: fixed;
+  width: 160px;
+  height: 90px;
+  object-fit: cover;
+  background-color: #050505;
+  border: 2px solid #00ffcc;
+  border-radius: 8px;
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px);
+  z-index: 9999;
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+#hover-preview-container.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+#hover-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 #bvh-drawer {
   position: fixed;
   bottom: 0;

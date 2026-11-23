@@ -19,6 +19,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
     _xExplicit: false,
     _scale: null, _showSkeleton: null, _speed: null, _reverse: null,
     _color: null, _color2: null, _trail: null, _delay: null,
+    _boxesCount: 0, _boxDist: 0.5,
 
     _useDummy: false, _reqBones: false, _reqJoints: false, _enforceProportions: false,
     _boneWidth: null, _boneLength: null, _jointSize: null,
@@ -71,6 +72,8 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
       return this._propagate({ _useDummy: true, _reqJoints: true, _jointSize: size });
     },
 
+    box(n, dist = 0.5) { return this._propagate({ _boxesCount: n, _boxDist: dist }); },
+
     play() {
       this._isPlaying = true;
       const rig = ctx.rigs.find(r => r.handle === this);
@@ -99,6 +102,9 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
       nextHandle._boneLength = this._boneLength;
       nextHandle._jointSize = this._jointSize;
 
+      nextHandle._boxesCount = this._boxesCount;
+      nextHandle._boxDist = this._boxDist;
+
       nextHandle._rotX = this._rotX;
       nextHandle._rotY = this._rotY;
       nextHandle._rotZ = this._rotZ;
@@ -119,9 +125,28 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
   const myRunId = handle._runId;
 
   ctx.later(async () => {
-    const urlDefinitiva = fileOrUrl.startsWith("http")
-      ? fileOrUrl
-      : `./assets/bvh/${fileOrUrl}.bvh`;
+    let urlDefinitiva = "";
+
+    if (fileOrUrl.startsWith("http")) {
+      urlDefinitiva = fileOrUrl;
+    } else {
+      urlDefinitiva = `./assets/bvh/${fileOrUrl}.bvh`;
+
+      try {
+        const comprobacionLocal = await fetch(urlDefinitiva, { method: 'HEAD' });
+        if (!comprobacionLocal.ok) {
+          if (navigator.onLine) {
+            urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/${fileOrUrl}.bvh`;
+          } else {
+            throw new Error("Archivo no encontrado en local y no hay internet.");
+          }
+        }
+      } catch (e) {
+        if (navigator.onLine) {
+          urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/${fileOrUrl}.bvh`;
+        }
+      }
+    }
 
     if (myRunId !== ctx.runId) return;
 
@@ -329,6 +354,30 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
         root.visible = !(handle._isChained && !handle._isHead);
       }
 
+      const concentricas = [];
+      if (handle._boxesCount > 0) {
+        for (let i = 1; i <= handle._boxesCount; i++) {
+          const geom = new THREE.BoxGeometry(1, 1, 1);
+          geom.translate(0, 0.5, 0);
+          const edges = new THREE.EdgesGeometry(geom);
+          geom.dispose();
+
+          const opacidadBase = 0.1;
+          const opacidadMaxima = 1.0;
+          const opacidadActual = opacidadMaxima - ((i - 1) * (opacidadMaxima - opacidadBase) / Math.max(handle._boxesCount - 1, 1));
+          const mat = new THREE.LineBasicMaterial({
+            color: 0x00ffcc,
+            transparent: true,
+            opacity: opacidadActual
+          });
+          const boxMesh = new THREE.LineSegments(edges, mat);
+          boxMesh.visible = false;
+          scene.add(boxMesh);
+          const offsetDist = (i - 1) * (handle._boxDist ?? 0.5);
+          concentricas.push({ mesh: boxMesh, offset: offsetDist });
+        }
+      }
+
       mixer.addEventListener("finished", () => {
         if (myRunId !== ctx.runId || ctx.disposed) return;
         if (handle._isChained && handle._nextHandle) {
@@ -401,7 +450,8 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
           color: handle._color,
           color2: handle._color2,
           trail: handle._trail,
-          delay: handle._delay
+          delay: handle._delay,
+          concentricas
         }
       };
       ctx.rigs.push(rigRecord);
@@ -417,7 +467,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
   return handle;
 }
 
-const DUPLICATE_KEYS = ["_x", "_xExplicit", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize", "_isStaticDummy"];
+const DUPLICATE_KEYS = ["_x", "_xExplicit", "_y", "_z", "_scale", "_rotX", "_rotY", "_rotZ", "_showSkeleton", "_speed", "_reverse", "_color", "_color2", "_trail", "_delay", "_useDummy", "_reqBones", "_reqJoints", "_enforceProportions", "_boneWidth", "_boneLength", "_jointSize", "_isStaticDummy", "_boxesCount", "_boxDist"];
 
 /**
  * Duplica un handle BVH existente con todas sus propiedades
@@ -467,6 +517,7 @@ export class RigNode {
   reverse(v = true) { this.props.reverse = v; return this; }
   skeleton(v = true) { this.props.skeleton = v; return this; }
   trail(l) { this.props.trail = l; return this; }
+  box(n, dist) { this.props.calledBox = true; this.props.boxCount = n; this.props.boxDist = dist; return this; }
 }
 
 function applyPropsToHandle(handle, props) {
@@ -475,6 +526,7 @@ function applyPropsToHandle(handle, props) {
   if (props.calledDummy) handle.dummy(props.dummyValue);
   if (props.calledBones) handle.bones(props.boneWidth, props.boneLength);
   if (props.calledJoints) handle.joints(props.jointSize);
+  if (props.calledBox) handle.box(props.boxCount, props.boxDist);
 
   if (props.calledBones || props.calledJoints) handle._useDummy = true;
 
@@ -488,6 +540,7 @@ function applyPropsToHandle(handle, props) {
   if (props.reverse !== undefined) handle.reverse(props.reverse);
   if (props.skeleton !== undefined) handle.skeleton(props.skeleton);
   if (props.trail !== undefined) handle.trail(props.trail);
+  if (props.calledBox) handle.box(props.boxCount, props.boxDist);
 }
 
 /**
