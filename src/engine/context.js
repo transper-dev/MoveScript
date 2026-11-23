@@ -132,7 +132,13 @@ export class SandboxContext {
             r.helper.updateMatrixWorld(true);
             r.helper.geometry.computeBoundingBox();
           }
-          _box3.setFromObject(r.handle._useDummy ? r.group : r.helper);
+          if (r.root) {
+            r.root.updateMatrixWorld(true);
+          }
+          if (r.group) {
+            r.group.updateMatrixWorld(true);
+          }
+          _box3.setFromObject(r.handle._useDummy ? r.group : (r.helper || r.group));
           _box3.getCenter(_boxCenter);
           _box3.getSize(_boxSize);
           const size = _boxSize;

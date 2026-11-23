@@ -35,7 +35,7 @@ export async function initAnimationList() {
   // 2. Intentar cargar desde lista.json local
   if (animacionesDisponibles.length === 0) {
     try {
-      const response = await fetch('./assets/lista.json');
+      const response = await fetch('./assets/bvh/lista.json');
       if (response.ok) {
         animacionesDisponibles = await response.json();
       }
@@ -47,7 +47,7 @@ export async function initAnimationList() {
   // 3. Intentar cargar desde CDN
   if (animacionesDisponibles.length === 0 && navigator.onLine) {
     try {
-      const urlNube = 'https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/lista.json';
+      const urlNube = 'https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/bvh/lista.json';
       const response = await fetch(urlNube);
       if (response.ok) animacionesDisponibles = await response.json();
     } catch (e) {
