@@ -8,6 +8,7 @@ import { BVHLoader } from "three/addons/loaders/BVHLoader.js";
 import { scene } from './scene.js';
 import { send } from './utils.js';
 import { MessageTypes } from '../shared/protocol.js';
+import { capabilities } from '../platform/index.js';
 
 /**
  * Crea un handle para cargar y controlar una animación BVH
@@ -130,25 +131,31 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
     if (fileOrUrl.startsWith("http")) {
       urlDefinitiva = fileOrUrl;
     } else {
-      urlDefinitiva = `./assets/bvh/${fileOrUrl}.bvh`;
-
-      try {
-        const comprobacionLocal = await fetch(urlDefinitiva, { method: 'HEAD' });
-        if (!comprobacionLocal.ok) {
-          if (navigator.onLine) {
-            urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/${fileOrUrl}.bvh`;
-          } else {
-            throw new Error("Archivo no encontrado en local y no hay internet.");
-          }
+      if (capabilities.hasLocalBvh) {
+        try {
+          urlDefinitiva = await window.electronAPI.readBvh(`${fileOrUrl}.bvh`);
+        } catch (e) {
+          console.warn("BVH no encontrado en local, cayendo a globales...");
         }
-      } catch (e) {
-        if (navigator.onLine) {
-          urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/${fileOrUrl}.bvh`;
+      }
+
+      if (!urlDefinitiva) {
+        urlDefinitiva = `./assets/bvh/${fileOrUrl}.bvh`;
+        if (!capabilities.hasLocalBvh && navigator.onLine) {
+          try {
+            const res = await fetch(urlDefinitiva, { method: 'HEAD' });
+            if (!res.ok) urlDefinitiva = `https://cdn.jsdelivr.net/gh/transper-dev/MoveScript@main/assets/bvh/${fileOrUrl}.bvh`;
+          } catch (e) { /* fallback fallido */ }
         }
       }
     }
 
     if (myRunId !== ctx.runId) return;
+
+    if (!urlDefinitiva) {
+      send(MessageTypes.ERROR, ctx.id, { message: `No se encuentra la animación: ${fileOrUrl}.bvh` });
+      return;
+    }
 
     const loader = new BVHLoader();
     loader.load(urlDefinitiva, (result) => {
