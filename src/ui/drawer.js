@@ -6,6 +6,7 @@
 export function initDrawer() {
   const drawer = document.getElementById('bvh-drawer');
   const toggleBtn = document.getElementById('drawer-toggle');
+  const desktopControls = document.getElementById('desktop-controls');
 
   if (!drawer || !toggleBtn) {
     console.warn('Drawer elements not found');
@@ -20,6 +21,9 @@ export function initDrawer() {
 
   toggleBtn.addEventListener('click', () => {
     drawer.classList.toggle('abierto');
+    if (desktopControls) {
+      desktopControls.classList.toggle('abierto');
+    }
     if (drawer.classList.contains('abierto')) {
       toggleIcon.className = 'fas fa-chevron-down';
     } else {
