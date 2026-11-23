@@ -1,19 +1,13 @@
-/**
- * Platform Capabilities Interface & Web Implementation
- */
+import { capabilities as webCaps } from './web.js';
+import { capabilities as desktopCaps } from './desktop.js';
 
-export const capabilities = {
-  isWeb: true,
-  isDesktop: false,
-  hasLocalBvh: false,
-  hasVrTunnel: false,
-  hasOsc: false,
-  hasSocketIO: false
-};
+const isDesktop = typeof process !== 'undefined' && process.versions && !!process.versions.electron;
+
+export const capabilities = isDesktop ? desktopCaps : webCaps;
 
 export function getPlatformInfo() {
   return {
-    name: 'web',
+    name: isDesktop ? 'desktop' : 'web',
     version: '1.0.0',
     capabilities
   };

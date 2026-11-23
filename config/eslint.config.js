@@ -22,7 +22,8 @@ export default [
         navigator: "readonly",
         devicePixelRatio: "readonly",
         require: "readonly",
-        __dirname: "readonly"
+        __dirname: "readonly",
+        process: "readonly"
       }
     },
     rules: {
