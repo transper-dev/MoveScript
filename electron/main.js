@@ -16,11 +16,12 @@ function createWindow() {
     const mainWindow = new BrowserWindow({
         width: 1280,
         height: 800,
+        icon: join(__dirname, '../assets/icons/icon.png'),
         webPreferences: {
             preload: join(__dirname, 'preload.js'),
             contextIsolation: true,
             nodeIntegration: false,
-            sandbox: true
+            sandbox: false
         }
     });
 
@@ -28,7 +29,15 @@ function createWindow() {
         callback({
             responseHeaders: {
                 ...details.responseHeaders,
-                'Content-Security-Policy': ["default-src 'self' https://cdn.jsdelivr.net; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://cdn.jsdelivr.net;"]
+                'Content-Security-Policy': [
+                    "default-src 'self' file: https://cdn.jsdelivr.net; " +
+                    "script-src 'self' file: 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+                    "style-src 'self' file: 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; " +
+                    "font-src 'self' file: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; " +
+                    "img-src 'self' file: data: https:; " +
+                    "connect-src 'self' file: https://cdn.jsdelivr.net; " +
+                    "worker-src 'self' blob:;"
+                ]
             }
         });
     });
