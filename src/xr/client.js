@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { BVHLoader } from 'three/addons/loaders/BVHLoader.js';
-import { getXrTransform, parseXrCode } from './protocol.js';
+import { getXrBoneBounds, getXrTransform, parseXrCode } from './protocol.js';
 
 const status = document.getElementById('status');
 const enterVr = document.getElementById('enter-vr');
@@ -54,16 +54,15 @@ function loadAnimation(state) {
   const loader = new BVHLoader();
   const url = `./assets/bvh/${encodeURIComponent(state.file)}.bvh`;
   loader.load(url, result => {
-      const root = result.skeleton.bones[0];
+    const root = result.skeleton.bones[0];
     const group = new THREE.Group();
     const pivot = new THREE.Group();
     pivot.add(root);
     group.add(pivot);
 
-    const bounds = new THREE.Box3().setFromObject(group);
-    const size = bounds.getSize(new THREE.Vector3());
-    const center = bounds.getCenter(new THREE.Vector3());
-    const transform = getXrTransform({ minY: bounds.min.y, height: size.y, centerX: center.x }, state);
+    group.updateMatrixWorld(true);
+    const boneBounds = getXrBoneBounds(result.skeleton.bones);
+    const transform = getXrTransform(boneBounds, state);
     group.scale.setScalar(transform.scale);
     if (state.dummy) root.visible = true;
     group.position.fromArray(transform.position);

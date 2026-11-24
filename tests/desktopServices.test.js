@@ -1,6 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDesktopServices, createOscMessages, normalizeVrData } from '../electron/desktopServices.js';
+import {
+  createDesktopServices,
+  createOscMessages,
+  getWebXrRedirectPath,
+  normalizeVrData
+} from '../electron/desktopServices.js';
+
+test('getWebXrRedirectPath redirects VR agents but preserves normal editor paths', () => {
+  assert.equal(getWebXrRedirectPath('/', 'Mozilla/5.0 Quest'), '/webxr.html');
+  assert.equal(getWebXrRedirectPath('/index.html', 'Mozilla/5.0 Quest'), '/webxr.html');
+  assert.equal(getWebXrRedirectPath('/?vr=1', 'Mozilla/5.0 Chrome'), '/webxr.html');
+  assert.equal(getWebXrRedirectPath('/', 'Mozilla/5.0 Quest OculusBrowser'), '/webxr.html');
+  assert.equal(getWebXrRedirectPath('/', 'Mozilla/5.0 Chrome'), null);
+  assert.equal(getWebXrRedirectPath('/webxr.html', 'Mozilla/5.0 Chrome'), null);
+});
 
 test('normalizeVrData accepts finite controller coordinates only', () => {
   assert.deepEqual(normalizeVrData({ c1: [1, 80, 3], c2: [4, 150, 6] }), {

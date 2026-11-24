@@ -39,6 +39,14 @@ function isQuestSocket(socket) {
   return /Quest/i.test(socket.handshake.headers['user-agent'] || '');
 }
 
+export function getWebXrRedirectPath(requestPath, userAgent = '') {
+  const [pathname, query = ''] = String(requestPath || '/').split('?');
+  const explicitRequest = /(?:^|&)\s*(?:vr|xr)=1(?:&|$)/i.test(query);
+  const vrAgent = /Quest|OculusBrowser|Meta Quest/i.test(userAgent);
+  if ((pathname === '/' || pathname === '/index.html') && (explicitRequest || vrAgent)) return '/webxr.html';
+  return null;
+}
+
 export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus, onVrStatus }) {
   const expressApp = express();
   const server = http.createServer(expressApp);
@@ -51,6 +59,11 @@ export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus
   expressApp.use(assetMount.route, express.static(assetMount.directory, { dotfiles: 'deny', fallthrough: false }));
   expressApp.use('/assets/gifs', express.static(gifDirectory, { dotfiles: 'deny', fallthrough: true }));
   expressApp.get('/favicon.ico', (_request, response) => response.sendFile(faviconPath));
+  expressApp.use((request, response, next) => {
+    const redirectPath = getWebXrRedirectPath(request.originalUrl, request.get('user-agent'));
+    if (redirectPath) return response.redirect(302, redirectPath);
+    return next();
+  });
   expressApp.use(express.static(staticDir, { dotfiles: 'deny', fallthrough: false }));
 
   let pendingVrData = null;

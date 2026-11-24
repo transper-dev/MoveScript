@@ -28,6 +28,18 @@ function numberMatch(code, pattern, fallback, min, max) {
   return clampFinite(firstMatch(code, pattern, fallback), min, max, fallback);
 }
 
+export function getXrBoneBounds(bones) {
+  const points = (bones || []).filter(bone => bone?.isBone).map(bone => {
+    const target = { x: 0, y: 0, z: 0, set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; } };
+    return bone.getWorldPosition(target) || target;
+  });
+  const validPoints = points.filter(point => Number.isFinite(point?.x) && Number.isFinite(point?.y));
+  if (validPoints.length === 0) return { minY: 0, height: 1.7, centerX: 0 };
+  const minY = Math.min(...validPoints.map(point => point.y));
+  const maxY = Math.max(...validPoints.map(point => point.y));
+  return { minY, height: Math.max(maxY - minY, 0.001), centerX: validPoints.reduce((sum, point) => sum + point.x, 0) / validPoints.length };
+}
+
 export function getXrTransform(bounds, state) {
   const minY = Number.isFinite(bounds?.minY) ? bounds.minY : 0;
   const height = Number.isFinite(bounds?.height) && bounds.height > 0 ? bounds.height : 1.7;

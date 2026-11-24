@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getXrTransform, parseXrCode } from '../src/xr/protocol.js';
+import { getXrBoneBounds, getXrTransform, parseXrCode } from '../src/xr/protocol.js';
 
 test('parseXrCode extracts the first animation and visual controls', () => {
   assert.deepEqual(parseXrCode('[bvh("walk").color("red", "blue").scale(2).speed(0.5).reverse()]'), {
@@ -67,5 +67,18 @@ test('getXrTransform uses finite defaults for empty BVH bounds', () => {
   assert.deepEqual(getXrTransform({ minY: Infinity, height: 0, centerX: 0 }, { position: [0, 0, 0], scale: 1 }), {
     scale: 1,
     position: [0, 0, -4]
+  });
+});
+
+test('getXrBoneBounds measures bone world positions for BVH rigs', () => {
+  const bones = [
+    { isBone: true, getWorldPosition: target => target.set(0, 1, 0) },
+    { isBone: true, getWorldPosition: target => target.set(2, 3, 0) }
+  ];
+
+  assert.deepEqual(getXrBoneBounds(bones), {
+    minY: 1,
+    height: 2,
+    centerX: 1
   });
 });
