@@ -62,6 +62,7 @@ function controllerData() {
 
 function render(time, _frame) {
   const delta = clock.getDelta();
+  resize();
   controls?.update?.();
   for (const ctx of window.contextsList || []) {
     ctx.tick(delta);
@@ -74,12 +75,18 @@ function render(time, _frame) {
 }
 
 window.contextsList = contexts.values();
+window.addEventListener('resize', resize);
+resize();
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+function resize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const pr = Math.min(window.devicePixelRatio || 1, 2);
+  renderer.setPixelRatio(pr);
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+}
 
 socket.on('connect', () => {
   socket.emit('xr_ready');
