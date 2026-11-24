@@ -3,6 +3,7 @@ import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { getCtx, contexts } from '../engine/context.js';
 import { buildApi, executeInSandbox } from '../engine/api.js';
 import { scene, camera, renderer, clock, controls } from '../engine/scene.js';
+import { incrementFrameCount } from '../engine/utils.js';
 
 const status = document.getElementById('status');
 const enterVr = document.getElementById('enter-vr');
@@ -62,9 +63,10 @@ function controllerData() {
 
 function render(time, _frame) {
   const delta = clock.getDelta();
+  incrementFrameCount();
   resize();
   controls?.update?.();
-  for (const ctx of window.contextsList || []) {
+  for (const ctx of contexts.values()) {
     ctx.tick(delta);
   }
   if (time - lastVrSend > 33) {
@@ -74,7 +76,6 @@ function render(time, _frame) {
   renderer.render(scene, camera);
 }
 
-window.contextsList = contexts.values();
 window.addEventListener('resize', resize);
 resize();
 
