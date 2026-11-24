@@ -78,7 +78,7 @@ electron/main.js        Electron application entry point
 ## Quick DSL example
 
 ```javascript
-[bvh("monster_walk")]
+[bvh("deep_breath")]
 >[dummy()]
 >[color("red", "blue")]
 >[trail(30)]

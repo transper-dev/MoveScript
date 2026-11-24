@@ -26,6 +26,10 @@ player.position.set(0, 1.6, 6);
 scene.add(player);
 player.add(camera);
 
+const XR_TARGET_HEIGHT = 1.7;
+const XR_MAX_HEIGHT = 4;
+const XR_DEFAULT_DISTANCE = 4;
+
 const controllers = [renderer.xr.getController(0), renderer.xr.getController(1)];
 controllers.forEach(controller => player.add(controller));
 
@@ -53,14 +57,31 @@ function loadAnimation(state) {
   const loader = new BVHLoader();
   const url = `./assets/bvh/${encodeURIComponent(state.file)}.bvh`;
   loader.load(url, result => {
-    const root = result.skeleton.bones[0];
+      const root = result.skeleton.bones[0];
     const group = new THREE.Group();
     const pivot = new THREE.Group();
     pivot.add(root);
     group.add(pivot);
-    group.scale.setScalar(state.scale);
+
+    const bounds = new THREE.Box3().setFromObject(group);
+    const size = bounds.getSize(new THREE.Vector3());
+    const center = bounds.getCenter(new THREE.Vector3());
+    const naturalHeight = Math.max(size.y, 0.001);
+    const fitScale = XR_TARGET_HEIGHT / naturalHeight;
+    const scale = Math.min(Math.max(fitScale * state.scale, 0.01), XR_MAX_HEIGHT / naturalHeight);
+    group.scale.setScalar(scale);
+    if (state.dummy) root.visible = true;
+    group.position.set(
+      state.position[0] - center.x * scale,
+      state.position[1] - bounds.min.y * scale,
+      -XR_DEFAULT_DISTANCE + state.position[2]
+    );
+    pivot.rotation.y = state.rotationY;
     const helper = new THREE.SkeletonHelper(root);
     helper.material.color.set(state.color || '#00ffcc');
+    helper.scale.copy(group.scale);
+    helper.position.copy(group.position);
+    helper.rotation.copy(group.rotation);
     scene.add(group, helper);
     const mixer = new THREE.AnimationMixer(root);
     const action = mixer.clipAction(result.clip).play();

@@ -9,7 +9,10 @@ test('parseXrCode extracts the first animation and visual controls', () => {
     color2: 'blue',
     scale: 2,
     speed: 0.5,
-    reverse: true
+    reverse: true,
+    position: [0, 0, 0],
+    rotationY: 0,
+    dummy: false
   });
 });
 
@@ -20,6 +23,23 @@ test('parseXrCode uses a safe dummy fallback for unsupported payloads', () => {
     color2: null,
     scale: 1,
     speed: 1,
-    reverse: false
+    reverse: false,
+    position: [0, 0, 0],
+    rotationY: 0,
+    dummy: false
+  });
+});
+
+test('parseXrCode supports position, rotation, dummy, and chained blocks', () => {
+  assert.deepEqual(parseXrCode('[bvh("walk").pos(2, 3, -4).rotY(1.5).dummy()]>[bvh("next")]'), {
+    file: 'walk',
+    color: null,
+    color2: null,
+    scale: 1,
+    speed: 1,
+    reverse: false,
+    position: [2, 3, -4],
+    rotationY: 1.5,
+    dummy: true
   });
 });
