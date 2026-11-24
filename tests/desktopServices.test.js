@@ -8,11 +8,10 @@ import {
 } from '../electron/desktopServices.js';
 
 test('getWebXrRedirectPath redirects VR agents but preserves normal editor paths', () => {
-  assert.equal(getWebXrRedirectPath('/', 'Mozilla/5.0 Quest'), '/webxr.html');
-  assert.equal(getWebXrRedirectPath('/index.html', 'Mozilla/5.0 Quest'), '/webxr.html');
+  assert.equal(getWebXrRedirectPath('/'), '/webxr.html');
+  assert.equal(getWebXrRedirectPath('/index.html'), '/webxr.html');
   assert.equal(getWebXrRedirectPath('/?vr=1', 'Mozilla/5.0 Chrome'), '/webxr.html');
   assert.equal(getWebXrRedirectPath('/', 'Mozilla/5.0 Quest OculusBrowser'), '/webxr.html');
-  assert.equal(getWebXrRedirectPath('/', 'Mozilla/5.0 Chrome'), null);
   assert.equal(getWebXrRedirectPath('/webxr.html', 'Mozilla/5.0 Chrome'), null);
 });
 

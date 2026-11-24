@@ -70,9 +70,9 @@ function loadAnimation(state) {
     const helper = new THREE.SkeletonHelper(root);
     helper.material.color.set(state.color || '#00ffcc');
     helper.material.linewidth = 3;
-    group.add(helper);
-    scene.add(group);
+    scene.add(group, helper);
     group.updateMatrixWorld(true);
+    helper.updateMatrixWorld(true);
     const mixer = new THREE.AnimationMixer(root);
     const action = mixer.clipAction(result.clip).play();
     mixer.timeScale = state.speed * (state.reverse ? -1 : 1);

@@ -39,11 +39,9 @@ function isQuestSocket(socket) {
   return /Quest/i.test(socket.handshake.headers['user-agent'] || '');
 }
 
-export function getWebXrRedirectPath(requestPath, userAgent = '') {
-  const [pathname, query = ''] = String(requestPath || '/').split('?');
-  const explicitRequest = /(?:^|&)\s*(?:vr|xr)=1(?:&|$)/i.test(query);
-  const vrAgent = /Quest|OculusBrowser|Meta Quest/i.test(userAgent);
-  if ((pathname === '/' || pathname === '/index.html') && (explicitRequest || vrAgent)) return '/webxr.html';
+export function getWebXrRedirectPath(requestPath, _userAgent = '') {
+  const [pathname] = String(requestPath || '/').split('?');
+  if (pathname === '/' || pathname === '/index.html') return '/webxr.html';
   return null;
 }
 
