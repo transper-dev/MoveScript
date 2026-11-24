@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { getCtx, SandboxContext } from '../src/engine/context.js';
+import { buildApi, executeInSandbox } from '../src/engine/api.js';
 import { getXrBoneBounds, getXrLineColors, getXrRigsFromPayload, getXrTransform, parseXrCode } from '../src/xr/protocol.js';
 
 test('parseXrCode extracts the first animation and visual controls', () => {
@@ -92,6 +94,14 @@ test('getXrBoneBounds measures bone world positions for BVH rigs', () => {
     height: 2,
     centerX: 1
   });
+});
+
+test('executeInSandbox maintains multi-sandbox contexts and isolation', () => {
+  const ctx1 = getCtx('xr-s1', buildApi);
+  const ctx2 = getCtx('xr-s2', buildApi);
+  assert.notStrictEqual(ctx1, ctx2);
+  assert.strictEqual(ctx1.rigs.length, 0);
+  assert.strictEqual(ctx2.rigs.length, 0);
 });
 
 test('getXrBoneBounds passes a THREE.Vector3-compatible target to bones', () => {
