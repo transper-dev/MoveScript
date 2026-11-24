@@ -6,7 +6,8 @@ import { getXrBoneBounds, getXrTransform, parseXrCode } from './protocol.js';
 const status = document.getElementById('status');
 const enterVr = document.getElementById('enter-vr');
 const socket = window.io({ transports: ['websocket', 'polling'] });
-socket.on('connect', () => socket.emit('xr_ready'));
+let activeRig = null;
+let latestState = { file: 'deep_breath', color: null, color2: null, scale: 1, speed: 1, reverse: false };
 const scene = new THREE.Scene();
 const clock = new THREE.Clock();
 scene.background = new THREE.Color('#05070a');
@@ -29,8 +30,6 @@ player.add(camera);
 const controllers = [renderer.xr.getController(0), renderer.xr.getController(1)];
 controllers.forEach(controller => player.add(controller));
 
-let activeRig = null;
-let latestState = { file: 'dummy', color: null, color2: null, scale: 1, speed: 1, reverse: false };
 let lastVrSend = 0;
 
 function setStatus(message) {
@@ -79,7 +78,7 @@ function loadAnimation(state) {
     if (state.reverse) action.time = result.clip.duration;
     activeRig = { group, root, helper, mixer };
     setStatus(`Connected · ${state.file}`);
-  }, undefined, () => setStatus(`Unable to load ${state.file}.bvh`));
+  }, undefined, error => setStatus(`Unable to load ${state.file}.bvh: ${error?.message || 'check the server URL'}`));
 }
 
 function controllerData() {
@@ -107,7 +106,10 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-socket.on('connect', () => setStatus('Connected · waiting for desktop code'));
+socket.on('connect', () => {
+  socket.emit('xr_ready');
+  setStatus('Connected · waiting for desktop code');
+});
 socket.on('disconnect', () => setStatus('Disconnected from desktop tunnel'));
 socket.on('execute_code', payload => loadAnimation(parseXrCode(payload)));
 socket.on('vr_status', ({ status: vrStatus }) => {
@@ -122,7 +124,10 @@ if (navigator.xr) {
       setStatus(`WebXR unavailable: ${error.message}`);
     }
   });
-  enterVr.replaceWith(VRButton.createButton(renderer));
+  const vrButton = VRButton.createButton(renderer);
+  vrButton.classList.add('xr-vr-button');
+  vrButton.id = 'enter-vr';
+  document.getElementById('overlay').replaceChild(vrButton, enterVr);
 } else {
   enterVr.disabled = true;
   setStatus('WebXR is not available in this browser');
