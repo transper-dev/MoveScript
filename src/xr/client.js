@@ -79,10 +79,10 @@ function loadAnimation(state) {
     pivot.rotation.y = state.rotationY;
     const helper = new THREE.SkeletonHelper(root);
     helper.material.color.set(state.color || '#00ffcc');
-    helper.scale.copy(group.scale);
-    helper.position.copy(group.position);
-    helper.rotation.copy(group.rotation);
-    scene.add(group, helper);
+    helper.material.linewidth = 3;
+    group.add(helper);
+    scene.add(group);
+    group.updateMatrixWorld(true);
     const mixer = new THREE.AnimationMixer(root);
     const action = mixer.clipAction(result.clip).play();
     mixer.timeScale = state.speed * (state.reverse ? -1 : 1);

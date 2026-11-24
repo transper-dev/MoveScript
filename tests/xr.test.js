@@ -43,3 +43,22 @@ test('parseXrCode supports position, rotation, dummy, and chained blocks', () =>
     dummy: true
   });
 });
+
+test('parseXrCode clamps non-finite and extreme numeric modifiers', () => {
+  const state = parseXrCode('[bvh("walk").pos(999999999999999999999999, -999999999999999999999999, 2).scale(999999999999999999999999).speed(-999999999999999999999999).rotY(999999999999999999999999)]');
+
+  assert.deepEqual(state.position, [100, -100, 2]);
+  assert.equal(state.scale, 10);
+  assert.equal(state.speed, -10);
+  assert.equal(state.rotationY, Math.PI * 2);
+  assert.ok(state.position.every(Number.isFinite));
+});
+
+test('parseXrCode falls back when modifiers contain non-finite values', () => {
+  const state = parseXrCode('[bvh("walk").pos(NaN, Infinity, -Infinity).scale(NaN).speed(Infinity).rotY(NaN)]');
+
+  assert.deepEqual(state.position, [0, 0, 0]);
+  assert.equal(state.scale, 1);
+  assert.equal(state.speed, 1);
+  assert.equal(state.rotationY, 0);
+});

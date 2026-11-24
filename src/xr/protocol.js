@@ -10,13 +10,22 @@ const DEFAULT_XR_STATE = {
   dummy: false
 };
 
+const XR_POSITION_LIMIT = 100;
+const XR_SCALE_LIMIT = 10;
+const XR_SPEED_LIMIT = 10;
+const XR_ROTATION_LIMIT = Math.PI * 2;
+
 function firstMatch(code, pattern, fallback = null) {
   return code.match(pattern)?.[1] ?? fallback;
 }
 
-function numberMatch(code, pattern, fallback) {
-  const value = Number(firstMatch(code, pattern, fallback));
-  return Number.isFinite(value) ? value : fallback;
+function clampFinite(value, min, max, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.min(Math.max(number, min), max) : fallback;
+}
+
+function numberMatch(code, pattern, fallback, min, max) {
+  return clampFinite(firstMatch(code, pattern, fallback), min, max, fallback);
 }
 
 export function parseXrCode(payload) {
@@ -28,13 +37,13 @@ export function parseXrCode(payload) {
     file: firstMatch(code, /\[\s*bvh\(\s*["']([^"']+)["']\s*\)/i, DEFAULT_XR_STATE.file),
     color: firstMatch(code, /\.color\(\s*["']([^"']+)["']/i),
     color2: firstMatch(code, /\.color\(\s*["'][^"']+["']\s*,\s*["']([^"']+)["']/i),
-    scale: numberMatch(code, /\.scale\(\s*([-+]?\d*\.?\d+)\s*\)/i, DEFAULT_XR_STATE.scale),
-    speed: numberMatch(code, /\.speed\(\s*([-+]?\d*\.?\d+)\s*\)/i, DEFAULT_XR_STATE.speed),
+    scale: numberMatch(code, /\.scale\(\s*([-+]?\d*\.?\d+)\s*\)/i, DEFAULT_XR_STATE.scale, 0.01, XR_SCALE_LIMIT),
+    speed: numberMatch(code, /\.speed\(\s*([-+]?\d*\.?\d+)\s*\)/i, DEFAULT_XR_STATE.speed, -XR_SPEED_LIMIT, XR_SPEED_LIMIT),
     reverse: /\.reverse\(\s*(?:true\s*)?\)/i.test(code),
     position: positionMatch
-      ? positionMatch.slice(1).map(Number)
+      ? positionMatch.slice(1).map(value => clampFinite(value, -XR_POSITION_LIMIT, XR_POSITION_LIMIT, 0))
       : [...DEFAULT_XR_STATE.position],
-    rotationY: numberMatch(code, /\.rotY\(\s*([-+]?\d*\.?\d+)\s*\)/i, DEFAULT_XR_STATE.rotationY),
+    rotationY: numberMatch(code, /\.rotY\(\s*([-+]?\d*\.?\d+)\s*\)/i, DEFAULT_XR_STATE.rotationY, -XR_ROTATION_LIMIT, XR_ROTATION_LIMIT),
     dummy: /\.dummy\(\s*(?:true\s*)?\)/i.test(code)
   };
 }
