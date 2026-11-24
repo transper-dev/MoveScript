@@ -30,8 +30,8 @@ function numberMatch(code, pattern, fallback, min, max) {
   return clampFinite(firstMatch(code, pattern, fallback), min, max, fallback);
 }
 
-export function getXrLineColor(color) {
-  return color || '#00ffcc';
+export function getXrLineColors(color, color2) {
+  return [color || '#00ffcc', color2 || color || '#00ffcc'];
 }
 
 export function getXrBoneBounds(bones) {
@@ -60,6 +60,16 @@ export function getXrTransform(bounds, state) {
       clampFinite(-4 + position[2], -100, 100, -4)
     ]
   };
+}
+
+export function getXrRigsFromPayload(payload) {
+  const code = typeof payload === 'string' ? payload : payload?.code;
+  if (typeof code !== 'string') return [parseXrCode(code)];
+  const blocks = code.split(';').map(part => part.trim()).filter(Boolean);
+  if (blocks.length <= 1 && !/\bCHAIN\b/i.test(code)) {
+    return [parseXrCode(code)];
+  }
+  return blocks.map(block => parseXrCode(block));
 }
 
 export function parseXrCode(payload) {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getXrBoneBounds, getXrLineColor, getXrTransform, parseXrCode } from '../src/xr/protocol.js';
+import { getXrBoneBounds, getXrLineColors, getXrRigsFromPayload, getXrTransform, parseXrCode } from '../src/xr/protocol.js';
 
 test('parseXrCode extracts the first animation and visual controls', () => {
   assert.deepEqual(parseXrCode('[bvh("walk").color("red", "blue").scale(2).speed(0.5).reverse()]'), {
@@ -16,9 +16,18 @@ test('parseXrCode extracts the first animation and visual controls', () => {
   });
 });
 
-test('getXrLineColor defaults to a bright visible color', () => {
-  assert.equal(getXrLineColor(null), '#00ffcc');
-  assert.equal(getXrLineColor('red'), 'red');
+test('getXrRigsFromPayload extracts multiple sandbox/chained rigs', () => {
+  const rigs = getXrRigsFromPayload('[bvh("walk").pos(0,0,0)] ; [bvh("monster_walk").pos(100,0,0)]');
+  assert.equal(rigs.length, 2);
+  assert.equal(rigs[0].file, 'walk');
+  assert.deepEqual(rigs[0].position, [0, 0, 0]);
+  assert.equal(rigs[1].file, 'monster_walk');
+  assert.deepEqual(rigs[1].position, [100, 0, 0]);
+});
+
+test('getXrLineColors preserves solid and gradient colors', () => {
+  assert.deepEqual(getXrLineColors(null, null), ['#00ffcc', '#00ffcc']);
+  assert.deepEqual(getXrLineColors('red', 'blue'), ['red', 'blue']);
 });
 
 test('parseXrCode extracts modifiers from transpiled CHAIN payloads', () => {

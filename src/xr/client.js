@@ -1,13 +1,13 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { BVHLoader } from 'three/addons/loaders/BVHLoader.js';
-import { getXrBoneBounds, getXrLineColor, getXrTransform, parseXrCode } from './protocol.js';
+import { getXrBoneBounds, getXrLineColors, getXrRigsFromPayload, getXrTransform } from './protocol.js';
 
 const status = document.getElementById('status');
 const enterVr = document.getElementById('enter-vr');
 const socket = window.io({ transports: ['websocket', 'polling'] });
-let activeRig = null;
-let latestState = { file: 'deep_breath', color: null, color2: null, scale: 1, speed: 1, reverse: false };
+let activeRigs = [];
+let latestPayload = '[bvh("deep_breath")]';
 const scene = new THREE.Scene();
 const clock = new THREE.Clock();
 scene.background = new THREE.Color('#05070a');
@@ -36,54 +36,82 @@ function setStatus(message) {
   status.textContent = message;
 }
 
-function disposeRig() {
-  if (!activeRig) return;
-  scene.remove(activeRig.group);
-  scene.remove(activeRig.helper);
-  activeRig.mixer.stopAllAction();
-  activeRig.mixer.uncacheRoot(activeRig.root);
-  activeRig.helper.geometry.dispose();
-  activeRig.helper.material.dispose();
-  activeRig = null;
+function disposeRigs() {
+  for (const rig of activeRigs) {
+    scene.remove(rig.group);
+    scene.remove(rig.helper);
+    rig.mixer.stopAllAction();
+    rig.mixer.uncacheRoot(rig.root);
+    rig.helper.geometry.dispose();
+    rig.helper.material.dispose();
+  }
+  activeRigs = [];
 }
 
-function loadAnimation(state) {
-  latestState = state;
-  disposeRig();
-  const loader = new BVHLoader();
-  const url = `./assets/bvh/${encodeURIComponent(state.file)}.bvh`;
-  loader.load(url, result => {
-    const root = result.skeleton.bones[0];
-    const group = new THREE.Group();
-    const pivot = new THREE.Group();
-    pivot.add(root);
-    group.add(pivot);
+function loadRigs(payload) {
+  latestPayload = payload;
+  disposeRigs();
+  const states = getXrRigsFromPayload(payload);
+  states.forEach((state, index) => {
+    const loader = new BVHLoader();
+    const url = `./assets/bvh/${encodeURIComponent(state.file)}.bvh`;
+    loader.load(url, result => {
+      const root = result.skeleton.bones[0];
+      const group = new THREE.Group();
+      const pivot = new THREE.Group();
+      pivot.add(root);
+      group.add(pivot);
 
-    group.updateMatrixWorld(true);
-    const boneBounds = getXrBoneBounds(result.skeleton.bones);
-    const transform = getXrTransform(boneBounds, state);
-    group.scale.setScalar(transform.scale);
-    if (state.dummy) root.visible = true;
-    group.position.fromArray(transform.position);
-    pivot.rotation.y = state.rotationY;
-    const helper = new THREE.SkeletonHelper(root);
-    helper.material.color.set(getXrLineColor(state.color));
-    helper.material.vertexColors = false;
-    helper.material.linewidth = 3;
-    helper.material.depthTest = false;
-    helper.material.depthWrite = false;
-    helper.material.opacity = 1;
-    helper.material.transparent = false;
-    scene.add(group, helper);
-    group.updateMatrixWorld(true);
-    helper.updateMatrixWorld(true);
-    const mixer = new THREE.AnimationMixer(root);
-    const action = mixer.clipAction(result.clip).play();
-    mixer.timeScale = state.speed * (state.reverse ? -1 : 1);
-    if (state.reverse) action.time = result.clip.duration;
-    activeRig = { group, root, helper, mixer };
-    setStatus(`Connected · ${state.file}`);
-  }, undefined, error => setStatus(`Unable to load ${state.file}.bvh: ${error?.message || 'check the server URL'}`));
+      group.updateMatrixWorld(true);
+      const boneBounds = getXrBoneBounds(result.skeleton.bones);
+      const transform = getXrTransform(boneBounds, state);
+      transform.position[0] += index * 1.5;
+      group.scale.setScalar(transform.scale);
+      if (state.dummy) root.visible = true;
+      group.position.fromArray(transform.position);
+      pivot.rotation.y = state.rotationY;
+
+      const colors = getXrLineColors(state.color, state.color2);
+      const helper = new THREE.SkeletonHelper(root);
+      if (colors[1] && colors[1] !== colors[0]) {
+        helper.material.vertexColors = true;
+        helper.material.color.set(0xffffff);
+        const geometry = helper.geometry;
+        const positions = geometry.attributes.position;
+        const vertexColors = new Float32Array(positions.count * 3);
+        const colStart = new THREE.Color(colors[0]);
+        const colEnd = new THREE.Color(colors[1]);
+        for (let i = 0; i < positions.count; i += 2) {
+          vertexColors[i * 3] = colStart.r;
+          vertexColors[i * 3 + 1] = colStart.g;
+          vertexColors[i * 3 + 2] = colStart.b;
+          vertexColors[(i + 1) * 3] = colEnd.r;
+          vertexColors[(i + 1) * 3 + 1] = colEnd.g;
+          vertexColors[(i + 1) * 3 + 2] = colEnd.b;
+        }
+        geometry.setAttribute('color', new THREE.BufferAttribute(vertexColors, 3));
+      } else {
+        helper.material.vertexColors = false;
+        helper.material.color.set(colors[0]);
+      }
+      helper.material.linewidth = 3;
+      helper.material.depthTest = false;
+      helper.material.depthWrite = false;
+      helper.material.opacity = 1;
+      helper.material.transparent = false;
+
+      scene.add(group, helper);
+      group.updateMatrixWorld(true);
+      helper.updateMatrixWorld(true);
+
+      const mixer = new THREE.AnimationMixer(root);
+      const action = mixer.clipAction(result.clip).play();
+      mixer.timeScale = state.speed * (state.reverse ? -1 : 1);
+      if (state.reverse) action.time = result.clip.duration;
+      activeRigs.push({ group, root, helper, mixer });
+      setStatus(`Connected · ${state.file}`);
+    }, undefined, error => setStatus(`Unable to load ${state.file}.bvh: ${error?.message || 'check server'}`));
+  });
 }
 
 function controllerData() {
@@ -97,7 +125,12 @@ function controllerData() {
 }
 
 function render(time, _frame) {
-  if (activeRig) activeRig.mixer.update(clock.getDelta());
+  const delta = clock.getDelta();
+  for (const rig of activeRigs) {
+    rig.mixer.update(delta);
+    rig.group.updateMatrixWorld(true);
+    rig.helper.updateMatrixWorld(true);
+  }
   if (time - lastVrSend > 33) {
     socket.emit('vr_data', controllerData());
     lastVrSend = time;
@@ -116,7 +149,7 @@ socket.on('connect', () => {
   setStatus('Connected · waiting for desktop code');
 });
 socket.on('disconnect', () => setStatus('Disconnected from desktop tunnel'));
-socket.on('execute_code', payload => loadAnimation(parseXrCode(payload)));
+socket.on('execute_code', payload => loadRigs(payload));
 socket.on('vr_status', ({ status: vrStatus }) => {
   if (vrStatus === 'connected') setStatus('VR client connected');
 });
@@ -139,4 +172,4 @@ if (navigator.xr) {
 }
 
 renderer.setAnimationLoop(render);
-loadAnimation(latestState);
+loadRigs(latestPayload);
