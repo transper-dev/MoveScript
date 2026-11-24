@@ -16,6 +16,11 @@ test('parseXrCode extracts the first animation and visual controls', () => {
   });
 });
 
+test('getXrLineColors preserves solid and gradient colors', () => {
+  assert.deepEqual(getXrLineColors(null, null), ['#00ffcc', '#00ffcc']);
+  assert.deepEqual(getXrLineColors('red', 'blue'), ['red', 'blue']);
+});
+
 test('getXrRigsFromPayload extracts multiple sandbox/chained rigs', () => {
   const rigs = getXrRigsFromPayload('[bvh("walk").pos(0,0,0)] ; [bvh("monster_walk").pos(100,0,0)]');
   assert.equal(rigs.length, 2);
