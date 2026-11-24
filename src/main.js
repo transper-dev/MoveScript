@@ -234,6 +234,7 @@ function runCode(sb, code) {
   const codigoFinal = configuracionOculta + "\n" + transpiled;
   const order = sortedByLabel().indexOf(sb);
   iframe.contentWindow.postMessage({ type: MessageTypes.EXECUTE, sandboxId: sb.id, order, code: codigoFinal }, getTargetOrigin());
+  if (window.electronAPI?.broadcastCode) window.electronAPI.broadcastCode(code);
 }
 
 export function runAll() {

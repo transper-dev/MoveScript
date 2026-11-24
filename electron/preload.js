@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         return await ipcRenderer.invoke('fs:save', filename, content);
     },
     startVrTunnel: () => ipcRenderer.invoke('desktop:start-vr-tunnel'),
+    broadcastCode: (code) => ipcRenderer.invoke('desktop:broadcast-code', code),
     setOscEnabled: (enabled) => ipcRenderer.invoke('desktop:set-osc', Boolean(enabled)),
     onTunnelStatus: (callback) => {
         if (typeof callback !== 'function') return () => {};

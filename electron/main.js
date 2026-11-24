@@ -58,7 +58,6 @@ function createWindow() {
 
 app.whenReady().then(async () => {
     desktopServices = createDesktopServices({
-        baseDir: BASE_DIR,
         staticDir: join(__dirname, '..'),
         onTunnelStatus: (status) => BrowserWindow.getAllWindows().forEach(win => win.webContents.send('desktop:tunnel-status', status)),
         onVrStatus: (status) => BrowserWindow.getAllWindows().forEach(win => win.webContents.send('desktop:vr-status', status)),
@@ -143,4 +142,5 @@ ipcMain.handle('fs:save', async (event, filename, content) => {
 });
 
 ipcMain.handle('desktop:start-vr-tunnel', () => desktopServices?.startTunnel() ?? false);
+ipcMain.handle('desktop:broadcast-code', (event, code) => desktopServices?.broadcastCode(code) ?? false);
 ipcMain.handle('desktop:set-osc', (event, enabled) => desktopServices?.setOscEnabled(enabled) ?? false);

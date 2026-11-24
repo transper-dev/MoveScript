@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createOscMessages, normalizeVrData } from '../electron/desktopServices.js';
+import { createDesktopServices, createOscMessages, normalizeVrData } from '../electron/desktopServices.js';
 
 test('normalizeVrData accepts finite controller coordinates only', () => {
   assert.deepEqual(normalizeVrData({ c1: [1, 80, 3], c2: [4, 150, 6] }), {
@@ -21,4 +21,29 @@ test('createOscMessages maps both controller Y values to bounded OSC values', ()
     ['/vr/left_y', 0],
     ['/vr/right_y', 5000]
   ]);
+});
+
+test('createDesktopServices serves packaged assets instead of the local BVH directory', () => {
+  const services = createDesktopServices({
+    staticDir: 'packaged-root',
+    onTunnelStart: () => null
+  });
+
+  assert.equal(services.assetMount.route, '/assets');
+  assert.match(services.assetMount.directory, /packaged-root[\\/]assets$/);
+
+  services.stop();
+});
+
+test('createDesktopServices broadcasts editor code to connected XR clients', () => {
+  const services = createDesktopServices({
+    staticDir: 'packaged-root',
+    onTunnelStart: () => null
+  });
+
+  assert.equal(services.broadcastCode('[bvh("walk")]'), true);
+  assert.equal(services.broadcastCode({ code: '[bvh("walk")]' }), true);
+  assert.equal(services.broadcastCode('x'.repeat(256 * 1024 + 1)), false);
+
+  services.stop();
 });

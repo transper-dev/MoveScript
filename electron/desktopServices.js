@@ -2,6 +2,7 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import { Client as OscClient } from 'node-osc';
+import { join } from 'path';
 
 const LOOPBACK_HOST = '127.0.0.1';
 const OSC_PORT = 12000;
@@ -38,13 +39,14 @@ function isQuestSocket(socket) {
   return /Quest/i.test(socket.handshake.headers['user-agent'] || '');
 }
 
-export function createDesktopServices({ baseDir, staticDir, onTunnelStart, onTunnelStatus, onVrStatus }) {
+export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus, onVrStatus }) {
   const expressApp = express();
   const server = http.createServer(expressApp);
   const io = new Server(server, { cors: { origin: false }, maxHttpBufferSize: MAX_VR_PACKET_LENGTH });
   const oscClient = new OscClient(LOOPBACK_HOST, OSC_PORT);
 
-  expressApp.use('/assets', express.static(baseDir, { dotfiles: 'deny', fallthrough: false }));
+  const assetMount = { route: '/assets', directory: join(staticDir, 'assets') };
+  expressApp.use(assetMount.route, express.static(assetMount.directory, { dotfiles: 'deny', fallthrough: false }));
   expressApp.use(express.static(staticDir, { dotfiles: 'deny', fallthrough: false }));
 
   let pendingVrData = null;
@@ -58,17 +60,20 @@ export function createDesktopServices({ baseDir, staticDir, onTunnelStart, onTun
   }, 1000 / 60);
   flushTimer.unref();
 
+  const broadcastCode = data => {
+    if (typeof data !== 'string' && (!data || typeof data !== 'object')) return false;
+    if (JSON.stringify(data).length > MAX_CODE_LENGTH) return false;
+    io.emit('execute_code', data);
+    return true;
+  };
+
   io.on('connection', socket => {
     const isQuest = isQuestSocket(socket);
     if (isQuest) {
       onVrStatus?.('connected');
       io.emit('vr_status', { status: 'connected' });
     }
-    socket.on('update_code', data => {
-      if (typeof data !== 'string' && (!data || typeof data !== 'object')) return;
-      if (JSON.stringify(data).length > MAX_CODE_LENGTH) return;
-      socket.broadcast.emit('execute_code', data);
-    });
+    socket.on('update_code', broadcastCode);
     socket.on('vr_data', data => {
       if (!isQuest || !data || JSON.stringify(data).length > MAX_VR_PACKET_LENGTH) return;
       pendingVrData = normalizeVrData(data);
@@ -82,6 +87,8 @@ export function createDesktopServices({ baseDir, staticDir, onTunnelStart, onTun
   });
 
   return {
+    assetMount,
+    broadcastCode,
     start() {
       return new Promise((resolve, reject) => {
         server.once('error', reject);
