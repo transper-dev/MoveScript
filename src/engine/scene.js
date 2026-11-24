@@ -13,9 +13,9 @@ const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefine
 
 export let canvas;
 if (isBrowser) {
-  canvas = document.getElementById("c");
+  canvas = document.getElementById("c") || document.querySelector("canvas");
   if (canvas) {
-    canvas.addEventListener("pointerdown", () => canvas.focus());
+    canvas.addEventListener("pointerdown", () => canvas.focus?.());
   } else {
     canvas = document.createElement("canvas");
     canvas.id = "c";
