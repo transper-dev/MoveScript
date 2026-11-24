@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
-import { getCtx } from '../src/engine/context.js';
-import { buildApi, executeInSandbox } from '../src/engine/api.js';
-import { scene, camera, renderer, clock, controls } from '../src/engine/scene.js';
+import { getCtx, contexts } from '../engine/context.js';
+import { buildApi, executeInSandbox } from '../engine/api.js';
+import { scene, camera, renderer, clock, controls } from '../engine/scene.js';
 
 const status = document.getElementById('status');
 const enterVr = document.getElementById('enter-vr');
@@ -73,7 +73,6 @@ function render(time, _frame) {
   renderer.render(scene, camera);
 }
 
-import { contexts } from '../src/engine/context.js';
 window.contextsList = contexts.values();
 
 window.addEventListener('resize', () => {
