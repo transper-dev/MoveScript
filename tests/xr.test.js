@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseXrCode } from '../src/xr/protocol.js';
+import { getXrTransform, parseXrCode } from '../src/xr/protocol.js';
 
 test('parseXrCode extracts the first animation and visual controls', () => {
   assert.deepEqual(parseXrCode('[bvh("walk").color("red", "blue").scale(2).speed(0.5).reverse()]'), {
@@ -61,4 +61,11 @@ test('parseXrCode falls back when modifiers contain non-finite values', () => {
   assert.equal(state.scale, 1);
   assert.equal(state.speed, 1);
   assert.equal(state.rotationY, 0);
+});
+
+test('getXrTransform uses finite defaults for empty BVH bounds', () => {
+  assert.deepEqual(getXrTransform({ minY: Infinity, height: 0, centerX: 0 }, { position: [0, 0, 0], scale: 1 }), {
+    scale: 1,
+    position: [0, 0, -4]
+  });
 });

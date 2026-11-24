@@ -28,6 +28,22 @@ function numberMatch(code, pattern, fallback, min, max) {
   return clampFinite(firstMatch(code, pattern, fallback), min, max, fallback);
 }
 
+export function getXrTransform(bounds, state) {
+  const minY = Number.isFinite(bounds?.minY) ? bounds.minY : 0;
+  const height = Number.isFinite(bounds?.height) && bounds.height > 0 ? bounds.height : 1.7;
+  const centerX = Number.isFinite(bounds?.centerX) ? bounds.centerX : 0;
+  const scale = clampFinite((1.7 / height) * (state?.scale ?? 1), 0.01, 10, 1);
+  const position = Array.isArray(state?.position) ? state.position : [0, 0, 0];
+  return {
+    scale,
+    position: [
+      clampFinite(position[0] - centerX * scale, -100, 100, 0),
+      clampFinite(position[1] - minY * scale, -100, 100, 0),
+      clampFinite(-4 + position[2], -100, 100, -4)
+    ]
+  };
+}
+
 export function parseXrCode(payload) {
   const code = typeof payload === 'string' ? payload : payload?.code;
   if (typeof code !== 'string') return { ...DEFAULT_XR_STATE };

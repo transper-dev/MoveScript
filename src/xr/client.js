@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { BVHLoader } from 'three/addons/loaders/BVHLoader.js';
-import { parseXrCode } from './protocol.js';
+import { getXrTransform, parseXrCode } from './protocol.js';
 
 const status = document.getElementById('status');
 const enterVr = document.getElementById('enter-vr');
@@ -26,10 +26,6 @@ player.position.set(0, 1.6, 6);
 scene.add(player);
 player.add(camera);
 
-const XR_TARGET_HEIGHT = 1.7;
-const XR_MAX_HEIGHT = 4;
-const XR_DEFAULT_DISTANCE = 4;
-
 const controllers = [renderer.xr.getController(0), renderer.xr.getController(1)];
 controllers.forEach(controller => player.add(controller));
 
@@ -44,6 +40,7 @@ function setStatus(message) {
 function disposeRig() {
   if (!activeRig) return;
   scene.remove(activeRig.group);
+  scene.remove(activeRig.helper);
   activeRig.mixer.stopAllAction();
   activeRig.mixer.uncacheRoot(activeRig.root);
   activeRig.helper.geometry.dispose();
@@ -66,16 +63,10 @@ function loadAnimation(state) {
     const bounds = new THREE.Box3().setFromObject(group);
     const size = bounds.getSize(new THREE.Vector3());
     const center = bounds.getCenter(new THREE.Vector3());
-    const naturalHeight = Math.max(size.y, 0.001);
-    const fitScale = XR_TARGET_HEIGHT / naturalHeight;
-    const scale = Math.min(Math.max(fitScale * state.scale, 0.01), XR_MAX_HEIGHT / naturalHeight);
-    group.scale.setScalar(scale);
+    const transform = getXrTransform({ minY: bounds.min.y, height: size.y, centerX: center.x }, state);
+    group.scale.setScalar(transform.scale);
     if (state.dummy) root.visible = true;
-    group.position.set(
-      state.position[0] - center.x * scale,
-      state.position[1] - bounds.min.y * scale,
-      -XR_DEFAULT_DISTANCE + state.position[2]
-    );
+    group.position.fromArray(transform.position);
     pivot.rotation.y = state.rotationY;
     const helper = new THREE.SkeletonHelper(root);
     helper.material.color.set(state.color || '#00ffcc');
