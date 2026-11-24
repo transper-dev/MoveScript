@@ -30,6 +30,10 @@ function numberMatch(code, pattern, fallback, min, max) {
   return clampFinite(firstMatch(code, pattern, fallback), min, max, fallback);
 }
 
+export function getXrLineColor(color) {
+  return color || '#00ffcc';
+}
+
 export function getXrBoneBounds(bones) {
   const points = (bones || []).filter(bone => bone?.isBone).map(bone => {
     const target = new THREE.Vector3();
@@ -64,7 +68,7 @@ export function parseXrCode(payload) {
 
   const positionMatch = code.match(/\.pos\(\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\)/i);
   return {
-    file: firstMatch(code, /\[\s*bvh\(\s*["']([^"']+)["']\s*\)/i, DEFAULT_XR_STATE.file),
+    file: firstMatch(code, /(?:\[\s*bvh|\.bvh)\(\s*["']([^"']+)["']\s*\)/i, DEFAULT_XR_STATE.file),
     color: firstMatch(code, /\.color\(\s*["']([^"']+)["']/i),
     color2: firstMatch(code, /\.color\(\s*["'][^"']+["']\s*,\s*["']([^"']+)["']/i),
     scale: numberMatch(code, /\.scale\(\s*([-+]?\d*\.?\d+)\s*\)/i, DEFAULT_XR_STATE.scale, 0.01, XR_SCALE_LIMIT),

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { BVHLoader } from 'three/addons/loaders/BVHLoader.js';
-import { getXrBoneBounds, getXrTransform, parseXrCode } from './protocol.js';
+import { getXrBoneBounds, getXrLineColor, getXrTransform, parseXrCode } from './protocol.js';
 
 const status = document.getElementById('status');
 const enterVr = document.getElementById('enter-vr');
@@ -67,8 +67,13 @@ function loadAnimation(state) {
     group.position.fromArray(transform.position);
     pivot.rotation.y = state.rotationY;
     const helper = new THREE.SkeletonHelper(root);
-    helper.material.color.set(state.color || '#00ffcc');
+    helper.material.color.set(getXrLineColor(state.color));
+    helper.material.vertexColors = false;
     helper.material.linewidth = 3;
+    helper.material.depthTest = false;
+    helper.material.depthWrite = false;
+    helper.material.opacity = 1;
+    helper.material.transparent = false;
     scene.add(group, helper);
     group.updateMatrixWorld(true);
     helper.updateMatrixWorld(true);

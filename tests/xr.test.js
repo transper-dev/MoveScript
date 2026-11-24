@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getXrBoneBounds, getXrTransform, parseXrCode } from '../src/xr/protocol.js';
+import { getXrBoneBounds, getXrLineColor, getXrTransform, parseXrCode } from '../src/xr/protocol.js';
 
 test('parseXrCode extracts the first animation and visual controls', () => {
   assert.deepEqual(parseXrCode('[bvh("walk").color("red", "blue").scale(2).speed(0.5).reverse()]'), {
@@ -10,6 +10,25 @@ test('parseXrCode extracts the first animation and visual controls', () => {
     scale: 2,
     speed: 0.5,
     reverse: true,
+    position: [0, 0, 0],
+    rotationY: 0,
+    dummy: false
+  });
+});
+
+test('getXrLineColor defaults to a bright visible color', () => {
+  assert.equal(getXrLineColor(null), '#00ffcc');
+  assert.equal(getXrLineColor('red'), 'red');
+});
+
+test('parseXrCode extracts modifiers from transpiled CHAIN payloads', () => {
+  assert.deepEqual(parseXrCode('CHAIN($B().bvh("walk").color("red").scale(2).speed(0.5))'), {
+    file: 'walk',
+    color: 'red',
+    color2: null,
+    scale: 2,
+    speed: 0.5,
+    reverse: false,
     position: [0, 0, 0],
     rotationY: 0,
     dummy: false
