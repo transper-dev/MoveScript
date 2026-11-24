@@ -5,7 +5,8 @@ import { parseXrCode } from './protocol.js';
 
 const status = document.getElementById('status');
 const enterVr = document.getElementById('enter-vr');
-const socket = window.io();
+const socket = window.io({ transports: ['websocket', 'polling'] });
+socket.on('connect', () => socket.emit('xr_ready'));
 const scene = new THREE.Scene();
 const clock = new THREE.Clock();
 scene.background = new THREE.Color('#05070a');

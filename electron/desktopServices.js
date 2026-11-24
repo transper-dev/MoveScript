@@ -68,21 +68,25 @@ export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus
   };
 
   io.on('connection', socket => {
-    const isQuest = isQuestSocket(socket);
-    if (isQuest) {
-      onVrStatus?.('connected');
-      io.emit('vr_status', { status: 'connected' });
-    }
+    let isVrClient = isQuestSocket(socket);
+    const updateVrStatus = status => {
+      onVrStatus?.(status);
+      io.emit('vr_status', { status });
+    };
+    if (isVrClient) updateVrStatus('connected');
+    socket.on('xr_ready', () => {
+      if (!isVrClient) {
+        isVrClient = true;
+        updateVrStatus('connected');
+      }
+    });
     socket.on('update_code', broadcastCode);
     socket.on('vr_data', data => {
-      if (!isQuest || !data || JSON.stringify(data).length > MAX_VR_PACKET_LENGTH) return;
+      if (!isVrClient || !data || JSON.stringify(data).length > MAX_VR_PACKET_LENGTH) return;
       pendingVrData = normalizeVrData(data);
     });
     socket.on('disconnect', () => {
-      if (isQuest) {
-        onVrStatus?.('disconnected');
-        io.emit('vr_status', { status: 'disconnected' });
-      }
+      if (isVrClient) updateVrStatus('disconnected');
     });
   });
 

@@ -26,8 +26,10 @@ export function initDrawer() {
     }
     if (drawer.classList.contains('abierto')) {
       toggleIcon.className = 'fas fa-chevron-down';
+      if (desktopControls) desktopControls.style.bottom = `${drawer.offsetHeight + 20}px`;
     } else {
       toggleIcon.className = 'fas fa-chevron-up';
+      if (desktopControls) desktopControls.style.bottom = '20px';
     }
   });
 }

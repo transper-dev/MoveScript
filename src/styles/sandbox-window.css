@@ -269,6 +269,10 @@
   background: rgba(40, 40, 40, 0.9);
 }
 
+#global-bar a.global-btn {
+  text-decoration: none;
+}
+
 /* --- ESTILOS DE CODEMIRROR SOBREESCRITOS --- */
 .CodeMirror {
   flex: 1;

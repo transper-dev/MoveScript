@@ -8,7 +8,12 @@ const STATES = {
 };
 
 export function initDesktopControls() {
-  if (!capabilities.isDesktop) return;
+  const controls = document.getElementById('desktop-controls');
+  if (!capabilities.isDesktop || !window.electronAPI) {
+    controls?.remove();
+    return;
+  }
+  document.body.classList.add('desktop');
 
   const tunnelBtn = document.getElementById('vrTunnelBtn');
   const oscBtn = document.getElementById('oscBtn');
