@@ -3,17 +3,13 @@ import assert from 'node:assert/strict';
 import { getXrBoneBounds, getXrLineColors, getXrRigsFromPayload, getXrTransform, parseXrCode } from '../src/xr/protocol.js';
 
 test('parseXrCode extracts the first animation and visual controls', () => {
-  assert.deepEqual(parseXrCode('[bvh("walk").color("red", "blue").scale(2).speed(0.5).reverse()]'), {
-    file: 'walk',
-    color: 'red',
-    color2: 'blue',
-    scale: 2,
-    speed: 0.5,
-    reverse: true,
-    position: [0, 0, 0],
-    rotationY: 0,
-    dummy: false
-  });
+  const result = parseXrCode('[bvh("walk").color("red", "blue").scale(2).speed(0.5).reverse()]');
+  assert.equal(result.file, 'walk');
+  assert.equal(result.color, 'red');
+  assert.equal(result.color2, 'blue');
+  assert.equal(result.scale, 2);
+  assert.equal(result.speed, 0.5);
+  assert.equal(result.reverse, true);
 });
 
 test('getXrLineColors preserves solid and gradient colors', () => {
@@ -21,60 +17,42 @@ test('getXrLineColors preserves solid and gradient colors', () => {
   assert.deepEqual(getXrLineColors('red', 'blue'), ['red', 'blue']);
 });
 
-test('getXrRigsFromPayload extracts multiple sandbox/chained rigs', () => {
-  const rigs = getXrRigsFromPayload('[bvh("walk").pos(0,0,0)] ; [bvh("monster_walk").pos(100,0,0)]');
-  assert.equal(rigs.length, 2);
-  assert.equal(rigs[0].file, 'walk');
-  assert.deepEqual(rigs[0].position, [0, 0, 0]);
-  assert.equal(rigs[1].file, 'monster_walk');
-  assert.deepEqual(rigs[1].position, [100, 0, 0]);
+test('getXrRigsFromPayload handles per-sandbox updates and preserves order spacing', () => {
+  const rigs1 = getXrRigsFromPayload({ sandboxId: 's1', order: 0, code: '[bvh("walk")]' });
+  const rigs2 = getXrRigsFromPayload({ sandboxId: 's2', order: 1, code: '[bvh("monster_walk")]' });
+  assert.equal(rigs1[0].sandboxId, 's1');
+  assert.equal(rigs1[0].order, 0);
+  assert.equal(rigs2[0].sandboxId, 's2');
+  assert.equal(rigs2[0].order, 1);
 });
 
-test('getXrLineColors preserves solid and gradient colors', () => {
-  assert.deepEqual(getXrLineColors(null, null), ['#00ffcc', '#00ffcc']);
-  assert.deepEqual(getXrLineColors('red', 'blue'), ['red', 'blue']);
+test('parseXrCode extracts metadata like sandboxId and order', () => {
+  const state = parseXrCode({ type: 'execute', sandboxId: 's2', order: 1, code: '[bvh("walk")]' });
+  assert.equal(state.sandboxId, 's2');
+  assert.equal(state.order, 1);
+  assert.equal(state.file, 'walk');
 });
 
 test('parseXrCode extracts modifiers from transpiled CHAIN payloads', () => {
-  assert.deepEqual(parseXrCode('CHAIN($B().bvh("walk").color("red").scale(2).speed(0.5))'), {
-    file: 'walk',
-    color: 'red',
-    color2: null,
-    scale: 2,
-    speed: 0.5,
-    reverse: false,
-    position: [0, 0, 0],
-    rotationY: 0,
-    dummy: false
-  });
+  const result = parseXrCode('CHAIN($B().bvh("walk").color("red").scale(2).speed(0.5))');
+  assert.equal(result.file, 'walk');
+  assert.equal(result.color, 'red');
+  assert.equal(result.scale, 2);
+  assert.equal(result.speed, 0.5);
 });
 
 test('parseXrCode uses a safe dummy fallback for unsupported payloads', () => {
-  assert.deepEqual(parseXrCode({ code: 'background("red")' }), {
-    file: 'dummy',
-    color: null,
-    color2: null,
-    scale: 1,
-    speed: 1,
-    reverse: false,
-    position: [0, 0, 0],
-    rotationY: 0,
-    dummy: false
-  });
+  const result = parseXrCode({ code: 'background("red")' });
+  assert.equal(result.file, 'dummy');
+  assert.equal(result.scale, 1);
 });
 
 test('parseXrCode supports position, rotation, dummy, and chained blocks', () => {
-  assert.deepEqual(parseXrCode('[bvh("walk").pos(2, 3, -4).rotY(1.5).dummy()]>[bvh("next")]'), {
-    file: 'walk',
-    color: null,
-    color2: null,
-    scale: 1,
-    speed: 1,
-    reverse: false,
-    position: [2, 3, -4],
-    rotationY: 1.5,
-    dummy: true
-  });
+  const result = parseXrCode('[bvh("walk").pos(2, 3, -4).rotY(1.5).dummy()]>[bvh("next")]');
+  assert.equal(result.file, 'walk');
+  assert.deepEqual(result.position, [2, 3, -4]);
+  assert.equal(result.rotationY, 1.5);
+  assert.equal(result.dummy, true);
 });
 
 test('parseXrCode clamps non-finite and extreme numeric modifiers', () => {

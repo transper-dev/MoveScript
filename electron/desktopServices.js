@@ -64,8 +64,8 @@ export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus
   });
   expressApp.use(express.static(staticDir, { dotfiles: 'deny', fallthrough: false }));
 
+  let lastCodes = {};
   let pendingVrData = null;
-  let lastCode = null;
   let oscEnabled = false;
   let tunnelProcess = null;
   const flushTimer = setInterval(() => {
@@ -78,15 +78,25 @@ export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus
 
   const broadcastCode = data => {
     if (typeof data !== 'string' && (!data || typeof data !== 'object')) return false;
-    if (JSON.stringify(data).length > MAX_CODE_LENGTH) return false;
-    lastCode = data;
+    const raw = typeof data === 'string' ? data : (data.code || JSON.stringify(data));
+    if (raw.length > MAX_CODE_LENGTH) return false;
+    const sandboxId = data.sandboxId || 'default';
+    if (data.type === 'clearSandbox') {
+      delete lastCodes[sandboxId];
+    } else if (data.type === 'clearAll') {
+      lastCodes = {};
+    } else {
+      lastCodes[sandboxId] = data;
+    }
     io.emit('execute_code', data);
     return true;
   };
 
   const sendLastCode = socket => {
-    if (lastCode === null || !socket?.emit) return false;
-    socket.emit('execute_code', lastCode);
+    if (Object.keys(lastCodes).length === 0 || !socket?.emit) return false;
+    for (const payload of Object.values(lastCodes)) {
+      socket.emit('execute_code', payload);
+    }
     return true;
   };
 
@@ -118,7 +128,8 @@ export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus
     assetMount,
     broadcastCode,
     isVrClient: isQuestSocket,
-    getLastCode: () => lastCode,
+    getLastCode: () => lastCodes,
+    getLastCodePayload: () => Object.values(lastCodes),
     sendLastCode,
     start() {
       return new Promise((resolve, reject) => {

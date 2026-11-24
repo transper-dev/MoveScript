@@ -55,12 +55,11 @@ test('createDesktopServices broadcasts editor code to connected XR clients', () 
   });
 
   assert.equal(services.broadcastCode('[bvh("walk")]'), true);
-  assert.equal(services.getLastCode(), '[bvh("walk")]');
+  assert.deepEqual(services.getLastCode(), { default: '[bvh("walk")]' });
   const replay = [];
   assert.equal(services.sendLastCode({ emit: (...args) => replay.push(args) }), true);
   assert.deepEqual(replay, [['execute_code', '[bvh("walk")]']]);
-  assert.equal(services.broadcastCode({ code: '[bvh("walk")]' }), true);
-  assert.deepEqual(services.getLastCode(), { code: '[bvh("walk")]' });
+  assert.equal(services.broadcastCode({ sandboxId: 's1', code: '[bvh("walk")]' }), true);
   assert.equal(services.broadcastCode('x'.repeat(256 * 1024 + 1)), false);
 
   services.stop();

@@ -6,8 +6,23 @@ import { getXrBoneBounds, getXrLineColors, getXrRigsFromPayload, getXrTransform 
 const status = document.getElementById('status');
 const enterVr = document.getElementById('enter-vr');
 const socket = window.io({ transports: ['websocket', 'polling'] });
-let activeRigs = [];
-let latestPayload = '[bvh("deep_breath")]';
+const rigMap = new Map();
+let lastVrSend = 0;
+
+function setStatus(message) {
+  status.textContent = message;
+}
+
+function disposeRigRecord(rig) {
+  if (!rig) return;
+  scene.remove(rig.group);
+  scene.remove(rig.helper);
+  rig.mixer.stopAllAction();
+  rig.mixer.uncacheRoot(rig.root);
+  rig.helper.geometry.dispose();
+  rig.helper.material.dispose();
+}
+
 const scene = new THREE.Scene();
 const clock = new THREE.Clock();
 scene.background = new THREE.Color('#05070a');
@@ -30,29 +45,32 @@ player.add(camera);
 const controllers = [renderer.xr.getController(0), renderer.xr.getController(1)];
 controllers.forEach(controller => player.add(controller));
 
-let lastVrSend = 0;
-
-function setStatus(message) {
-  status.textContent = message;
-}
-
-function disposeRigs() {
-  for (const rig of activeRigs) {
-    scene.remove(rig.group);
-    scene.remove(rig.helper);
-    rig.mixer.stopAllAction();
-    rig.mixer.uncacheRoot(rig.root);
-    rig.helper.geometry.dispose();
-    rig.helper.material.dispose();
-  }
-  activeRigs = [];
-}
-
-function loadRigs(payload) {
-  latestPayload = payload;
-  disposeRigs();
+function handleExecuteCode(payload) {
   const states = getXrRigsFromPayload(payload);
+  const sandboxId = typeof payload === 'object' && payload !== null ? (payload.sandboxId || 'default') : 'default';
+  const type = typeof payload === 'object' && payload !== null ? payload.type : null;
+
+  if (type === 'clearSandbox') {
+    for (const [key, rig] of rigMap.entries()) {
+      if (key.startsWith(`${sandboxId}:`)) {
+        disposeRigRecord(rig);
+        rigMap.delete(key);
+      }
+    }
+    return;
+  }
+  if (type === 'clearAll') {
+    for (const rig of rigMap.values()) disposeRigRecord(rig);
+    rigMap.clear();
+    return;
+  }
+
   states.forEach((state, index) => {
+    const key = `${state.sandboxId || sandboxId}:${index}`;
+    if (rigMap.has(key)) {
+      disposeRigRecord(rigMap.get(key));
+      rigMap.delete(key);
+    }
     const loader = new BVHLoader();
     const url = `./assets/bvh/${encodeURIComponent(state.file)}.bvh`;
     loader.load(url, result => {
@@ -65,7 +83,7 @@ function loadRigs(payload) {
       group.updateMatrixWorld(true);
       const boneBounds = getXrBoneBounds(result.skeleton.bones);
       const transform = getXrTransform(boneBounds, state);
-      transform.position[0] += index * 1.5;
+      transform.position[0] += (state.order ?? index) * 150;
       group.scale.setScalar(transform.scale);
       if (state.dummy) root.visible = true;
       group.position.fromArray(transform.position);
@@ -108,7 +126,7 @@ function loadRigs(payload) {
       const action = mixer.clipAction(result.clip).play();
       mixer.timeScale = state.speed * (state.reverse ? -1 : 1);
       if (state.reverse) action.time = result.clip.duration;
-      activeRigs.push({ group, root, helper, mixer });
+      rigMap.set(key, { group, root, helper, mixer });
       setStatus(`Connected · ${state.file}`);
     }, undefined, error => setStatus(`Unable to load ${state.file}.bvh: ${error?.message || 'check server'}`));
   });
@@ -126,7 +144,7 @@ function controllerData() {
 
 function render(time, _frame) {
   const delta = clock.getDelta();
-  for (const rig of activeRigs) {
+  for (const rig of rigMap.values()) {
     rig.mixer.update(delta);
     rig.group.updateMatrixWorld(true);
     rig.helper.updateMatrixWorld(true);
@@ -149,7 +167,7 @@ socket.on('connect', () => {
   setStatus('Connected · waiting for desktop code');
 });
 socket.on('disconnect', () => setStatus('Disconnected from desktop tunnel'));
-socket.on('execute_code', payload => loadRigs(payload));
+socket.on('execute_code', payload => handleExecuteCode(payload));
 socket.on('vr_status', ({ status: vrStatus }) => {
   if (vrStatus === 'connected') setStatus('VR client connected');
 });
@@ -172,4 +190,4 @@ if (navigator.xr) {
 }
 
 renderer.setAnimationLoop(render);
-loadRigs(latestPayload);
+handleExecuteCode('[bvh("deep_breath")]');

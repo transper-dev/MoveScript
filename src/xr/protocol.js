@@ -64,20 +64,26 @@ export function getXrTransform(bounds, state) {
 
 export function getXrRigsFromPayload(payload) {
   const code = typeof payload === 'string' ? payload : payload?.code;
-  if (typeof code !== 'string') return [parseXrCode(code)];
+  const sandboxId = typeof payload === 'object' && payload !== null ? (payload.sandboxId || 'default') : 'default';
+  const order = typeof payload === 'object' && payload !== null && Number.isInteger(payload.order) ? payload.order : 0;
+  if (typeof code !== 'string') return [{ ...parseXrCode(code), sandboxId, order }];
   const blocks = code.split(';').map(part => part.trim()).filter(Boolean);
   if (blocks.length <= 1 && !/\bCHAIN\b/i.test(code)) {
-    return [parseXrCode(code)];
+    return [{ ...parseXrCode(code), sandboxId, order }];
   }
-  return blocks.map(block => parseXrCode(block));
+  return blocks.map((block, i) => ({ ...parseXrCode(block), sandboxId: `${sandboxId}_${i}`, order: order + i }));
 }
 
 export function parseXrCode(payload) {
   const code = typeof payload === 'string' ? payload : payload?.code;
-  if (typeof code !== 'string') return { ...DEFAULT_XR_STATE };
+  const sandboxId = typeof payload === 'object' && payload !== null ? (payload.sandboxId || 'default') : 'default';
+  const order = typeof payload === 'object' && payload !== null && Number.isInteger(payload.order) ? payload.order : 0;
+  if (typeof code !== 'string') return { ...DEFAULT_XR_STATE, sandboxId, order };
 
   const positionMatch = code.match(/\.pos\(\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*,\s*([-+]?\d*\.?\d+)\s*\)/i);
   return {
+    sandboxId,
+    order,
     file: firstMatch(code, /(?:\[\s*bvh|\.bvh)\(\s*["']([^"']+)["']\s*\)/i, DEFAULT_XR_STATE.file),
     color: firstMatch(code, /\.color\(\s*["']([^"']+)["']/i),
     color2: firstMatch(code, /\.color\(\s*["'][^"']+["']\s*,\s*["']([^"']+)["']/i),
