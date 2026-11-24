@@ -1,116 +1,125 @@
-# MoveScript: Creative Coding Environment for the Artistic Exploration of Motion Capture
+# MoveScript
 
-This tool is a web-based creative coding environment designed to transform human movement into video art. The core concept is based on a specific workflow: the user records a video of themselves performing a movement, converts it into a motion capture file (`.bvh`), and imports it into the software. 
+MoveScript is a creative-coding environment for turning BVH motion-capture files into live 3D scenes. The editor uses a small declarative DSL for loading animations, chaining movements, changing playback, drawing trails, and controlling the shared Three.js scene.
 
-From that moment on, their own body becomes the raw material for the artwork. Through live coding, the creator can alter time, add light trails, and apply transformations to create abstract visual compositions centered around a single performer. The goal of this project is to bridge the physical world and code, offering a space where anyone can experiment and turn their own dance or everyday gesture into a unique piece of digital art.
-## Key Features
-* **Fluent Choreographic API:** A high-level, chainable language designed for live performance. Sculpt your 3D scene with zero boilerplate, turning technical logic into expressive commands.
-* **Skeletal & Ghost Manipulation:** Total control over body representation. Work with a solid skeleton, hide it to focus on pure geometry, or create temporal echoes with dynamic light trails.
-* **Spatiotemporal Control:** Precise manipulation of the performance's fabric. Reverse the choreography, alter the playback speed to create slow-motion aesthetics, or rotate the entire universe around the dancer.
+## Profiles
 
-## How to Use (Getting Started)
+### Web static profile
 
-You don't need to be a programmer to start using MoveScript. You have two simple ways to access the environment:
+Open `index.html` from a static host such as GitHub Pages or the deployed web demo:
 
-### 1. Web Version (Instant Access)
-The easiest way to start creating. Just open your browser and go to the live environment (no installation required):
-**[Play MoveScript on the Web](https://movescript.netlify.app/)**
+**[Open MoveScript](https://movescript.netlify.app/)**
 
-### 2. Desktop Version (Windows .exe)
-For the best performance, offline use, and the ability to load your own local `.bvh` files instantly by dragging them into your folder:
-1. Go to the [Releases page](https://github.com/transper-dev/MoveScript/releases) of this repository.
-2. Download the latest `MoveScript Setup.exe`.
-3. Install it and start coding!
+The web profile provides the editor, Three.js preview, bundled BVH assets, animation drawer, help panel, and local browser persistence. It does not provide Electron-only local-file access, the VR tunnel, or OSC output.
 
----
+### Electron desktop profile
 
-## For Developers (Local Build)
-
-If you want to modify the source code or add new features, you can run the project locally using a static server:
+Install dependencies and run:
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/transper-dev/MoveScript.git
-cd MoveScript
-
-# 2. Install dependencies
 npm install
-
-# 3. Run locally
-# Use a static server to serve the files
-npx serve .
+npm start
 ```
 
-## Quick Start & Usage
+Electron starts the editor and a local Express + Socket.IO server on `127.0.0.1:3000`. The server serves the packaged application and bundled files from `assets/`. Electron-only controls provide:
 
-Instead of writing verbose standard Three.js code, this environment uses a declarative approach. You can sculpt movement with just a few lines of code.
+- Local BVH listing, reading, and saving through IPC.
+- A Pinggy SSH reverse tunnel for sharing the local server.
+- OSC output from VR controller telemetry.
 
-![Default Editor View](docs/default.png) 
+User BVH files are kept in the application user-data directory under `MoveScript_BVH`; this directory is separate from the packaged `assets/` tree.
+
+## WebXR viewer
+
+The desktop server exposes a dedicated WebXR page at:
+
+```text
+/webxr.html
+```
+
+Open that URL from the public tunnel URL in a WebXR-capable browser or Meta Quest browser, then choose **Enter immersive VR**. The viewer:
+
+1. Connects to the same-origin Socket.IO server.
+2. Announces itself with `xr_ready` and receives the latest editor code.
+3. Receives later `execute_code` messages whenever code is run in the Electron editor.
+4. Loads the referenced bundled BVH animation and renders it in the immersive Three.js scene.
+5. Sends controller positions as `vr_data` while connected.
+
+The editor sends the original MoveScript source. The WebXR viewer interprets the supported animation and visual modifiers locally, so the static web profile remains independent of the desktop bridge.
+
+## OSC bridge
+
+When OSC is enabled in Electron, the server maps controller heights and sends them to `127.0.0.1:12000`:
+
+- Left controller Y → `/vr/left_y`, bounded to `0–127`.
+- Right controller Y → `/vr/right_y`, bounded to `1000–5000`.
+
+The bridge is intended for OSC-compatible tools such as Max/MSP, SuperCollider, TouchDesigner, or other local OSC receivers.
+
+## Project structure
+
+```text
+assets/                 Bundled BVH, GIF, documentation, and icon assets
+config/                 ESLint and Playwright configuration
+electron/               Electron main process, preload bridge, IPC validation, and desktop services
+src/core/               Sandbox state, actions, and layout persistence
+src/dsl/                MoveScript block parser and transpiler
+src/engine/             Three.js scene, BVH loading, sandbox contexts, and iframe bridge
+src/platform/           Web and Electron capability profiles
+src/shared/             Parent/iframe message protocol
+src/ui/                 Editor windows, tabs, drawer, help, storage, and desktop controls
+src/xr/                 WebXR client and source-code interpretation helpers
+tests/                  Node/jsdom unit tests and Playwright E2E tests
+index.html              Main editor entry point
+webxr.html              Dedicated WebXR entry point
+electron/main.js        Electron application entry point
+```
+
+## Quick DSL example
 
 ```javascript
-// Example: Group manipulation and specific dummy targeting
 [bvh("monster_walk")]
 >[dummy()]
 >[color("red", "blue")]
->[bones(3).color("green").bvh("serious_walk")];
+>[trail(30)]
 ```
-## Editor Controls (UI)
-The editor is designed for a seamless live performance experience, keeping the interface minimal and out of the way:
 
-* **Run (Ctrl + Enter):** Instantly executes the code written in the editor and updates the 3D scene.
-* **Hide / Show (Esc):** Toggles the visibility of the code editor window so you can enjoy a clean, unobstructed view of your artwork.
-* **Pause (Ctrl + P):** Freezes or resumes the entire 3D scene globally.
-* **Save (Ctrl + S):** Instantly saves your current code state directly from the UI.
-* **Drag & Resize:** The code editor is a floating window. You can drag it around the screen or resize it from the bottom-right corner to fit your workspace perfectly.
-* **BVH Drawer (Bottom Menu):** Click the bottom handle to reveal an auto-generated, scrollable carousel of all your available `.bvh` motion capture files. Clicking any animation automatically injects it into your code and plays it instantly.
-## API Reference (The Language)
+Use `>` between closed blocks to chain animation steps. Common modifiers include `color`, `pos`, `rotX`, `rotY`, `rotZ`, `scale`, `speed`, `reverse`, `skeleton`, `trail`, `bones`, `joints`, `box`, and `delay`.
 
-MoveScript uses a custom, highly declarative syntax. Instead of assigning variables or writing loops, you define a base animation and "pipe" transformations to it using brackets `[]` and arrows `>`.
+## Editor controls
 
-### Environment Functions
-These standard functions set up the global 3D scene (usually placed at the top of your code):
-* **`clear()`**: Instantly clears the entire scene and resets the engine.
-* **`grid(size, divisions)`**: Creates the floor grid. Defaults to `400, 10` if left empty.
-* **`cam(x, y, z, lookX, lookY, lookZ)`**: Positions the camera at specific coordinates and sets its look-at target.
-* **`bg(color)`**: Paints the background with a specific color (e.g., `bg("#000105")`).
-* **`rot(speed)`**: Constantly rotates the entire global scene over time.
+| Action | Shortcut |
+| --- | --- |
+| Run current sandbox | `Ctrl + Enter` |
+| Run all sandboxes | `Ctrl + Shift + Enter` |
+| Pause all sandboxes | `Ctrl + P` |
+| Save current sandbox | `Ctrl + S` |
+| Hide/show current window | `Esc` |
 
-### The Declarative Syntax (Brackets & Pipes)
-The core of the choreography is built using structural blocks:
-* **`[bvh("name")]`**: The starting point. Loads a `.bvh` file from the assets folder and spawns the base dancer.
-* **`>` (The Pipe Operator)**: Passes the current state into the next set of rules or transformations.
-* **`[dummy()]`**: Activates the basic geometric humanoid dancer with standard proportions.
+The editor supports multiple sandbox windows, tabs, drag-and-drop tab movement, resizing, local browser persistence, scene selection, and keyboard movement/rotation of selected rigs.
 
-### Properties & Modifiers
-These modifiers can be applied globally to an entire group (e.g., `>[color("red")]`) or chained to a specific target (e.g., `>[dummy(2).scale(2)]`):
-* **`color(color1, [color2])`**: Applies colors to the skeletons and trails. If add a second color it creates a gradient distribution.
-* **`pos(x, y, z)`**: Moves the dancer or group across the 3D space.
-* **`rotX(rad)`, `rotY(rad)`, `rotZ(rad)`**: Rotates the elements on a specific axis.
-* **`scale(s)`**: Changes the overall size of the geometries.
-* **`speed(v)`**: Playback speed multiplier (1 is normal, 2 is double, 0.5 is slow motion).
-* **`trail(length)`**: Configures the ghost trail length (e.g., `trail(40)`). Use `0` to disable.
-* **`skeleton(boolean)`**: Shows or hides the solid bones (`true`/`false`).
-* **`bones(width, [length])`**: Modifies the geometry of the bones. The first number sets the thickness, and the optional second number sets the length multiplier.
-* **`joints(size)`**: Defines the size of the spherical joints connecting the bones.
-* **`delay(s)`**: Sets an initial delay (in seconds) before the animation starts playing.
-* **`reverse(boolean)`**: Reverses the animation playback direction (`true`/`false`).
-* **`duplicate()`**: Creates a copy of the current animation handle to be manipulated independently.
-* **`pause()`**: Pauses playback of the animation (`true`/`false`).
+## Development commands
 
-## Advanced Controls (Multi-Sandbox)
-MoveScript supports multiple concurrent sandbox environments, allowing for complex, layered choreography.
+```bash
+npm test             # Node test suite
+npm run lint         # ESLint for src/ and electron/
+npm run test:e2e     # Playwright Chromium tests
+npm run test:coverage
+```
 
-* **Pestañas (Tabs):** Add, reorder, and close code editors using tabs within a window.
-* **Ventanas Flotantes:** Move, resize, and stack multiple editor windows for a customized workspace.
-* **Run All (Ctrl + Shift + Enter):** Executes all active sandboxes simultaneously.
-* **Pausar todo (Ctrl + P):** Globally freezes or resumes all animations across all sandboxes.
+The CI workflow runs linting, unit tests with coverage, and Playwright E2E tests.
 
-## Safe Sandbox Security
-MoveScript executes user code in a strictly secured, isolated sandbox environment:
-* Your code runs with restricted access (no prototype access).
-* Only core `Math` functions are exposed by default.
-* The standard `THREE` library is NOT exposed globally; animations and visual elements must be controlled through the MoveScript DSL.
-* The `clear()` function only resets the state of the *current* sandbox, leaving other active sandboxes untouched.
+## Dependencies
 
-## Standard Three.js Support
-While the core experience is designed for high-level DSL usage, you can still leverage Three.js for custom needs. Note that all Three.js elements must be created and added to the scene within your sandbox code context, ensuring they are correctly cleaned up when `clear()` is called.
+- Electron
+- Express
+- Socket.IO
+- Three.js
+- CodeMirror
+- Playwright
+- jsdom
+- node-osc
+
+## License
+
+ISC

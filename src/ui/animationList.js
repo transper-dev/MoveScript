@@ -15,6 +15,10 @@ export async function initAnimationList() {
     return;
   }
 
+  const previewableAnimations = new Set([
+    'deep_breath', 'flapping_wings', 'froging', 'headbutt', 'little_dance',
+    'open_arms_spin', 'pendulum', 'posing', 'surprise'
+  ]);
   let animacionesGlobales = [];
   let animacionesLocales = [];
 
@@ -54,11 +58,15 @@ export async function initAnimationList() {
     btn.addEventListener('mouseenter', () => {
       span.textContent = `ADD ${nombre}`;
       if (hoverContainer && hoverImage) {
-        if (!esLocal) {
+        if (!esLocal && previewableAnimations.has(nombre)) {
+          hoverImage.onerror = () => {
+            hoverImage.removeAttribute('src');
+            hoverContainer.classList.remove('visible');
+          };
           hoverImage.src = `./assets/gifs/${nombre}.gif`;
-          hoverImage.onerror = () => hoverContainer.classList.remove('visible');
           hoverImage.style.display = 'block';
         } else {
+          hoverImage.removeAttribute('src');
           hoverImage.style.display = 'none';
         }
 

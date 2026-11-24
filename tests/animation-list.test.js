@@ -36,3 +36,21 @@ test('AnimationList UI - render animations and click insertion', async () => {
   items[0].click();
   assert.strictEqual(editorValue, '[bvh("turn")]');
 });
+
+test('AnimationList UI - does not request previews for animations without GIF assets', async () => {
+  document.body.innerHTML = `
+    <div id="bvh-list"></div>
+    <iframe id="preview"></iframe>
+    <div id="hover-preview-container"><img id="hover-preview-image"></div>
+  `;
+  global.window.editor = { getValue: () => '', setValue: () => {}, focus: () => {} };
+  global.window.runActiveSandbox = () => {};
+  global.fetch = async () => ({ ok: true, json: async () => ['pain', 'deep_breath'] });
+
+  await initAnimationList();
+
+  const items = document.querySelectorAll('.bvh-item');
+  items[0].dispatchEvent(new window.Event('mouseenter'));
+
+  assert.equal(document.getElementById('hover-preview-image')?.src || '', '');
+});

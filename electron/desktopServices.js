@@ -46,10 +46,15 @@ export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus
   const oscClient = new OscClient(LOOPBACK_HOST, OSC_PORT);
 
   const assetMount = { route: '/assets', directory: join(staticDir, 'assets') };
+  const faviconPath = join(assetMount.directory, 'icons', 'icon.ico');
+  const gifDirectory = join(assetMount.directory, 'gifs');
   expressApp.use(assetMount.route, express.static(assetMount.directory, { dotfiles: 'deny', fallthrough: false }));
+  expressApp.use('/assets/gifs', express.static(gifDirectory, { dotfiles: 'deny', fallthrough: true }));
+  expressApp.get('/favicon.ico', (_request, response) => response.sendFile(faviconPath));
   expressApp.use(express.static(staticDir, { dotfiles: 'deny', fallthrough: false }));
 
   let pendingVrData = null;
+  let lastCode = null;
   let oscEnabled = false;
   let tunnelProcess = null;
   const flushTimer = setInterval(() => {
@@ -63,7 +68,14 @@ export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus
   const broadcastCode = data => {
     if (typeof data !== 'string' && (!data || typeof data !== 'object')) return false;
     if (JSON.stringify(data).length > MAX_CODE_LENGTH) return false;
+    lastCode = data;
     io.emit('execute_code', data);
+    return true;
+  };
+
+  const sendLastCode = socket => {
+    if (lastCode === null || !socket?.emit) return false;
+    socket.emit('execute_code', lastCode);
     return true;
   };
 
@@ -79,6 +91,7 @@ export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus
         isVrClient = true;
         updateVrStatus('connected');
       }
+      sendLastCode(socket);
     });
     socket.on('update_code', broadcastCode);
     socket.on('vr_data', data => {
@@ -93,6 +106,9 @@ export function createDesktopServices({ staticDir, onTunnelStart, onTunnelStatus
   return {
     assetMount,
     broadcastCode,
+    isVrClient: isQuestSocket,
+    getLastCode: () => lastCode,
+    sendLastCode,
     start() {
       return new Promise((resolve, reject) => {
         server.once('error', reject);
