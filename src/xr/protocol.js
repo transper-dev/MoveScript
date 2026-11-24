@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 const DEFAULT_XR_STATE = {
   file: 'dummy',
   color: null,
@@ -30,7 +32,7 @@ function numberMatch(code, pattern, fallback, min, max) {
 
 export function getXrBoneBounds(bones) {
   const points = (bones || []).filter(bone => bone?.isBone).map(bone => {
-    const target = { x: 0, y: 0, z: 0, set(x, y, z) { this.x = x; this.y = y; this.z = z; return this; } };
+    const target = new THREE.Vector3();
     return bone.getWorldPosition(target) || target;
   });
   const validPoints = points.filter(point => Number.isFinite(point?.x) && Number.isFinite(point?.y));

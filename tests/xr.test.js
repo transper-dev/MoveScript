@@ -82,3 +82,15 @@ test('getXrBoneBounds measures bone world positions for BVH rigs', () => {
     centerX: 1
   });
 });
+
+test('getXrBoneBounds passes a THREE.Vector3-compatible target to bones', () => {
+  const bones = [{
+    isBone: true,
+    getWorldPosition: target => {
+      assert.equal(typeof target.setFromMatrixPosition, 'function');
+      return target.set(0, 2, 0);
+    }
+  }];
+
+  assert.deepEqual(getXrBoneBounds(bones), { minY: 2, height: 0.001, centerX: 0 });
+});
