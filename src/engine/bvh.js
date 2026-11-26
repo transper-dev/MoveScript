@@ -283,6 +283,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
 
       const helper = new THREE.SkeletonHelper(root);
       helper.skeleton = result.skeleton;
+      helper.frustumCulled = false;
 
       if (handle._isChained && !handle._isHead) {
         helper.visible = false;
@@ -367,6 +368,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
 
                   if (handle._reqBones && length > 0.01) {
                     const mesh = new THREE.Mesh(baseCylGeom, dummyMat);
+                    mesh.frustumCulled = false;
 
                     const boneLenMulti = handle._boneLength ?? 1.0;
                     const longitudVisible = length * boneLenMulti;
@@ -396,6 +398,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
 
               if (jointSize > 0) {
                 const jointMesh = new THREE.Mesh(baseSphereGeom, dummyMat);
+                jointMesh.frustumCulled = false;
                 jointMesh.scale.setScalar(jointSize);
                 bone.add(jointMesh);
               }
@@ -423,6 +426,7 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
             opacity: opacidadActual
           });
           const boxMesh = new THREE.LineSegments(edges, mat);
+          boxMesh.frustumCulled = false;
           boxMesh.visible = false;
           scene.add(boxMesh);
           const offsetDist = (i - 1) * (handle._boxDist ?? 0.5);

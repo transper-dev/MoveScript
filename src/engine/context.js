@@ -124,6 +124,7 @@ export class SandboxContext {
         snapMat.transparent = true;
         snapMat.opacity = 0.6;
         const snapLine = new THREE.LineSegments(snapGeom, snapMat);
+        snapLine.frustumCulled = false;
         scene.add(snapLine);
         this.trails.push({ mesh: snapLine, life: 0.6, decay: 0.6 / trailLen });
       }
