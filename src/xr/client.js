@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
-import { getCtx, contexts } from '../engine/context.js';
+import { getCtx, contexts, allRigs } from '../engine/context.js';
 import { buildApi, executeInSandbox } from '../engine/api.js';
 import { scene, camera, renderer, clock, controls } from '../engine/scene.js';
 import { incrementFrameCount } from '../engine/utils.js';
@@ -21,7 +21,15 @@ player.add(camera);
 
 renderer.xr.addEventListener('sessionstart', () => {
   player.scale.set(100, 100, 100);
-  player.position.set(0, 0, 240);
+  let centerX = 0;
+  const rigs = allRigs();
+  if (rigs.length > 0) {
+    const minX = Math.min(...rigs.map(r => r.group.position.x));
+    const maxX = Math.max(...rigs.map(r => r.group.position.x));
+    centerX = (minX + maxX) / 2;
+  }
+  player.position.set(centerX, 0, 240);
+  player.rotation.set(0, 0, 0);
 });
 
 renderer.xr.addEventListener('sessionend', () => {
