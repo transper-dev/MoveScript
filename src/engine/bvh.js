@@ -303,8 +303,8 @@ export function createBvh(ctx, fileOrUrl, isChained = false) {
         helper.material.color.set(colorInicio);
       } else {
         useGradient = true;
-        colorInicio = new THREE.Color(col1 || "#00ffcc");
-        colorFin = new THREE.Color(col2 || "#0055ff");
+        colorInicio = new THREE.Color(col1 || "#ffffff");
+        colorFin = new THREE.Color(col2 || "#888888");
         helper.material.vertexColors = true;
         helper.material.color.set(0xffffff);
 

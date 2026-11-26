@@ -21,7 +21,7 @@ player.add(camera);
 
 renderer.xr.addEventListener('sessionstart', () => {
   player.scale.set(100, 100, 100);
-  player.position.set(0, 0, 350);
+  player.position.set(0, 0, 240);
 });
 
 renderer.xr.addEventListener('sessionend', () => {

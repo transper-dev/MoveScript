@@ -15,7 +15,7 @@ test('parseXrCode extracts the first animation and visual controls', () => {
 });
 
 test('getXrLineColors preserves solid and gradient colors', () => {
-  assert.deepEqual(getXrLineColors(null, null), ['#00ffcc', '#00ffcc']);
+  assert.deepEqual(getXrLineColors(null, null), ['#ffffff', '#888888']);
   assert.deepEqual(getXrLineColors('red', 'blue'), ['red', 'blue']);
 });
 

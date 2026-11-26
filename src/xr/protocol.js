@@ -31,7 +31,7 @@ function numberMatch(code, pattern, fallback, min, max) {
 }
 
 export function getXrLineColors(color, color2) {
-  return [color || '#00ffcc', color2 || color || '#00ffcc'];
+  return [color || '#ffffff', color2 || color || '#888888'];
 }
 
 export function getXrBoneBounds(bones) {
