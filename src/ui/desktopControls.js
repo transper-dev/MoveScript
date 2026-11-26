@@ -1,4 +1,5 @@
 import { capabilities } from '../platform/index.js';
+import { getAction } from '../core/actions.js';
 
 const STATES = {
   idle: { className: 'desktop-idle', label: 'Start VR Tunnel', icon: 'fas fa-vr-cardboard' },
@@ -41,6 +42,10 @@ export function initDesktopControls() {
   });
   window.electronAPI.onVrStatus(status => {
     setState(status === 'connected' ? 'connected' : 'idle');
+    if (status === 'connected') {
+      const runAll = getAction('runAll');
+      if (runAll) runAll();
+    }
   });
 
   setState('idle');

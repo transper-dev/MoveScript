@@ -20,21 +20,35 @@ scene.add(player);
 player.add(camera);
 
 renderer.xr.addEventListener('sessionstart', () => {
+  updatePlayerPosition();
+  const interval = setInterval(() => {
+    if (!renderer.xr.isPresenting) { clearInterval(interval); return; }
+    updatePlayerPosition();
+  }, 500);
+  setTimeout(() => clearInterval(interval), 3000);
+});
+
+function updatePlayerPosition() {
+  if (!renderer.xr.isPresenting) return;
   player.scale.set(100, 100, 100);
-  let centerX = 0;
+  let centerX = 0, centerZ = 0;
   const rigs = allRigs();
   if (rigs.length > 0) {
-    const minX = Math.min(...rigs.map(r => r.group.position.x));
-    const maxX = Math.max(...rigs.map(r => r.group.position.x));
+    const minX = Math.min(...rigs.map(r => r.group?.position?.x || 0));
+    const maxX = Math.max(...rigs.map(r => r.group?.position?.x || 0));
+    const minZ = Math.min(...rigs.map(r => r.group?.position?.z || 0));
+    const maxZ = Math.max(...rigs.map(r => r.group?.position?.z || 0));
     centerX = (minX + maxX) / 2;
+    centerZ = (minZ + maxZ) / 2;
   }
-  player.position.set(centerX, 0, 240);
+  player.position.set(centerX, 0, centerZ + 225);
   player.rotation.set(0, 0, 0);
-});
+}
 
 renderer.xr.addEventListener('sessionend', () => {
   player.scale.set(1, 1, 1);
   player.position.set(0, 0, 0);
+  player.rotation.set(0, 0, 0);
   camera.position.set(0, 150, 350);
   if (controls?.target) controls.target.set(0, 100, 0);
   controls?.update?.();
@@ -54,18 +68,21 @@ function handleExecuteCode(payload) {
 
   if (type === 'clearSandbox') {
     ctx.destroy();
+    updatePlayerPosition();
     return;
   }
   if (type === 'clearAll') {
     for (const c of Array.from(ctx.constructor.contexts || [ctx])) {
       c.destroy?.();
     }
+    updatePlayerPosition();
     return;
   }
 
   ctx.clear();
   try {
     executeInSandbox(ctx, code);
+    updatePlayerPosition();
     setStatus(`Connected · Sandbox ${sandboxId}`);
   } catch (err) {
     setStatus(`Sandbox ${sandboxId} error: ${err.message}`);
