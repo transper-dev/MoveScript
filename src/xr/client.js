@@ -14,10 +14,11 @@ function setStatus(message) {
   status.textContent = message;
 }
 
+renderer.xr.enabled = true;
 const player = new THREE.Group();
-player.position.set(0, 1.6, 6);
+// player.position.set(0, 1.6, 6); // Removed: XR tracking handles user position
 scene.add(player);
-player.add(camera);
+// player.add(camera); // Removed: WebXR handles camera rig
 
 const controllers = [renderer.xr.getController(0), renderer.xr.getController(1)];
 controllers.forEach(controller => player.add(controller));
@@ -102,7 +103,9 @@ socket.on('vr_status', ({ status: vrStatus }) => {
 if (navigator.xr) {
   enterVr.addEventListener('click', async () => {
     try {
-      await renderer.xr.setSession(await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor'] }));
+      const session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor'] });
+      await renderer.xr.setSession(session);
+      renderer.xr.setReferenceSpaceType('local-floor');
     } catch (error) {
       setStatus(`WebXR unavailable: ${error.message}`);
     }
