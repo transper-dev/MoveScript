@@ -16,9 +16,9 @@ function setStatus(message) {
 
 renderer.xr.enabled = true;
 const player = new THREE.Group();
-// player.position.set(0, 1.6, 6); // Removed: XR tracking handles user position
+player.position.set(0, 0, 6); // Position user 6 meters back from the models
 scene.add(player);
-// player.add(camera); // Removed: WebXR handles camera rig
+player.add(camera);
 
 const controllers = [renderer.xr.getController(0), renderer.xr.getController(1)];
 controllers.forEach(controller => player.add(controller));
