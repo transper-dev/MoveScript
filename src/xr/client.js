@@ -16,7 +16,7 @@ function setStatus(message) {
 
 renderer.xr.enabled = true;
 const player = new THREE.Group();
-player.position.set(0, 0, 6); // Position user 6 meters back from the models
+player.position.set(0, 1.6, 6); // Position user at eye height (1.6m) and 6 meters back
 scene.add(player);
 player.add(camera);
 
