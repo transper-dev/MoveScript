@@ -113,7 +113,7 @@ export function setRot(v) {
 }
 
 // Valores iniciales
-setGrid(800, 20);
+// setGrid(800, 20); // Removed default grid to prevent overlay in WebXR unless explicitly invoked via grid()
 
 export const clock = new THREE.Clock();
 
