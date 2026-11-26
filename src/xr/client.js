@@ -16,9 +16,21 @@ function setStatus(message) {
 
 renderer.xr.enabled = true;
 const player = new THREE.Group();
-player.position.set(0, 1.6, 6); // Position user at eye height (1.6m) and 6 meters back
 scene.add(player);
 player.add(camera);
+
+renderer.xr.addEventListener('sessionstart', () => {
+  player.scale.set(100, 100, 100);
+  player.position.set(0, 0, 350);
+});
+
+renderer.xr.addEventListener('sessionend', () => {
+  player.scale.set(1, 1, 1);
+  player.position.set(0, 0, 0);
+  camera.position.set(0, 150, 350);
+  if (controls?.target) controls.target.set(0, 100, 0);
+  controls?.update?.();
+});
 
 const controllers = [renderer.xr.getController(0), renderer.xr.getController(1)];
 controllers.forEach(controller => player.add(controller));
